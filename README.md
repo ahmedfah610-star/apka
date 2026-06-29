@@ -15,9 +15,12 @@ Zaimplementowane:
   (`src/data/offers.ts`), z fallbackiem linków (`src/lib/links.ts`) gdy nie ma realnego
   linku afiliacyjnego.
 - Ekran wyników z filtrami (cena z dostawą, sklep, dostawa 24h, dostępność, sortowanie).
+- Ranking weterynarzy i fryzjerów (`/specjalisci`) — wybór miasta i kategorii, sortowanie
+  ważone oceną i liczbą opinii (`src/lib/providersService.ts`), na danych demo
+  (`src/data/uslugodawcy.ts`).
 
 Jeszcze nie podłączone (kolejne etapy z brief'u): Supabase (auth + zapis profili `pets`,
-RLS), katalog `foods` w bazie, alerty cenowe.
+RLS), katalog `foods` i `providers` w bazie, alerty cenowe.
 
 ## Wymagania
 
@@ -69,7 +72,7 @@ Nie commituj `.env.local` — jest w `.gitignore`.
 
 ```
 src/
-  app/            ekrany (Next.js App Router): / , /kreator , /wyniki
+  app/            ekrany (Next.js App Router): / , /kreator , /wyniki , /specjalisci
   components/     komponenty UI i ProfilProvider (stan profilu pupila)
   lib/            logika dopasowania, kalkulator, linki/oferty (serwis do podmiany na feed afiliacyjny)
   data/           statyczny katalog karm i przykładowe oferty (seed)
@@ -83,3 +86,5 @@ src/
 3. Przeniesienie katalogu `foods` do Supabase + moduł ofert gotowy na realny feed
    afiliacyjny (Awin/TradeDoubler) — patrz `src/lib/offersService.ts`.
 4. Alerty cenowe i powiadomienia (tabela `price_alerts`).
+5. Realne dane weterynarzy/fryzjerów (np. Google Places API) + opinie użytkowników
+   mojaŁapy w tabelach `providers` i `reviews` — patrz `src/lib/providersService.ts`.

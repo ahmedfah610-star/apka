@@ -13,6 +13,9 @@ export default function StronaGlowna() {
       <Link href="/kreator" className="w-full">
         <Przycisk>Zacznij — dobierz karmę</Przycisk>
       </Link>
+      <Link href="/specjalisci" className="mt-3 w-full">
+        <Przycisk wariant="ghost">Ranking weterynarzy i fryzjerów</Przycisk>
+      </Link>
     </main>
   );
 }

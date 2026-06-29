@@ -74,3 +74,27 @@ export interface DopasowanaKarma {
   kosztMiesiac: number | null;
   dniStarcza: number | null;
 }
+
+export type TypUslugodawcy = "weterynarz" | "fryzjer";
+
+/** Pojedyncza opinia o weterynarzu/fryzjerze (odpowiada tabeli `reviews` w Supabase) */
+export interface Opinia {
+  autor: string;
+  ocena: number; // 1-5
+  tresc: string;
+  data: string; // ISO
+}
+
+/** Weterynarz lub fryzjer w danym mieście (odpowiada tabeli `providers` w Supabase) */
+export interface Uslugodawca {
+  id: string;
+  typ: TypUslugodawcy;
+  nazwa: string;
+  miasto: string;
+  adres: string;
+  telefon?: string;
+  specjalizacje: string[];
+  ocenaSrednia: number; // 1-5, wyliczona z opinii
+  liczbaOpinii: number;
+  opinie: Opinia[];
+}
