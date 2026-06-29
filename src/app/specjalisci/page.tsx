@@ -8,14 +8,21 @@ import { KartaUslugodawcy } from "@/components/KartaUslugodawcy";
 import type { TypUslugodawcy, Uslugodawca } from "@/types/domain";
 
 export default function SpecjalisciPage() {
-  const miasta = useMemo(() => listaMiast(), []);
-  const [miasto, setMiasto] = useState(miasta[0] ?? "");
+  const miastaPodpowiedzi = useMemo(() => listaMiast(), []);
+  const [miasto, setMiasto] = useState(miastaPodpowiedzi[0] ?? "");
   const [typ, setTyp] = useState<TypUslugodawcy>("weterynarz");
   const [lista, setLista] = useState<Uslugodawca[]>([]);
+  const [zrodlo, setZrodlo] = useState<"google" | "demo">("demo");
+  const [stan, setStan] = useState<"ladowanie" | "gotowe">("ladowanie");
 
   useEffect(() => {
-    if (!miasto) return;
-    fetchProviders(miasto, typ).then((wynik) => setLista(rankingPoOpiniach(wynik)));
+    if (!miasto.trim()) return;
+    setStan("ladowanie");
+    fetchProviders(miasto.trim(), typ).then(({ source, wyniki }) => {
+      setZrodlo(source);
+      setLista(rankingPoOpiniach(wyniki));
+      setStan("gotowe");
+    });
   }, [miasto, typ]);
 
   return (
@@ -26,20 +33,21 @@ export default function SpecjalisciPage() {
 
       <h1 className="mb-1 text-xl font-bold text-primary">Weterynarze i fryzjerzy</h1>
       <p className="mb-5 text-sm text-primary/60">
-        Ranking według ocen — wybierz miasto i kategorię.
+        Ranking według ocen — wpisz miasto i wybierz kategorię.
       </p>
 
-      <select
+      <input
+        list="miasta-podpowiedzi"
         className="mb-3 w-full rounded-2xl border border-linia bg-white px-4 py-3 text-primary outline-none focus:border-primary"
+        placeholder="Miasto, np. Warszawa"
         value={miasto}
         onChange={(e) => setMiasto(e.target.value)}
-      >
-        {miasta.map((m) => (
-          <option key={m} value={m}>
-            {m}
-          </option>
+      />
+      <datalist id="miasta-podpowiedzi">
+        {miastaPodpowiedzi.map((m) => (
+          <option key={m} value={m} />
         ))}
-      </select>
+      </datalist>
 
       <div className="mb-5 grid grid-cols-2 gap-2">
         <button
@@ -62,16 +70,22 @@ export default function SpecjalisciPage() {
         </button>
       </div>
 
-      {lista.length === 0 && (
-        <p className="text-center text-sm text-primary/50">Brak danych dla tego miasta — wkrótce dodamy więcej.</p>
+      {stan === "ladowanie" && <p className="text-center text-sm text-primary/50">Szukamy…</p>}
+
+      {stan === "gotowe" && lista.length === 0 && (
+        <p className="text-center text-sm text-primary/50">
+          Brak wyników dla „{miasto}”. Sprawdź nazwę miasta lub spróbuj innej kategorii.
+        </p>
       )}
 
-      {lista.map((u, i) => (
-        <KartaUslugodawcy key={u.id} uslugodawca={u} miejsce={i + 1} />
-      ))}
+      {stan === "gotowe" &&
+        lista.map((u, i) => <KartaUslugodawcy key={u.id} uslugodawca={u} miejsce={i + 1} />)}
 
       <p className="mt-4 text-center text-xs text-primary/40">
-        Dane przykładowe (demo). Ranking uwzględnia ocenę średnią oraz liczbę opinii.
+        {zrodlo === "google"
+          ? "Dane z Google: oceny i opinie realnych klientów."
+          : "Dane przykładowe (demo) — skonfiguruj GOOGLE_PLACES_API_KEY, aby pokazać realne miejsca."}{" "}
+        Ranking uwzględnia ocenę średnią oraz liczbę opinii.
       </p>
     </main>
   );

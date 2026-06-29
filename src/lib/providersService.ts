@@ -1,12 +1,19 @@
 import type { TypUslugodawcy, Uslugodawca } from "@/types/domain";
-import { USLUGODAWCY } from "@/data/uslugodawcy";
 
-// Warstwa serwisowa weterynarzy/fryzjerów. Na etapie 1 czyta z lokalnego seeda.
-// Docelowo zostanie podmieniona na zapytanie do tabeli `providers` w Supabase
-// (zasilanej np. z Google Places + opiniami użytkowników mojaŁapy) — sygnatura
-// funkcji (miasto, typ) -> Uslugodawca[] ma się nie zmieniać.
-export async function fetchProviders(miasto: string, typ: TypUslugodawcy): Promise<Uslugodawca[]> {
-  return USLUGODAWCY.filter((u) => u.miasto === miasto && u.typ === typ);
+// Warstwa serwisowa weterynarzy/fryzjerów. Woła własny endpoint /api/specjalisci,
+// który po stronie serwera pyta Google Places API (klucz nigdy nie trafia do przeglądarki).
+// Gdy klucz Google nie jest skonfigurowany, endpoint zwraca dane demo — fetchProviders
+// o tym nie wie, więc podmiana źródła w przyszłości (np. na Supabase) nie wymaga zmian tutaj.
+export interface WynikProviders {
+  source: "google" | "demo";
+  wyniki: Uslugodawca[];
+}
+
+export async function fetchProviders(miasto: string, typ: TypUslugodawcy): Promise<WynikProviders> {
+  const params = new URLSearchParams({ miasto, typ });
+  const odpowiedz = await fetch(`/api/specjalisci?${params.toString()}`);
+  const dane = (await odpowiedz.json()) as WynikProviders;
+  return { source: dane.source ?? "demo", wyniki: dane.wyniki ?? [] };
 }
 
 /**

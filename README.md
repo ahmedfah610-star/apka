@@ -16,8 +16,9 @@ Zaimplementowane:
   linku afiliacyjnego.
 - Ekran wyników z filtrami (cena z dostawą, sklep, dostawa 24h, dostępność, sortowanie).
 - Ranking weterynarzy i fryzjerów (`/specjalisci`) — wybór miasta i kategorii, sortowanie
-  ważone oceną i liczbą opinii (`src/lib/providersService.ts`), na danych demo
-  (`src/data/uslugodawcy.ts`).
+  ważone oceną i liczbą opinii (`src/lib/providersService.ts`). Zasilany realnymi danymi
+  z **Google Places API** (`src/lib/googlePlaces.ts`, endpoint `src/app/api/specjalisci/route.ts`);
+  bez skonfigurowanego klucza automatycznie spada na dane demo (`src/data/uslugodawcy.ts`).
 
 Jeszcze nie podłączone (kolejne etapy z brief'u): Supabase (auth + zapis profili `pets`,
 RLS), katalog `foods` i `providers` w bazie, alerty cenowe.
@@ -59,13 +60,31 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
 
 Nie commituj `.env.local` — jest w `.gitignore`.
 
+## Google Places API (ranking weterynarzy/fryzjerów)
+
+1. Wejdź na [Google Cloud Console](https://console.cloud.google.com/) → stwórz projekt
+   (lub użyj istniejącego).
+2. **APIs & Services → Library** → włącz **Places API**.
+3. **APIs & Services → Credentials** → **Create Credentials → API key**.
+4. (Ważne) Ogranicz klucz: **API restrictions → Restrict key** → wybierz tylko **Places API**.
+   Klucz jest używany wyłącznie po stronie serwera, więc nie trzeba ograniczać go do domen.
+5. Włącz billing na koncie Google Cloud (Places API wymaga aktywnego billingu, ale
+   Google daje miesięczny darmowy limit, który zwykle pokrywa ruch małej aplikacji).
+6. Wklej klucz do `.env.local`:
+   ```
+   GOOGLE_PLACES_API_KEY=AIza...
+   ```
+
+Bez tego kroku `/specjalisci` działa nadal — pokazuje dane demo.
+
 ## Wdrożenie na Vercel
 
 1. Wypchnij repozytorium na GitHub.
 2. W Vercel: **Add New → Project**, wybierz repo `mojaLapa`.
 3. Framework Preset: Next.js (wykryje się automatycznie).
-4. W **Environment Variables** dodaj `NEXT_PUBLIC_SUPABASE_URL` i
-   `NEXT_PUBLIC_SUPABASE_ANON_KEY` (gdy podłączysz Supabase — etap 2).
+4. W **Environment Variables** dodaj:
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (gdy podłączysz Supabase — etap 2),
+   - `GOOGLE_PLACES_API_KEY` (żeby `/specjalisci` pokazywał realne dane, nie demo).
 5. Deploy. Działa na darmowym tierze Vercel.
 
 ## Struktura katalogów
