@@ -15,14 +15,14 @@ const RAW_OFFERS: Record<string, OfertaSeed[]> = {
   ],
   f2: [
     { foodId: "f2", shop: "Zooplus", price: 269, delivery: 0, inStock: true, fast: false },
-    { foodId: "f2", shop: "Animals.pl", price: 279, delivery: 0, inStock: true, fast: true },
+    { foodId: "f2", shop: "Ceneo", price: 279, delivery: 0, inStock: true, fast: true },
   ],
   f3: [
     { foodId: "f3", shop: "Kakadu", price: 229, delivery: 9.99, inStock: true, fast: true },
   ],
   f4: [
     { foodId: "f4", shop: "Zooplus", price: 319, delivery: 0, inStock: true, fast: true },
-    { foodId: "f4", shop: "Animals.pl", price: 329, delivery: 0, inStock: false, fast: false },
+    { foodId: "f4", shop: "Ceneo", price: 329, delivery: 0, inStock: false, fast: false },
   ],
   f5: [
     { foodId: "f5", shop: "Kakadu", price: 309, delivery: 9.99, inStock: true, fast: false },
@@ -37,7 +37,7 @@ const RAW_OFFERS: Record<string, OfertaSeed[]> = {
     { foodId: "f8", shop: "Kakadu", price: 75, delivery: 9.99, inStock: true, fast: false },
   ],
   f9: [
-    { foodId: "f9", shop: "Animals.pl", price: 83, delivery: 0, inStock: true, fast: true },
+    { foodId: "f9", shop: "Ceneo", price: 83, delivery: 0, inStock: true, fast: true },
   ],
   f10: [
     { foodId: "f10", shop: "Zooplus", price: 89, delivery: 0, inStock: true, fast: false },

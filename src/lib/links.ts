@@ -2,13 +2,14 @@
 // parametrów UTM/afiliacyjnych. Gdy podłączymy realny feed afiliacyjny (np. Awin,
 // TradeDoubler), to właśnie tutaj podmieniamy logikę — reszta aplikacji się nie zmienia.
 
+// Zweryfikowane, realne formaty adresów wyszukiwania (sprawdzone, że zwracają wyniki).
+// Sklepy, których formatu nie udało się zweryfikować, dostają fallback do Ceneo —
+// to też realny, działający agregator ofert, więc link nigdy nie jest "wymyślony".
 const SEARCH_URLS: Record<string, (query: string) => string> = {
-  Zooplus: (q) => `https://www.zooplus.pl/szukaj?q=${q}`,
-  Kakadu: (q) => `https://kakadu.pl/szukaj?q=${q}`,
-  "Animals.pl": (q) => `https://www.animals.pl/szukaj?q=${q}`,
+  Zooplus: (q) => `https://www.zooplus.pl/search?q=${q}`,
 };
 
-/** Link wyszukiwania w danym sklepie, a jeśli sklep nieznany — wyszukiwanie na Ceneo. */
+/** Link wyszukiwania w danym sklepie, a jeśli sklep nieznany/niezweryfikowany — wyszukiwanie na Ceneo. */
 export function buildFallbackUrl(shop: string, foodName: string): string {
   const query = encodeURIComponent(foodName);
   const builder = SEARCH_URLS[shop];
