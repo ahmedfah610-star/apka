@@ -73,7 +73,7 @@ export default function WynikiPage() {
           oferty: ofertyOdfiltrowane,
         };
       })
-      .filter((x): x is { wynik: DopasowanaKarma; oferty: Oferta[] } => x !== null);
+      .filter((x): x is NonNullable<typeof x> => x !== null);
 
     if (filtry.sortowanie === "cena") {
       przetworzone.sort((a, b) => {
