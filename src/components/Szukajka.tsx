@@ -1,22 +1,39 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PRODUKTY } from "@/data/produkty";
+import { PRODUKTY, type Produkt } from "@/data/produkty";
 import { formatCena, pasujeFraza } from "@/lib/filtrowanie";
+
+// Katalog do podpowiedzi — współdzielony między instancjami (nav desktop + mobile).
+let KATALOG_CACHE: Produkt[] | null = null;
 
 export function Szukajka({ mobilna = false }: { mobilna?: boolean }) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [otwarte, setOtwarte] = useState(false);
+  const [katalog, setKatalog] = useState<Produkt[]>(KATALOG_CACHE ?? PRODUKTY);
   const zamkniecie = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (KATALOG_CACHE) return;
+    fetch("/api/katalog")
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d.items) && d.items.length) {
+          KATALOG_CACHE = d.items;
+          setKatalog(d.items);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const podpowiedzi = useMemo(() => {
     const t = q.trim();
     if (t.length < 2) return [];
-    return PRODUKTY.filter((p) => pasujeFraza(p, t)).slice(0, 6);
-  }, [q]);
+    return katalog.filter((p) => pasujeFraza(p, t)).slice(0, 6);
+  }, [q, katalog]);
 
   function idzDoWynikow(fraza: string) {
     const v = fraza.trim();
@@ -43,9 +60,10 @@ export function Szukajka({ mobilna = false }: { mobilna?: boolean }) {
           onBlur={() => {
             zamkniecie.current = setTimeout(() => setOtwarte(false), 150);
           }}
-          placeholder="Czego szukasz? np. niemowlę bluza"
+          placeholder={mobilna ? "Czego szukasz?" : "Czego szukasz? np. niemowlę bluza"}
           aria-label="Szukaj produktów"
-          className="w-full bg-transparent px-3.5 py-2.5 text-[13.5px] outline-none placeholder:text-ink-2"
+          enterKeyHint="search"
+          className="w-full bg-transparent px-3.5 py-2.5 text-[16px] outline-none placeholder:text-ink-2 md:text-[13.5px]"
         />
         <button type="submit" aria-label="Szukaj" className="flex items-center gap-1 bg-ink px-3.5 py-2.5 text-tlo transition-colors hover:bg-akcent">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

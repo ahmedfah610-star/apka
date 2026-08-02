@@ -65,6 +65,7 @@ function Listing() {
   const [cenaIdx, setCenaIdx] = useState<number | null>(null);
   const [wyroznienie, setWyroznienie] = useState<FiltrWyroznienie>("wszystkie");
   const [sortBy, setSortBy] = useState<Sortowanie>("domyslnie");
+  const [filtryOtwarte, setFiltryOtwarte] = useState(false);
 
   const produkty = useMemo(
     () =>
@@ -114,9 +115,32 @@ function Listing() {
         </p>
       </div>
 
-      <div className="mx-auto grid max-w-content grid-cols-1 gap-11 px-6 pb-24 md:grid-cols-[240px_1fr] md:px-12">
+      {/* Pasek filtrów na mobile */}
+      <div className="mx-auto mb-4 flex max-w-content items-center gap-3 px-6 md:hidden">
+        <button
+          onClick={() => setFiltryOtwarte((o) => !o)}
+          className="flex items-center gap-2 border border-ink px-4 py-2.5 text-[13px] font-semibold text-ink"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M4 6h16M7 12h10M10 18h4" />
+          </svg>
+          Filtry{aktywneFiltry > 0 ? ` (${aktywneFiltry})` : ""}
+          <span className="text-ink-2">{filtryOtwarte ? "▲" : "▼"}</span>
+        </button>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as Sortowanie)}
+          className="flex-1 border border-linia-2 bg-white px-3 py-2.5 text-[13px] text-ink"
+        >
+          <option value="domyslnie">Polecane</option>
+          <option value="cena-rosnaco">Cena: od najniższej</option>
+          <option value="cena-malejaco">Cena: od najwyższej</option>
+        </select>
+      </div>
+
+      <div className="mx-auto grid max-w-content grid-cols-1 gap-8 px-6 pb-24 md:grid-cols-[240px_1fr] md:gap-11 md:px-12">
         {/* Filtry */}
-        <aside className="flex flex-col gap-8">
+        <aside className={`${filtryOtwarte ? "flex" : "hidden"} flex-col gap-8 md:flex`}>
           <div>
             <h3 className="mb-4 text-[13px] font-semibold tracking-wide text-ink-2">KATEGORIA</h3>
             <div className="flex flex-col gap-3">
@@ -218,11 +242,19 @@ function Listing() {
               Wyczyść filtry ({aktywneFiltry})
             </button>
           ) : null}
+
+          {/* Zamknięcie filtrów na mobile */}
+          <button
+            onClick={() => setFiltryOtwarte(false)}
+            className="mt-2 w-full bg-ink px-6 py-3.5 text-[13px] font-semibold tracking-wide text-tlo md:hidden"
+          >
+            POKAŻ {produkty.length} {produkty.length === 1 ? "PRODUKT" : "PRODUKTÓW"}
+          </button>
         </aside>
 
         {/* Grid produktów */}
         <div>
-          <div className="mb-6 flex justify-end">
+          <div className="mb-6 hidden justify-end md:flex">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as Sortowanie)}
