@@ -48,7 +48,7 @@ export default function StronaGlowna() {
                         <img
                           src={p.zdjecie}
                           alt={k.label}
-                          className="h-full w-full object-contain p-8 transition-transform duration-500 group-hover:scale-105"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                       ) : null}
                     </div>

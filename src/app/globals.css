@@ -66,6 +66,15 @@ body {
   50% { transform: translateY(-18px) rotate(3deg); }
 }
 
+@keyframes orbA {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(38px, -28px) scale(1.12); }
+}
+@keyframes orbB {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-46px, 22px) scale(1.08); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; }
 }
