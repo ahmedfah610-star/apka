@@ -7,6 +7,7 @@ import { StrazAdmina, wyloguj } from "@/components/StrazAdmina";
 const LINKI = [
   { href: "/admin", label: "Pulpit" },
   { href: "/admin/produkty", label: "Produkty" },
+  { href: "/admin/zamowienia", label: "Zamówienia" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

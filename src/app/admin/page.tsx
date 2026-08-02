@@ -110,6 +110,9 @@ export default function PulpitAdmina() {
         <Link href="/admin/produkty" className="bg-ink px-6 py-3 text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent">
           ZARZĄDZAJ PRODUKTAMI
         </Link>
+        <Link href="/admin/zamowienia" className="border border-ink px-6 py-3 text-[13px] font-semibold tracking-wide text-ink no-underline transition-colors hover:bg-ink hover:text-tlo">
+          ZOBACZ ZAMÓWIENIA
+        </Link>
       </div>
     </div>
   );

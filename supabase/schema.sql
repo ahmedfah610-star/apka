@@ -27,8 +27,13 @@ create table if not exists zamowienia (
   dostawa numeric not null,
   razem numeric not null,
   metoda text,
-  klient jsonb
+  klient jsonb,
+  status text not null default 'nowe',   -- nowe | oczekuje_na_platnosc | oplacone | wyslane | anulowane
+  platnosc_id text                        -- id sesji płatności (Stripe)
 );
+-- Migracja istniejącej tabeli (gdy zakładana wcześniej bez tych kolumn):
+alter table zamowienia add column if not exists status text not null default 'nowe';
+alter table zamowienia add column if not exists platnosc_id text;
 
 -- RLS: sklep czyta produkty publicznie; zapisy tylko przez service role (panel).
 alter table produkty enable row level security;
@@ -67,4 +72,31 @@ begin
       where id = poz->>'id' and stan is not null;
   end loop;
   return nowe_id;
+end $$;
+
+-- Oznaczenie zamówienia jako opłacone + zdjęcie stanu (dla płatności online).
+-- Idempotentne: jeśli zamówienie było już opłacone, nic nie odejmuje ponownie.
+create or replace function oplac_zamowienie(p_id uuid) returns void language plpgsql security definer as $$
+declare poz jsonb; v_pozycje jsonb; v_rozmiar text; v_ilosc int; v_sr jsonb; v_akt int;
+begin
+  update zamowienia set status = 'oplacone'
+    where id = p_id and status <> 'oplacone'
+    returning pozycje into v_pozycje;
+  if v_pozycje is null then return; end if;  -- brak zmiany = już opłacone
+  for poz in select * from jsonb_array_elements(v_pozycje) loop
+    v_rozmiar := poz->>'rozmiar';
+    v_ilosc := coalesce((poz->>'ilosc')::int, 0);
+    if v_rozmiar is not null and v_rozmiar <> '' then
+      select stan_rozmiary into v_sr from produkty where id = poz->>'id';
+      if v_sr is not null and v_sr ? v_rozmiar then
+        v_akt := greatest(0, coalesce((v_sr->>v_rozmiar)::int, 0) - v_ilosc);
+        update produkty
+          set stan_rozmiary = jsonb_set(stan_rozmiary, array[v_rozmiar], to_jsonb(v_akt)),
+              stan = greatest(0, coalesce(stan,0) - v_ilosc)
+          where id = poz->>'id';
+        continue;
+      end if;
+    end if;
+    update produkty set stan = greatest(0, stan - v_ilosc) where id = poz->>'id' and stan is not null;
+  end loop;
 end $$;

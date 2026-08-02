@@ -52,6 +52,7 @@ export default function StronaZamowienia() {
   const [dane, setDane] = useState({ imie: "", email: "", telefon: "", adres: "", miasto: "", kod: "" });
   const [blad, setBlad] = useState("");
   const [wysylka, setWysylka] = useState(false);
+  const [platnosciOnline, setPlatnosciOnline] = useState(false);
 
   useEffect(() => {
     fetch("/api/katalog")
@@ -59,6 +60,10 @@ export default function StronaZamowienia() {
       .then((d) => {
         if (Array.isArray(d.items) && d.items.length) setKatalog(d.items);
       })
+      .catch(() => {});
+    fetch("/api/konfiguracja")
+      .then((r) => r.json())
+      .then((d) => setPlatnosciOnline(!!d.platnosci))
       .catch(() => {});
   }, []);
 
@@ -102,7 +107,7 @@ export default function StronaZamowienia() {
     setBlad("");
     setWysylka(true);
     try {
-      const res = await fetch("/api/zamowienia", {
+      const res = await fetch("/api/platnosc/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -113,9 +118,7 @@ export default function StronaZamowienia() {
             ilosc: poz.ilosc,
             rozmiar: poz.rozmiar,
           })),
-          suma,
           dostawa,
-          razem,
           metoda: `${metoda.nazwa} · ${platnosc.nazwa}`,
           klient: {
             imie: dane.imie,
@@ -127,15 +130,21 @@ export default function StronaZamowienia() {
           },
         }),
       });
-      const dane2 = (await res.json().catch(() => ({}))) as { ok?: boolean; blad?: string };
+      const dane2 = (await res.json().catch(() => ({}))) as { ok?: boolean; blad?: string; url?: string };
       if (!res.ok || dane2.ok === false) {
         setWysylka(false);
         return setBlad(dane2.blad || "Nie udało się złożyć zamówienia. Spróbuj ponownie.");
+      }
+      // Płatność online → przekierowanie do Stripe (BLIK / Przelewy24 / karta).
+      if (dane2.url) {
+        window.location.href = dane2.url;
+        return;
       }
     } catch {
       setWysylka(false);
       return setBlad("Błąd połączenia. Spróbuj ponownie.");
     }
+    // Tryb bez płatności online — od razu potwierdzenie.
     wyczysc();
     router.push("/zamowienie/dziekujemy");
   }
@@ -282,18 +291,20 @@ export default function StronaZamowienia() {
             disabled={wysylka}
             className="block w-full bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {wysylka ? "PRZETWARZANIE…" : "ZAMAWIAM I PŁACĘ"}
+            {wysylka ? "PRZETWARZANIE…" : platnosciOnline ? "ZAMAWIAM I PŁACĘ" : "ZAMAWIAM"}
           </button>
           <p className="mt-3 flex items-center justify-center gap-1.5 text-[12px] text-ink-2">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
               <rect x="5" y="11" width="14" height="10" rx="1" />
               <path d="M8 11V8a4 4 0 0 1 8 0v3" />
             </svg>
-            Bezpieczne zamówienie
+            {platnosciOnline ? "Bezpieczna płatność — BLIK, Przelewy24, karta" : "Bezpieczne zamówienie"}
           </p>
-          <p className="mt-2 text-center text-[11px] leading-relaxed text-ink-2">
-            Wersja demonstracyjna — zamówienie nie jest realnie przetwarzane ani opłacane.
-          </p>
+          {!platnosciOnline ? (
+            <p className="mt-2 text-center text-[11px] leading-relaxed text-ink-2">
+              Płatności online nie są jeszcze aktywne — zamówienie zostanie zapisane, a my skontaktujemy się w sprawie zapłaty.
+            </p>
+          ) : null}
         </aside>
       </form>
 
