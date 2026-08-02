@@ -49,7 +49,7 @@ export const PRODUKTY: Produkt[] = [
   { id: "spodniczka-motylek", nazwa: "Spódniczka Motylek", cena: 59.9, kategoria: "dziewczynki", wiek: "2-6", wiekLabel: "2-6 lat", badge: null, zdjecie: null, hue: 320 },
   { id: "bluza-jednorozec", nazwa: "Bluza Jednorożec", cena: 74.9, kategoria: "dziewczynki", wiek: "6-12", wiekLabel: "6-12 lat", badge: "-20%", zdjecie: null, hue: 300 },
   { id: "bluza-dino", nazwa: "Bluza Dino", cena: 69.9, kategoria: "chlopcy", wiek: "2-6", wiekLabel: "2-6 lat", badge: "-20%", zdjecie: null, hue: 230 },
-  { id: "spodnie-odkrywca", nazwa: "Spodnie Odkrywca", cena: 84.9, kategoria: "chlopcy", wiek: "6-12", wiekLabel: "6-12 lat", badge: null, zdjecie: null, hue: 95 },
+  { id: "spodnie-dresowe-sportowe-158", nazwa: "Spodnie dresowe sportowe", cena: 38.99, kategoria: "chlopcy", wiek: "6-12", wiekLabel: "rozmiar 158", badge: "NOWOŚĆ", rozmiary: ["158"], zdjecie: null, hue: 250 },
   { id: "koszulka-rakieta", nazwa: "Koszulka Rakieta", cena: 44.9, kategoria: "chlopcy", wiek: "2-6", wiekLabel: "2-6 lat", badge: "NOWOŚĆ", zdjecie: null, hue: 250 },
   { id: "kurtka-piknik", nazwa: "Kurtka Piknik", cena: 149.9, kategoria: "chlopcy", wiek: "6-12", wiekLabel: "6-12 lat", badge: null, zdjecie: null, hue: 30 },
   { id: "spiochy-gwiazdki", nazwa: "Śpiochy Gwiazdki", cena: 54.9, kategoria: "niemowleta", wiek: "0-2", wiekLabel: "0-2 lata", badge: null, zdjecie: null, hue: 95 },
