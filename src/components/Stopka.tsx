@@ -36,7 +36,12 @@ export function Stopka() {
           </ul>
         </div>
       </div>
-      <p className="mx-auto mt-10 max-w-content text-xs text-ink-2">© 2026 Fasolka. Wszystkie prawa zastrzeżone.</p>
+      <div className="mx-auto mt-10 flex max-w-content items-center justify-between gap-4 text-xs text-ink-2">
+        <span>© 2026 Fasolka. Wszystkie prawa zastrzeżone.</span>
+        <Link href="/admin" className="no-underline hover:text-akcent">
+          Panel
+        </Link>
+      </div>
     </footer>
   );
 }

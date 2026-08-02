@@ -1,11 +1,12 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Nawigacja } from "@/components/Nawigacja";
 import { KartaProduktu } from "@/components/KartaProduktu";
 import { Stopka } from "@/components/Stopka";
-import { KATEGORIE_LABEL, PRODUKTY } from "@/data/produkty";
+import { KATEGORIE_LABEL, PRODUKTY, type Produkt } from "@/data/produkty";
+import { katalog } from "@/lib/sklepStore";
 import {
   filtrujProdukty,
   ZAKRESY_CENY,
@@ -34,13 +35,17 @@ const WYROZNIENIA: { key: FiltrWyroznienie; label: string }[] = [
   { key: "promocja", label: "Promocje" },
 ];
 
-// Wszystkie rozmiary występujące w katalogu (posortowane numerycznie).
-const DOSTEPNE_ROZMIARY = Array.from(new Set(PRODUKTY.flatMap((p) => p.rozmiary ?? []))).sort(
-  (a, b) => Number(a) - Number(b),
-);
-
 function Listing() {
   const params = useSearchParams();
+
+  // Katalog z kodu + produkty dodane w panelu (localStorage).
+  const [wszystkie, setWszystkie] = useState<Produkt[]>(PRODUKTY);
+  useEffect(() => setWszystkie(katalog()), []);
+  const DOSTEPNE_ROZMIARY = useMemo(
+    () => Array.from(new Set(wszystkie.flatMap((p) => p.rozmiary ?? []))).sort((a, b) => Number(a) - Number(b)),
+    [wszystkie],
+  );
+
   const startKat = params.get("kategoria");
   const poczatkowa: FiltrKategoria =
     startKat && startKat !== "wyprzedaz" && startKat in KATEGORIE_LABEL
@@ -56,7 +61,7 @@ function Listing() {
 
   const produkty = useMemo(
     () =>
-      filtrujProdukty(PRODUKTY, {
+      filtrujProdukty(wszystkie, {
         kategoria,
         wiek,
         sortBy,
@@ -64,7 +69,7 @@ function Listing() {
         cena: cenaIdx !== null ? ZAKRESY_CENY[cenaIdx] : null,
         wyroznienie,
       }),
-    [kategoria, wiek, sortBy, rozmiary, cenaIdx, wyroznienie],
+    [wszystkie, kategoria, wiek, sortBy, rozmiary, cenaIdx, wyroznienie],
   );
 
   const toggleKat = (k: FiltrKategoria) => setKategoria((c) => (c === k ? "wszystkie" : k));

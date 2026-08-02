@@ -7,6 +7,7 @@ import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
 import { WyborPaczkomatu, type Paczkomat } from "@/components/WyborPaczkomatu";
 import { useKoszyk } from "@/components/KoszykContext";
+import { dodajZamowienie } from "@/lib/sklepStore";
 import { znajdzProdukt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { METODY_DOSTAWY, kosztDostawy } from "@/lib/dostawa";
@@ -59,6 +60,21 @@ export default function StronaZamowienia() {
       return;
     }
     // Demo: brak realnej płatności/etykiety. Czyścimy koszyk i pokazujemy potwierdzenie.
+    dodajZamowienie({
+      id: Date.now().toString(36),
+      data: new Date().toISOString(),
+      pozycje: pozycjeZDanymi.map(({ poz, produkt }) => ({
+        id: produkt!.id,
+        nazwa: produkt!.nazwa,
+        cena: produkt!.cena,
+        ilosc: poz.ilosc,
+        rozmiar: poz.rozmiar,
+      })),
+      suma,
+      dostawa,
+      razem,
+      metoda: metoda.nazwa,
+    });
     wyczysc();
     router.push("/zamowienie/dziekujemy");
   }
