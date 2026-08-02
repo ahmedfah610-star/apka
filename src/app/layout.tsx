@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { KoszykProvider } from "@/components/KoszykContext";
 
 export const metadata: Metadata = {
   title: "Fasolka — ubrania dziecięce",
@@ -18,7 +19,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-tlo font-sans text-ink antialiased">{children}</body>
+      <body className="min-h-screen bg-tlo font-sans text-ink antialiased">
+        <KoszykProvider>{children}</KoszykProvider>
+      </body>
     </html>
   );
 }

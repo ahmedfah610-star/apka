@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IkonaKoszyka } from "@/components/IkonaKoszyka";
 
 export function Nawigacja({ aktywna }: { aktywna?: "home" | "produkty" }) {
   return (
@@ -24,11 +25,8 @@ export function Nawigacja({ aktywna }: { aktywna?: "home" | "produkty" }) {
           WSZYSTKIE PRODUKTY
         </Link>
       </nav>
-      <div className="flex items-center gap-5" aria-hidden>
-        <div className="relative h-[19px] w-5 cursor-pointer">
-          <div className="absolute -top-1.5 left-1 h-[9px] w-3 rounded-t-lg border-[1.5px] border-b-0 border-current" />
-          <div className="absolute bottom-0 h-3.5 w-5 border-[1.5px] border-current" />
-        </div>
+      <div className="flex items-center gap-5">
+        <IkonaKoszyka />
       </div>
     </header>
   );
