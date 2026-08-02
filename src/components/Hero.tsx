@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HeroTlo } from "@/components/HeroTlo";
 
 export function Hero() {
   return (
@@ -6,6 +7,9 @@ export function Hero() {
       className="relative overflow-hidden"
       style={{ background: "linear-gradient(180deg, oklch(98% 0.01 80) 0%, oklch(95% 0.028 45) 100%)" }}
     >
+      {/* Zdjęcie tła (jeśli wgrane); w innym wypadku widać animowane tło poniżej */}
+      <HeroTlo />
+
       {/* Subtelna, premium animacja — rozmyte plamy koloru w palecie marki */}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div

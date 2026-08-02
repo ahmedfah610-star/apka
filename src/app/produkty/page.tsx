@@ -46,6 +46,7 @@ function Listing() {
     [wszystkie],
   );
 
+  const fraza = params.get("szukaj") ?? "";
   const startKat = params.get("kategoria");
   const poczatkowa: FiltrKategoria =
     startKat && startKat !== "wyprzedaz" && startKat in KATEGORIE_LABEL
@@ -68,8 +69,9 @@ function Listing() {
         rozmiary,
         cena: cenaIdx !== null ? ZAKRESY_CENY[cenaIdx] : null,
         wyroznienie,
+        fraza,
       }),
-    [wszystkie, kategoria, wiek, sortBy, rozmiary, cenaIdx, wyroznienie],
+    [wszystkie, kategoria, wiek, sortBy, rozmiary, cenaIdx, wyroznienie, fraza],
   );
 
   const toggleKat = (k: FiltrKategoria) => setKategoria((c) => (c === k ? "wszystkie" : k));
@@ -98,8 +100,12 @@ function Listing() {
       <Nawigacja aktywna="produkty" />
 
       <div className="mx-auto max-w-content px-6 pb-2 pt-11 md:px-12">
-        <h1 className="mb-1.5 text-[32px] font-bold tracking-tight">{KATEGORIE_LABEL[kategoria]}</h1>
-        <p className="mb-7 text-[15px] text-ink-2">{produkty.length} produktów</p>
+        <h1 className="mb-1.5 text-[32px] font-bold tracking-tight">
+          {fraza ? <>Wyniki: „{fraza}"</> : KATEGORIE_LABEL[kategoria]}
+        </h1>
+        <p className="mb-7 text-[15px] text-ink-2">
+          {produkty.length} {produkty.length === 1 ? "produkt" : "produktów"}
+        </p>
       </div>
 
       <div className="mx-auto grid max-w-content grid-cols-1 gap-11 px-6 pb-24 md:grid-cols-[240px_1fr] md:px-12">

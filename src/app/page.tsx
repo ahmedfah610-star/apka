@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
 import { Hero } from "@/components/Hero";
 import { KartaProduktu } from "@/components/KartaProduktu";
+import { KafelKategorii } from "@/components/KafelKategorii";
 import { Newsletter } from "@/components/Newsletter";
 import { Reveal } from "@/components/Reveal";
 import { Stopka } from "@/components/Stopka";
@@ -32,34 +33,11 @@ export default function StronaGlowna() {
         <Reveal className="mx-auto max-w-content">
           <h2 className="mb-8 text-[26px] font-bold tracking-tight">Kupuj według kategorii</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {KATEGORIE.map((k, i) => {
-              const p = reprKategorii(k.key);
-              return (
-                <Reveal key={k.key} delay={i * 120}>
-                  <Link href={`/produkty?kategoria=${k.key}`} className="group block text-inherit no-underline">
-                    <div
-                      className="flex h-[380px] items-center justify-center overflow-hidden border border-linia md:h-[440px]"
-                      style={{
-                        background: "linear-gradient(165deg, oklch(98% 0.006 75), oklch(95% 0.016 55))",
-                      }}
-                    >
-                      {p?.zdjecie ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={p.zdjecie}
-                          alt={k.label}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : null}
-                    </div>
-                    <div className="flex items-center justify-between py-4">
-                      <span className="text-[17px] font-semibold">{k.label}</span>
-                      <span className="text-sm text-ink-2 transition-colors group-hover:text-akcent">Zobacz →</span>
-                    </div>
-                  </Link>
-                </Reveal>
-              );
-            })}
+            {KATEGORIE.map((k, i) => (
+              <Reveal key={k.key} delay={i * 120}>
+                <KafelKategorii kluczKat={k.key} label={k.label} fallbackSrc={reprKategorii(k.key)?.zdjecie ?? null} />
+              </Reveal>
+            ))}
           </div>
         </Reveal>
       </section>

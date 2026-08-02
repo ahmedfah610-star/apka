@@ -1,5 +1,46 @@
 import type { Kategoria, Produkt, Wiek } from "@/data/produkty";
 
+// --- Wyszukiwarka tekstowa (jak na Allegro) ---------------------------------
+
+const SYNONIMY: Record<Kategoria, string> = {
+  dziewczynki: "dziewczynka dziewczyna dziewczece dziewczeca corka",
+  chlopcy: "chlopiec chlopak chlopieca chlopiece syn",
+  niemowleta: "niemowle niemowlak niemowleca bobas maluch noworodek",
+};
+const STOP = new Set(["i", "oraz", "dla", "na", "w", "z", "a", "do", "po", "lub", "the"]);
+
+function normalizuj(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/ł/g, "l")
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "");
+}
+function tokeny(s: string): string[] {
+  return normalizuj(s)
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+}
+function tokenPasuje(pt: string, qt: string): boolean {
+  if (qt.length < 4) return pt === qt || pt.startsWith(qt);
+  if (pt.startsWith(qt) || qt.startsWith(pt)) return true;
+  let i = 0;
+  const n = Math.min(pt.length, qt.length);
+  while (i < n && pt[i] === qt[i]) i++;
+  return i >= 4; // wspólny rdzeń (odmiana), np. "niemowlecia" ~ "niemowleta"
+}
+
+/** Czy produkt pasuje do frazy — wszystkie słowa muszą trafić (AND). */
+export function pasujeFraza(p: Produkt, fraza: string): boolean {
+  const zapytanie = tokeny(fraza).filter((t) => !STOP.has(t));
+  if (zapytanie.length === 0) return true;
+  const zrodlo = tokeny(
+    [p.nazwa, p.kategoria, SYNONIMY[p.kategoria], p.wiekLabel, p.badge ?? "", (p.rozmiary ?? []).join(" ")].join(" "),
+  );
+  return zapytanie.every((qt) => zrodlo.some((pt) => tokenPasuje(pt, qt)));
+}
+
+
 export type FiltrKategoria = Kategoria | "wszystkie";
 export type FiltrWiek = Wiek | "wszystkie";
 export type Sortowanie = "domyslnie" | "cena-rosnaco" | "cena-malejaco";
@@ -25,6 +66,7 @@ export interface Filtry {
   rozmiary?: string[];
   cena?: ZakresCeny | null;
   wyroznienie?: FiltrWyroznienie;
+  fraza?: string;
 }
 
 /**
@@ -33,9 +75,10 @@ export interface Filtry {
  */
 export function filtrujProdukty(
   produkty: Produkt[],
-  { kategoria, wiek, sortBy, rozmiary, cena, wyroznienie }: Filtry,
+  { kategoria, wiek, sortBy, rozmiary, cena, wyroznienie, fraza }: Filtry,
 ): Produkt[] {
   const lista = produkty.filter((p) => {
+    if (fraza && fraza.trim() && !pasujeFraza(p, fraza)) return false;
     if (kategoria !== "wszystkie" && p.kategoria !== kategoria) return false;
     if (wiek !== "wszystkie" && p.wiek !== wiek) return false;
     if (rozmiary && rozmiary.length > 0 && !p.rozmiary?.some((s) => rozmiary.includes(s))) return false;
