@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { znajdzProdukt } from "@/data/produkty";
+import { reprKategorii, type Kategoria } from "@/data/produkty";
 
-const KOLAZ = [
-  { id: "dres-2-czesciowy-rozowy", top: "6%", left: "6%", rot: -5, dur: "6s", delay: "0s" },
-  { id: "spodnie-dresowe-sportowe", top: "34%", left: "40%", rot: 4, dur: "7.5s", delay: "0.6s" },
-  { id: "komplet-dresowy-mis", top: "8%", left: "58%", rot: 6, dur: "6.8s", delay: "1.1s" },
+const KOLAZ: { kat: Kategoria; top: string; left: string; rot: number; dur: string; delay: string }[] = [
+  { kat: "dziewczynki", top: "6%", left: "6%", rot: -5, dur: "6s", delay: "0s" },
+  { kat: "chlopcy", top: "34%", left: "40%", rot: 4, dur: "7.5s", delay: "0.6s" },
+  { kat: "niemowleta", top: "8%", left: "58%", rot: 6, dur: "6.8s", delay: "1.1s" },
 ];
 
 const BALONY = [
@@ -90,12 +90,12 @@ export function Hero() {
         {/* Kolaż zdjęć produktów */}
         <div className="relative hidden h-[440px] md:block">
           {KOLAZ.map((k) => {
-            const p = znajdzProdukt(k.id);
+            const p = reprKategorii(k.kat);
             if (!p?.zdjecie) return null;
             return (
               <Link
-                key={k.id}
-                href={`/produkty/${k.id}`}
+                key={k.kat}
+                href={`/produkty/${p.id}`}
                 className="absolute block bg-white shadow-[0_18px_50px_-20px_rgba(0,0,0,0.35)]"
                 style={{
                   top: k.top,

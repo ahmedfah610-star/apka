@@ -284,3 +284,8 @@ export function opisProduktu(p: Produkt): string {
 export function znajdzProdukt(id: string): Produkt | undefined {
   return PRODUKTY.find((p) => p.id === id);
 }
+
+/** Reprezentatywny produkt danej kategorii (pierwszy ze zdjęciem) — do kafli/hero. */
+export function reprKategorii(kategoria: Kategoria): Produkt | undefined {
+  return PRODUKTY.find((p) => p.kategoria === kategoria && p.zdjecie) ?? PRODUKTY.find((p) => p.kategoria === kategoria);
+}

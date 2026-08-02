@@ -5,12 +5,12 @@ import { KartaProduktu } from "@/components/KartaProduktu";
 import { Newsletter } from "@/components/Newsletter";
 import { Reveal } from "@/components/Reveal";
 import { Stopka } from "@/components/Stopka";
-import { PRODUKTY, znajdzProdukt } from "@/data/produkty";
+import { PRODUKTY, reprKategorii, type Kategoria } from "@/data/produkty";
 
-const KATEGORIE = [
-  { key: "dziewczynki", label: "Dziewczynki", img: "dres-2-czesciowy-rozowy", hue: 340 },
-  { key: "chlopcy", label: "Chłopcy", img: "spodnie-dresowe-sportowe", hue: 230 },
-  { key: "niemowleta", label: "Niemowlęta", img: "komplet-dresowy-mis", hue: 160 },
+const KATEGORIE: { key: Kategoria; label: string; hue: number }[] = [
+  { key: "dziewczynki", label: "Dziewczynki", hue: 30 },
+  { key: "chlopcy", label: "Chłopcy", hue: 250 },
+  { key: "niemowleta", label: "Niemowlęta", hue: 140 },
 ];
 
 export default function StronaGlowna() {
@@ -33,14 +33,14 @@ export default function StronaGlowna() {
           <h2 className="mb-8 text-[26px] font-bold tracking-tight">Kupuj według kategorii</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {KATEGORIE.map((k, i) => {
-              const p = znajdzProdukt(k.img);
+              const p = reprKategorii(k.key);
               return (
                 <Reveal key={k.key} delay={i * 120}>
                   <Link href={`/produkty?kategoria=${k.key}`} className="group block text-inherit no-underline">
                     <div
                       className="flex h-[380px] items-center justify-center overflow-hidden md:h-[440px]"
                       style={{
-                        background: `linear-gradient(165deg, oklch(96% 0.03 ${k.hue}), oklch(92% 0.06 ${k.hue}))`,
+                        background: `linear-gradient(165deg, oklch(97% 0.012 ${k.hue}), oklch(94% 0.022 ${k.hue}))`,
                       }}
                     >
                       {p?.zdjecie ? (
