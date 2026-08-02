@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { reprKategorii, type Kategoria } from "@/data/produkty";
 
-const KOLAZ: { kat: Kategoria; top: string; left: string; rot: number; dur: string; delay: string }[] = [
-  { kat: "dziewczynki", top: "2%", left: "3%", rot: -3, dur: "6.5s", delay: "0s" },
-  { kat: "chlopcy", top: "24%", left: "37%", rot: 3, dur: "7.5s", delay: "0.5s" },
-  { kat: "niemowleta", top: "8%", left: "62%", rot: 4, dur: "7s", delay: "1s" },
-];
+const KOLAZ: Kategoria[] = ["dziewczynki", "chlopcy"];
 
 export function Hero() {
   return (
@@ -39,27 +35,23 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Elegancki kolaż produktów (delikatny ruch) */}
-        <div className="relative hidden h-[460px] md:block">
-          {KOLAZ.map((k) => {
-            const p = reprKategorii(k.kat);
+        {/* Dwa równe kafle produktów, wyrównane */}
+        <div className="hidden grid-cols-2 gap-5 md:grid">
+          {KOLAZ.map((kat) => {
+            const p = reprKategorii(kat);
             if (!p?.zdjecie) return null;
             return (
               <Link
-                key={k.kat}
+                key={kat}
                 href={`/produkty/${p.id}`}
-                className="absolute block bg-white shadow-[0_22px_55px_-26px_rgba(0,0,0,0.32)] ring-1 ring-black/5"
-                style={{
-                  top: k.top,
-                  left: k.left,
-                  width: 212,
-                  height: 268,
-                  transform: `rotate(${k.rot}deg)`,
-                  animation: `float ${k.dur} ease-in-out ${k.delay} infinite`,
-                }}
+                className="group block aspect-[4/5] overflow-hidden bg-white shadow-[0_22px_55px_-30px_rgba(0,0,0,0.3)] ring-1 ring-black/5"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.zdjecie} alt={p.nazwa} className="h-full w-full object-contain p-3.5" />
+                <img
+                  src={p.zdjecie}
+                  alt={p.nazwa}
+                  className="h-full w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+                />
               </Link>
             );
           })}
