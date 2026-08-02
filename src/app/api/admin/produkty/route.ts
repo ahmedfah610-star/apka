@@ -29,7 +29,10 @@ export async function POST(req: Request) {
   return Response.json({ ok: true });
 }
 
-// Edycja pól (cena / stan / badge / ukryty).
+const WIEK_LABEL: Record<string, string> = { "0-2": "0-2 lata", "2-6": "2-6 lat", "6-12": "6-12 lat" };
+
+// Edycja pól (pełna: nazwa, cena, opis, kategoria, wiek, badge, rozmiary,
+// zdjęcia, stan, stanRozmiary, ukryty).
 export async function PATCH(req: Request) {
   if (!czyAdmin()) return odmowa();
   if (!supabaseWlaczony()) return brakBazy();
@@ -37,14 +40,27 @@ export async function PATCH(req: Request) {
   if (!sb) return brakBazy();
   const { id, zmiany } = (await req.json()) as {
     id: string;
-    zmiany: Partial<Pick<Produkt, "cena" | "stan" | "badge" | "ukryty" | "stanRozmiary">>;
+    zmiany: Partial<Produkt>;
   };
   const map: Record<string, unknown> = {};
+  if ("nazwa" in zmiany) map.nazwa = zmiany.nazwa;
   if ("cena" in zmiany) map.cena = zmiany.cena;
-  if ("stan" in zmiany) map.stan = zmiany.stan ?? null;
+  if ("opis" in zmiany) map.opis = zmiany.opis ?? null;
+  if ("kategoria" in zmiany) map.kategoria = zmiany.kategoria;
+  if ("wiek" in zmiany) {
+    map.wiek = zmiany.wiek;
+    map.wiek_label = WIEK_LABEL[zmiany.wiek as string] ?? zmiany.wiek;
+  }
   if ("badge" in zmiany) map.badge = zmiany.badge ?? null;
   if ("ukryty" in zmiany) map.ukryty = zmiany.ukryty;
+  if ("rozmiary" in zmiany) map.rozmiary = zmiany.rozmiary ?? [];
+  if ("zdjecia" in zmiany) {
+    map.zdjecia = zmiany.zdjecia ?? [];
+    map.zdjecie = zmiany.zdjecia?.[0] ?? null;
+  }
+  if ("zdjecie" in zmiany && !("zdjecia" in zmiany)) map.zdjecie = zmiany.zdjecie ?? null;
   const zmianaStanu = "stan" in zmiany || "stanRozmiary" in zmiany;
+  if ("stan" in zmiany) map.stan = zmiany.stan ?? null;
   if ("stanRozmiary" in zmiany) {
     map.stan_rozmiary = zmiany.stanRozmiary ?? null;
     // utrzymaj łączny stan w zgodzie z sumą po rozmiarach

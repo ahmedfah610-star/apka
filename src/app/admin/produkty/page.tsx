@@ -4,6 +4,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { type Kategoria, type Produkt, type Wiek } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { glowneZdjecie, zbudujProdukt } from "@/lib/sklepStore";
+import { EdytorProduktu } from "@/components/EdytorProduktu";
 
 const PUSTY = {
   nazwa: "",
@@ -27,6 +28,7 @@ export default function AdminProdukty() {
   const [wgrywanie, setWgrywanie] = useState(false);
   const [zapis, setZapis] = useState(false);
   const [rozwiniety, setRozwiniety] = useState<string | null>(null);
+  const [edytowany, setEdytowany] = useState<Produkt | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const odswiez = async () => {
@@ -348,9 +350,14 @@ export default function AdminProdukty() {
                     </button>
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    <button onClick={() => void usun(p.id)} className="text-[13px] text-ink-2 underline underline-offset-2 hover:text-akcent">
-                      Usuń
-                    </button>
+                    <div className="flex items-center justify-end gap-3">
+                      <button onClick={() => setEdytowany(p)} className="text-[13px] font-medium text-ink underline underline-offset-2 hover:text-akcent">
+                        Edytuj
+                      </button>
+                      <button onClick={() => void usun(p.id)} className="text-[13px] text-ink-2 underline underline-offset-2 hover:text-akcent">
+                        Usuń
+                      </button>
+                    </div>
                   </td>
                 </tr>
                 {rozwiniety === p.id && p.stanRozmiary && p.rozmiary ? (
@@ -393,10 +400,21 @@ export default function AdminProdukty() {
       ) : null}
 
       <p className="mt-6 max-w-2xl text-[12px] leading-relaxed text-ink-2">
-        Zmiany (cena, stan, status) i nowe produkty zapisują się w bazie danych (Supabase) i są wspólne dla
-        wszystkich klientów sklepu — stan magazynowy zmniejsza się automatycznie po każdym zamówieniu. Zdjęcia
-        wgrywane z dysku trafiają do Supabase Storage; możesz też dodać zdjęcie przez adres URL.
+        Szybkie zmiany (cena, stan, status) robisz w tabeli. „Edytuj" otwiera pełny edytor — zdjęcia, rozmiary,
+        opis, kategoria. Wszystko zapisuje się w bazie (Supabase) i jest wspólne dla klientów; stan schodzi
+        automatycznie po zamówieniu. Zdjęcia z dysku trafiają do Supabase Storage (albo dodaj przez URL).
       </p>
+
+      {edytowany ? (
+        <EdytorProduktu
+          produkt={edytowany}
+          onZamknij={() => setEdytowany(null)}
+          onZapisano={(zmiany) => {
+            setLista((prev) => prev.map((p) => (p.id === edytowany.id ? { ...p, ...zmiany } : p)));
+            setEdytowany(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
