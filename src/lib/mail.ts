@@ -59,18 +59,35 @@ function szablon(d: DaneMaila, doKlienta: boolean): string {
   </div>`;
 }
 
-async function wyslij(to: string, subject: string, html: string) {
+async function wyslij(to: string, subject: string, html: string): Promise<{ ok: boolean; blad?: string }> {
   const { key, from } = konfiguracja();
-  if (!key) return;
+  if (!key) return { ok: false, blad: "Brak RESEND_API_KEY" };
   try {
-    await fetch(API, {
+    const res = await fetch(API, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from, to, subject, html }),
     });
-  } catch {
-    /* nie blokuj zamówienia z powodu maila */
+    if (!res.ok) {
+      const tekst = await res.text().catch(() => "");
+      console.error(`[mail] Resend ${res.status} → ${to}: ${tekst}`);
+      return { ok: false, blad: `Resend ${res.status}: ${tekst}` };
+    }
+    return { ok: true };
+  } catch (e) {
+    const blad = e instanceof Error ? e.message : "błąd sieci";
+    console.error(`[mail] wyjątek → ${to}: ${blad}`);
+    return { ok: false, blad };
   }
+}
+
+/** Wysyłka testowa (panel) — zwraca faktyczną odpowiedź Resend do diagnozy. */
+export async function wyslijTest(to: string) {
+  return wyslij(
+    to,
+    "Test — Fasolka",
+    `<div style="font-family:system-ui,Arial,sans-serif"><h2>Działa ✓</h2><p>To testowy e-mail z Twojego sklepu Fasolka.</p></div>`,
+  );
 }
 
 /** Mail powitalny po zapisie do newslettera. */
@@ -103,7 +120,7 @@ export async function wyslijMailDostepnosci(email: string, nazwa: string, rozmia
 export async function wyslijMaileZamowienia(d: DaneMaila) {
   const { key, sklep } = konfiguracja();
   if (!key) return;
-  const zadania: Promise<void>[] = [];
+  const zadania: Promise<{ ok: boolean; blad?: string }>[] = [];
   if (d.klient.email) zadania.push(wyslij(d.klient.email, `Potwierdzenie zamówienia ${d.id.slice(0, 8)} — Fasolka`, szablon(d, true)));
   if (sklep) zadania.push(wyslij(sklep, `Nowe zamówienie ${d.id.slice(0, 8)} — ${zl(d.razem)}`, szablon(d, false)));
   await Promise.all(zadania);
