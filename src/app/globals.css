@@ -2,8 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tokeny kolorów projektu Fasolka (edytorialny, terakota jako akcent) */
+:root {
+  --tlo: oklch(99% 0.003 90);
+  --ink: oklch(18% 0.005 90);
+  --ink-2: oklch(45% 0.01 90);
+  --ink-3: oklch(35% 0.01 90);
+  --akcent: oklch(58% 0.13 40);
+  --linia: oklch(90% 0.005 90);
+  --linia-2: oklch(85% 0.005 90);
+  --szary: oklch(95% 0.005 90);
+}
+
 html,
 body {
-  background-color: #fbf8f3;
-  color: #1f3a34;
+  margin: 0;
+  background: var(--tlo);
+  color: var(--ink);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fadeUp 0.5s ease both;
 }

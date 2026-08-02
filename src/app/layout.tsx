@@ -1,21 +1,24 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ProfilProvider } from "@/components/ProfilProvider";
 
 export const metadata: Metadata = {
-  title: "mojaŁapa — dobierz karmę dla swojego pupila",
+  title: "Fasolka — ubrania dziecięce",
   description:
-    "Porównywarka karmy dla psów i kotów: dopasowanie do profilu pupila, kalkulator porcji i kosztu, oferty z różnych sklepów.",
+    "Fasolka — sklep z ubraniami dla dzieci 0-12 lat. Miękkie, bezpieczne i gotowe do zabawy. Dziewczynki, chłopcy, niemowlęta.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pl">
-      <body className="min-h-screen bg-tlo font-sans antialiased">
-        <ProfilProvider>
-          <div className="mx-auto max-w-md min-h-screen px-4 pb-10">{children}</div>
-        </ProfilProvider>
-      </body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="min-h-screen bg-tlo font-sans text-ink antialiased">{children}</body>
     </html>
   );
 }

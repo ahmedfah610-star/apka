@@ -5,15 +5,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        tlo: "#FBF8F3",
-        primary: "#1F3A34",
-        akcent: "#E8A23D",
-        szalwia: "#8BA888",
-        koral: "#E8704F",
-        linia: "#E7E0D4",
+        tlo: "var(--tlo)",
+        ink: "var(--ink)",
+        "ink-2": "var(--ink-2)",
+        "ink-3": "var(--ink-3)",
+        akcent: "var(--akcent)",
+        linia: "var(--linia)",
+        "linia-2": "var(--linia-2)",
+        szary: "var(--szary)",
+      },
+      fontFamily: {
+        sans: ['"DM Sans"', "system-ui", "sans-serif"],
+      },
+      maxWidth: {
+        content: "1400px",
       },
       borderRadius: {
-        "2xl": "1.25rem",
+        none: "0",
       },
     },
   },
