@@ -10,9 +10,15 @@ interface PunktInPost {
 
 export const revalidate = 3600;
 
+/** InPost wymaga nazwy miasta z wielkiej litery ("Warszawa", "Nowy Sącz"). */
+function normalizujMiasto(s: string): string {
+  return s.toLocaleLowerCase("pl").replace(/\p{L}+/gu, (w) => w[0].toLocaleUpperCase("pl") + w.slice(1));
+}
+
 export async function GET(req: Request) {
-  const q = (new URL(req.url).searchParams.get("q") ?? "").trim();
-  if (q.length < 2) return Response.json({ items: [] });
+  const surowe = (new URL(req.url).searchParams.get("q") ?? "").trim();
+  if (surowe.length < 2) return Response.json({ items: [] });
+  const q = normalizujMiasto(surowe);
 
   const url =
     `https://api-shipx-pl.easypack24.net/v1/points?type=parcel_locker&status=Operating` +
