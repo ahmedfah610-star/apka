@@ -12,22 +12,52 @@ import { znajdzProdukt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { METODY_DOSTAWY, kosztDostawy } from "@/lib/dostawa";
 
+const PLATNOSCI = [
+  { id: "blik", nazwa: "BLIK" },
+  { id: "karta", nazwa: "Karta płatnicza" },
+  { id: "przelewy24", nazwa: "Przelewy24" },
+];
+
+function Kroki() {
+  const kroki = ["Koszyk", "Dane i dostawa", "Gotowe"];
+  const aktywny = 1;
+  return (
+    <ol className="mb-8 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
+      {kroki.map((k, i) => (
+        <li key={k} className="flex items-center gap-3">
+          <span className={`flex items-center gap-2 ${i === aktywny ? "font-semibold text-ink" : "text-ink-2"}`}>
+            <span
+              className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold ${
+                i < aktywny ? "bg-[oklch(72%_0.12_150)] text-tlo" : i === aktywny ? "bg-ink text-tlo" : "bg-szary text-ink-2"
+              }`}
+            >
+              {i < aktywny ? "✓" : i + 1}
+            </span>
+            {k}
+          </span>
+          {i < kroki.length - 1 ? <span className="text-ink-2">—</span> : null}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 export default function StronaZamowienia() {
   const router = useRouter();
   const { pozycje, suma, wyczysc } = useKoszyk();
 
   const [metodaId, setMetodaId] = useState(METODY_DOSTAWY[0].id);
   const [paczkomat, setPaczkomat] = useState<Paczkomat | null>(null);
+  const [platnoscId, setPlatnoscId] = useState(PLATNOSCI[0].id);
   const [dane, setDane] = useState({ imie: "", email: "", telefon: "", adres: "", miasto: "", kod: "" });
   const [blad, setBlad] = useState("");
 
   const metoda = METODY_DOSTAWY.find((m) => m.id === metodaId)!;
+  const platnosc = PLATNOSCI.find((p) => p.id === platnoscId)!;
   const dostawa = kosztDostawy(metoda, suma);
   const razem = suma + dostawa;
 
-  const pozycjeZDanymi = pozycje
-    .map((poz) => ({ poz, produkt: znajdzProdukt(poz.id) }))
-    .filter((x) => x.produkt);
+  const pozycjeZDanymi = pozycje.map((poz) => ({ poz, produkt: znajdzProdukt(poz.id) })).filter((x) => x.produkt);
 
   if (pozycjeZDanymi.length === 0) {
     return (
@@ -47,19 +77,9 @@ export default function StronaZamowienia() {
 
   function zloz(e: React.FormEvent) {
     e.preventDefault();
-    if (!dane.imie || !dane.email) {
-      setBlad("Uzupełnij imię i e-mail.");
-      return;
-    }
-    if (metoda.paczkomat && !paczkomat) {
-      setBlad("Wybierz paczkomat InPost.");
-      return;
-    }
-    if (!metoda.paczkomat && (!dane.adres || !dane.miasto || !dane.kod)) {
-      setBlad("Uzupełnij adres dostawy.");
-      return;
-    }
-    // Demo: brak realnej płatności/etykiety. Czyścimy koszyk i pokazujemy potwierdzenie.
+    if (!dane.imie || !dane.email) return setBlad("Uzupełnij imię i e-mail.");
+    if (metoda.paczkomat && !paczkomat) return setBlad("Wybierz paczkomat InPost.");
+    if (!metoda.paczkomat && (!dane.adres || !dane.miasto || !dane.kod)) return setBlad("Uzupełnij adres dostawy.");
     dodajZamowienie({
       id: Date.now().toString(36),
       data: new Date().toISOString(),
@@ -73,35 +93,37 @@ export default function StronaZamowienia() {
       suma,
       dostawa,
       razem,
-      metoda: metoda.nazwa,
+      metoda: `${metoda.nazwa} · ${platnosc.nazwa}`,
     });
     wyczysc();
     router.push("/zamowienie/dziekujemy");
   }
 
-  const input = "w-full border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-ink";
+  const input = "w-full border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none transition-colors focus:border-ink";
+  const naglowek = "mb-4 text-[13px] font-semibold uppercase tracking-wide text-ink-2";
 
   return (
     <div className="overflow-x-hidden">
       <Nawigacja />
 
-      <form onSubmit={zloz} className="mx-auto grid max-w-content grid-cols-1 gap-12 px-6 py-10 md:px-12 lg:grid-cols-[1fr_360px]">
+      <form onSubmit={zloz} className="mx-auto grid max-w-content grid-cols-1 gap-10 px-6 py-10 md:px-12 lg:grid-cols-[1fr_380px]">
         <div>
-          <h1 className="mb-8 text-[32px] font-bold tracking-tight">Dostawa i dane</h1>
+          <Kroki />
+          <h1 className="mb-8 text-[30px] font-bold tracking-tight">Dane i dostawa</h1>
 
           {/* Dane kontaktowe */}
-          <section className="mb-10">
-            <h2 className="mb-4 text-[13px] font-semibold tracking-wide text-ink-2">DANE KONTAKTOWE</h2>
+          <section className="mb-8 border border-linia bg-white p-5">
+            <h2 className={naglowek}>Dane kontaktowe</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <input className={input} placeholder="Imię i nazwisko" value={dane.imie} onChange={(e) => setDane({ ...dane, imie: e.target.value })} />
+              <input className={`${input} sm:col-span-2`} placeholder="Imię i nazwisko" value={dane.imie} onChange={(e) => setDane({ ...dane, imie: e.target.value })} />
               <input className={input} placeholder="E-mail" type="email" value={dane.email} onChange={(e) => setDane({ ...dane, email: e.target.value })} />
               <input className={input} placeholder="Telefon" value={dane.telefon} onChange={(e) => setDane({ ...dane, telefon: e.target.value })} />
             </div>
           </section>
 
-          {/* Metoda dostawy */}
-          <section className="mb-10">
-            <h2 className="mb-4 text-[13px] font-semibold tracking-wide text-ink-2">SPOSÓB DOSTAWY</h2>
+          {/* Dostawa */}
+          <section className="mb-8 border border-linia bg-white p-5">
+            <h2 className={naglowek}>Sposób dostawy</h2>
             <div className="flex flex-col gap-3">
               {METODY_DOSTAWY.map((m) => {
                 const on = metodaId === m.id;
@@ -111,16 +133,17 @@ export default function StronaZamowienia() {
                     <button
                       type="button"
                       onClick={() => setMetodaId(m.id)}
-                      className={`flex w-full items-center justify-between border px-4 py-3.5 text-left transition-colors ${
-                        on ? "border-ink" : "border-linia-2 hover:border-ink-2"
-                      }`}
+                      className={`flex w-full items-center justify-between border px-4 py-3.5 text-left transition-colors ${on ? "border-ink bg-szary/40" : "border-linia-2 hover:border-ink-2"}`}
                     >
                       <span className="flex items-center gap-3">
                         <span className={`flex h-4 w-4 items-center justify-center rounded-full border-[1.5px] ${on ? "border-ink" : "border-linia-2"}`}>
                           {on ? <span className="h-2 w-2 rounded-full bg-ink" /> : null}
                         </span>
                         <span>
-                          <span className="block text-[14px] font-semibold">{m.nazwa}</span>
+                          <span className="flex items-center gap-2 text-[14px] font-semibold">
+                            {m.paczkomat ? <span className="bg-[oklch(85%_0.16_95)] px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-ink">InPost</span> : null}
+                            {m.nazwa}
+                          </span>
                           <span className="block text-[13px] text-ink-2">{m.opis}</span>
                         </span>
                       </span>
@@ -131,32 +154,59 @@ export default function StronaZamowienia() {
                 );
               })}
             </div>
+
+            {!metoda.paczkomat ? (
+              <div className="mt-5 border-t border-linia pt-5">
+                <h3 className={naglowek}>Adres dostawy</h3>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <input className={`${input} sm:col-span-2`} placeholder="Ulica i numer" value={dane.adres} onChange={(e) => setDane({ ...dane, adres: e.target.value })} />
+                  <input className={input} placeholder="Kod pocztowy" value={dane.kod} onChange={(e) => setDane({ ...dane, kod: e.target.value })} />
+                  <input className={input} placeholder="Miejscowość" value={dane.miasto} onChange={(e) => setDane({ ...dane, miasto: e.target.value })} />
+                </div>
+              </div>
+            ) : null}
           </section>
 
-          {/* Adres — tylko dla kuriera */}
-          {!metoda.paczkomat ? (
-            <section className="mb-10">
-              <h2 className="mb-4 text-[13px] font-semibold tracking-wide text-ink-2">ADRES DOSTAWY</h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <input className={`${input} sm:col-span-2`} placeholder="Ulica i numer" value={dane.adres} onChange={(e) => setDane({ ...dane, adres: e.target.value })} />
-                <input className={input} placeholder="Kod pocztowy" value={dane.kod} onChange={(e) => setDane({ ...dane, kod: e.target.value })} />
-                <input className={input} placeholder="Miejscowość" value={dane.miasto} onChange={(e) => setDane({ ...dane, miasto: e.target.value })} />
-              </div>
-            </section>
-          ) : null}
+          {/* Płatność */}
+          <section className="border border-linia bg-white p-5">
+            <h2 className={naglowek}>Płatność</h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {PLATNOSCI.map((p) => {
+                const on = platnoscId === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPlatnoscId(p.id)}
+                    className={`border px-4 py-3 text-[14px] font-medium transition-colors ${on ? "border-ink bg-szary/40" : "border-linia-2 hover:border-ink-2"}`}
+                  >
+                    {p.nazwa}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
         </div>
 
         {/* Podsumowanie */}
-        <aside className="h-fit bg-szary p-6">
+        <aside className="h-fit border border-linia bg-white p-6 lg:sticky lg:top-24">
           <h2 className="mb-4 text-[18px] font-bold">Twoje zamówienie</h2>
-          <div className="flex flex-col gap-3 border-b border-linia pb-4">
+          <div className="flex max-h-64 flex-col gap-3 overflow-y-auto border-b border-linia pb-4">
             {pozycjeZDanymi.map(({ poz, produkt }) => (
-              <div key={`${poz.id}-${poz.rozmiar ?? ""}`} className="flex justify-between gap-3 text-[13.5px]">
-                <span className="text-ink-2">
-                  {produkt!.nazwa}
-                  {poz.rozmiar ? ` · rozm. ${poz.rozmiar}` : ""} × {poz.ilosc}
+              <div key={`${poz.id}-${poz.rozmiar ?? ""}`} className="flex items-center gap-3 text-[13.5px]">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center border border-linia bg-white">
+                  {produkt!.zdjecie ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={produkt!.zdjecie} alt="" className="h-full w-full object-contain p-0.5" />
+                  ) : null}
                 </span>
-                <span className="whitespace-nowrap">{formatCena(produkt!.cena * poz.ilosc)} zł</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-ink">{produkt!.nazwa}</span>
+                  <span className="block text-[12px] text-ink-2">
+                    {poz.rozmiar ? `rozm. ${poz.rozmiar} · ` : ""}× {poz.ilosc}
+                  </span>
+                </span>
+                <span className="whitespace-nowrap font-medium">{formatCena(produkt!.cena * poz.ilosc)} zł</span>
               </div>
             ))}
           </div>
@@ -168,7 +218,7 @@ export default function StronaZamowienia() {
             <span className="text-ink-2">Dostawa</span>
             <span>{dostawa === 0 ? "gratis" : `${formatCena(dostawa)} zł`}</span>
           </div>
-          <div className="flex justify-between py-4 text-[17px] font-bold">
+          <div className="flex justify-between py-4 text-[18px] font-bold">
             <span>Razem</span>
             <span>{formatCena(razem)} zł</span>
           </div>
@@ -179,7 +229,7 @@ export default function StronaZamowienia() {
             ZAMAWIAM I PŁACĘ
           </button>
           <p className="mt-3 text-[11px] leading-relaxed text-ink-2">
-            To wersja demonstracyjna — zamówienie nie jest realnie przetwarzane ani opłacane.
+            Wersja demonstracyjna — zamówienie nie jest realnie przetwarzane ani opłacane.
           </p>
         </aside>
       </form>
