@@ -16,8 +16,15 @@ export interface Produkt {
   wiekLabel: string;
   badge?: string | null;
   rozmiary?: string[];
+  /** Główne zdjęcie (zgodność wstecz). */
   zdjecie?: string | null;
+  /** Galeria zdjęć (URL lub data:base64). Pierwsze = główne. */
+  zdjecia?: string[];
   opis?: string;
+  /** Stan magazynowy. undefined = dostępny (bez limitu). 0 = brak. */
+  stan?: number;
+  /** Oferta wyłączona (niewidoczna w sklepie). */
+  ukryty?: boolean;
   hue: number;
 }
 

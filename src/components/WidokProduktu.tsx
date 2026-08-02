@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
 import { KartaProduktu } from "@/components/KartaProduktu";
 import { DodajDoKoszyka } from "@/components/DodajDoKoszyka";
+import { Galeria } from "@/components/Galeria";
 import { Stopka } from "@/components/Stopka";
 import { KATEGORIE_LABEL, opisProduktu, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
@@ -17,6 +18,7 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
     background: `repeating-linear-gradient(115deg, oklch(90% 0.02 ${p.hue}) 0 18px, oklch(95% 0.01 ${p.hue}) 18px 36px)`,
   };
   const podobne = wszystkie.filter((x) => x.kategoria === p.kategoria && x.id !== p.id).slice(0, 4);
+  const zdjecia = p.zdjecia?.length ? p.zdjecia : p.zdjecie ? [p.zdjecie] : [];
 
   return (
     <div className="overflow-x-hidden">
@@ -36,24 +38,21 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
       </div>
 
       <div className="mx-auto grid max-w-content grid-cols-1 gap-12 px-6 pb-20 md:grid-cols-2 md:px-12">
-        <div
-          className="flex aspect-square items-center justify-center overflow-hidden bg-white"
-          style={p.zdjecie ? undefined : placeholder}
-        >
-          {p.zdjecie ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.zdjecie} alt={p.nazwa} className="h-full w-full object-contain p-6" />
-          ) : (
-            <span className="font-mono text-[12px] text-ink-2">zdjęcie produktu</span>
-          )}
-        </div>
+        <Galeria zdjecia={zdjecia} alt={p.nazwa} placeholder={placeholder} />
 
         <div className="flex flex-col">
           <p className="mb-2 text-[13px] uppercase tracking-wide text-ink-2">
             {KATEGORIE_LABEL[p.kategoria]} · {p.wiekLabel}
           </p>
           <h1 className="mb-3 text-[30px] font-bold leading-tight tracking-tight md:text-[36px]">{p.nazwa}</h1>
-          <p className="mb-6 text-[24px] text-ink">{formatCena(p.cena)} zł</p>
+          <p className="mb-2 text-[24px] text-ink">{formatCena(p.cena)} zł</p>
+          {typeof p.stan === "number" ? (
+            <p className={`mb-6 text-[13px] font-medium ${p.stan === 0 ? "text-ink-2" : "text-[oklch(55%_0.12_150)]"}`}>
+              {p.stan === 0 ? "Produkt niedostępny" : `Na stanie: ${p.stan} szt.`}
+            </p>
+          ) : (
+            <div className="mb-6" />
+          )}
 
           <DodajDoKoszyka produkt={p} />
 

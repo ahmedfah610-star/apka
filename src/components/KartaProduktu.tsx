@@ -31,6 +31,11 @@ export function KartaProduktu({ produkt }: { produkt: Produkt }) {
             {produkt.badge}
           </span>
         ) : null}
+        {produkt.stan === 0 ? (
+          <span className="absolute inset-0 flex items-center justify-center bg-white/65 text-[12px] font-semibold uppercase tracking-wide text-ink">
+            Niedostępny
+          </span>
+        ) : null}
       </div>
       <h3 className="mb-1 text-[15px] font-semibold transition-colors group-hover:text-akcent">{produkt.nazwa}</h3>
       <p className="mb-1 text-[13px] text-[oklch(50%_0.01_90)]">{produkt.wiekLabel}</p>

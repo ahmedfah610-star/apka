@@ -6,7 +6,7 @@ import { Nawigacja } from "@/components/Nawigacja";
 import { KartaProduktu } from "@/components/KartaProduktu";
 import { Stopka } from "@/components/Stopka";
 import { KATEGORIE_LABEL, PRODUKTY, type Produkt } from "@/data/produkty";
-import { katalog } from "@/lib/sklepStore";
+import { katalogSklep } from "@/lib/sklepStore";
 import {
   filtrujProdukty,
   ZAKRESY_CENY,
@@ -40,7 +40,7 @@ function Listing() {
 
   // Katalog z kodu + produkty dodane w panelu (localStorage).
   const [wszystkie, setWszystkie] = useState<Produkt[]>(PRODUKTY);
-  useEffect(() => setWszystkie(katalog()), []);
+  useEffect(() => setWszystkie(katalogSklep()), []);
   const DOSTEPNE_ROZMIARY = useMemo(
     () => Array.from(new Set(wszystkie.flatMap((p) => p.rozmiary ?? []))).sort((a, b) => Number(a) - Number(b)),
     [wszystkie],

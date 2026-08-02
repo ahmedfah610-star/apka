@@ -8,6 +8,8 @@ import type { Produkt } from "@/data/produkty";
 export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
   const { dodaj } = useKoszyk();
   const maRozmiary = !!produkt.rozmiary && produkt.rozmiary.length > 0;
+  const niedostepny = produkt.stan === 0;
+  const malyStan = typeof produkt.stan === "number" && produkt.stan > 0 && produkt.stan <= 5;
   const [rozmiar, setRozmiar] = useState<string | undefined>(undefined);
   const [dodano, setDodano] = useState(false);
   const [blad, setBlad] = useState(false);
@@ -23,8 +25,21 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
     setTimeout(() => setDodano(false), 2500);
   }
 
+  if (niedostepny) {
+    return (
+      <div>
+        <button disabled className="mb-8 w-full cursor-not-allowed bg-szary px-8 py-4 text-[13px] font-semibold tracking-wide text-ink-2 sm:w-auto sm:min-w-[280px]">
+          PRODUKT NIEDOSTĘPNY
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div>
+      {malyStan ? (
+        <p className="mb-3 text-[13px] font-medium text-akcent">Zostały już tylko {produkt.stan} szt.!</p>
+      ) : null}
       {maRozmiary ? (
         <div className="mb-7">
           <h3 className="mb-3 text-[13px] font-semibold tracking-wide text-ink-2">
