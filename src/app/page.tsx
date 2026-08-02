@@ -38,9 +38,9 @@ export default function StronaGlowna() {
                 <Reveal key={k.key} delay={i * 120}>
                   <Link href={`/produkty?kategoria=${k.key}`} className="group block text-inherit no-underline">
                     <div
-                      className="flex h-[380px] items-center justify-center overflow-hidden md:h-[440px]"
+                      className="flex h-[380px] items-center justify-center overflow-hidden border border-linia md:h-[440px]"
                       style={{
-                        background: `linear-gradient(165deg, oklch(97% 0.012 ${k.hue}), oklch(94% 0.022 ${k.hue}))`,
+                        background: "linear-gradient(165deg, oklch(98% 0.006 75), oklch(95% 0.016 55))",
                       }}
                     >
                       {p?.zdjecie ? (
