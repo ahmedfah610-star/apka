@@ -6,7 +6,10 @@ import { KafelKategorii } from "@/components/KafelKategorii";
 import { Newsletter } from "@/components/Newsletter";
 import { Reveal } from "@/components/Reveal";
 import { Stopka } from "@/components/Stopka";
-import { PRODUKTY, reprKategorii, type Kategoria } from "@/data/produkty";
+import { type Kategoria, type Produkt } from "@/data/produkty";
+import { katalogWidoczny } from "@/lib/produktyDb";
+
+export const dynamic = "force-dynamic";
 
 const KATEGORIE: { key: Kategoria; label: string; hue: number }[] = [
   { key: "dziewczynki", label: "Dziewczynki", hue: 30 },
@@ -14,8 +17,13 @@ const KATEGORIE: { key: Kategoria; label: string; hue: number }[] = [
   { key: "niemowleta", label: "Niemowlęta", hue: 140 },
 ];
 
-export default function StronaGlowna() {
-  const wyrozniona = PRODUKTY.filter((p) => p.badge).slice(0, 4);
+function reprKategorii(lista: Produkt[], kat: Kategoria): Produkt | null {
+  return lista.find((p) => p.kategoria === kat && (p.zdjecia?.length || p.zdjecie)) ?? lista.find((p) => p.kategoria === kat) ?? null;
+}
+
+export default async function StronaGlowna() {
+  const katalog = await katalogWidoczny();
+  const wyrozniona = katalog.filter((p) => p.badge).slice(0, 4);
 
   return (
     <div className="overflow-x-hidden">
@@ -35,7 +43,7 @@ export default function StronaGlowna() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {KATEGORIE.map((k, i) => (
               <Reveal key={k.key} delay={i * 120}>
-                <KafelKategorii kluczKat={k.key} label={k.label} fallbackSrc={reprKategorii(k.key)?.zdjecie ?? null} />
+                <KafelKategorii kluczKat={k.key} label={k.label} fallbackSrc={reprKategorii(katalog, k.key)?.zdjecie ?? null} />
               </Reveal>
             ))}
           </div>

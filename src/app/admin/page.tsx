@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { katalog, pobierzZamowienia, type Zamowienie } from "@/lib/sklepStore";
+import { type Zamowienie } from "@/lib/sklepStore";
 import { statystykiKatalogu, statystykiZamowien } from "@/lib/statystyki";
 import { formatCena } from "@/lib/filtrowanie";
 import { KATEGORIE_LABEL, type Produkt } from "@/data/produkty";
@@ -29,8 +29,18 @@ export default function PulpitAdmina() {
   const [zamowienia, setZamowienia] = useState<Zamowienie[]>([]);
 
   useEffect(() => {
-    setProdukty(katalog());
-    setZamowienia(pobierzZamowienia());
+    fetch("/api/admin/produkty")
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d.items)) setProdukty(d.items);
+      })
+      .catch(() => {});
+    fetch("/api/zamowienia")
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d.items)) setZamowienia(d.items);
+      })
+      .catch(() => {});
   }, []);
 
   const kat = useMemo(() => statystykiKatalogu(produkty), [produkty]);

@@ -6,7 +6,6 @@ import { Nawigacja } from "@/components/Nawigacja";
 import { KartaProduktu } from "@/components/KartaProduktu";
 import { Stopka } from "@/components/Stopka";
 import { KATEGORIE_LABEL, PRODUKTY, type Produkt } from "@/data/produkty";
-import { katalogSklep } from "@/lib/sklepStore";
 import {
   filtrujProdukty,
   ZAKRESY_CENY,
@@ -40,7 +39,14 @@ function Listing() {
 
   // Katalog z kodu + produkty dodane w panelu (localStorage).
   const [wszystkie, setWszystkie] = useState<Produkt[]>(PRODUKTY);
-  useEffect(() => setWszystkie(katalogSklep()), []);
+  useEffect(() => {
+    fetch("/api/katalog")
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d.items)) setWszystkie(d.items);
+      })
+      .catch(() => {});
+  }, []);
   const DOSTEPNE_ROZMIARY = useMemo(
     () => Array.from(new Set(wszystkie.flatMap((p) => p.rozmiary ?? []))).sort((a, b) => Number(a) - Number(b)),
     [wszystkie],

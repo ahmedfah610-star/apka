@@ -3,15 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { type Kategoria, type Produkt, type Wiek } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
-import {
-  dodajProdukt,
-  glowneZdjecie,
-  katalog,
-  pobierzDodatkowe,
-  ustawOverride,
-  usunProdukt,
-  zbudujProdukt,
-} from "@/lib/sklepStore";
+import { glowneZdjecie, zbudujProdukt } from "@/lib/sklepStore";
 
 const PUSTY = {
   nazwa: "",
@@ -24,35 +16,33 @@ const PUSTY = {
   opis: "",
 };
 
-function czytajPlikiJakoDataURL(pliki: FileList): Promise<string[]> {
-  return Promise.all(
-    Array.from(pliki).map(
-      (f) =>
-        new Promise<string>((res, rej) => {
-          const r = new FileReader();
-          r.onload = () => res(String(r.result));
-          r.onerror = rej;
-          r.readAsDataURL(f);
-        }),
-    ),
-  );
-}
-
 export default function AdminProdukty() {
   const [lista, setLista] = useState<Produkt[]>([]);
-  const [dodaneIds, setDodaneIds] = useState<Set<string>>(new Set());
+  const [ladowanie, setLadowanie] = useState(true);
   const [szukaj, setSzukaj] = useState("");
   const [form, setForm] = useState(PUSTY);
   const [zdjecia, setZdjecia] = useState<string[]>([]);
   const [urlZdj, setUrlZdj] = useState("");
   const [komunikat, setKomunikat] = useState("");
+  const [wgrywanie, setWgrywanie] = useState(false);
+  const [zapis, setZapis] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const odswiez = () => {
-    setLista(katalog());
-    setDodaneIds(new Set(pobierzDodatkowe().map((p) => p.id)));
+  const odswiez = async () => {
+    setLadowanie(true);
+    try {
+      const r = await fetch("/api/admin/produkty");
+      const d = await r.json();
+      if (Array.isArray(d.items)) setLista(d.items);
+    } catch {
+      /* ignoruj */
+    } finally {
+      setLadowanie(false);
+    }
   };
-  useEffect(odswiez, []);
+  useEffect(() => {
+    void odswiez();
+  }, []);
 
   const widoczne = useMemo(
     () => lista.filter((p) => p.nazwa.toLowerCase().includes(szukaj.toLowerCase())),
@@ -60,10 +50,29 @@ export default function AdminProdukty() {
   );
 
   async function dodajPliki(e: React.ChangeEvent<HTMLInputElement>) {
-    if (!e.target.files?.length) return;
-    const nowe = await czytajPlikiJakoDataURL(e.target.files);
-    setZdjecia((z) => [...z, ...nowe]);
-    if (fileRef.current) fileRef.current.value = "";
+    const pliki = e.target.files;
+    if (!pliki?.length) return;
+    setWgrywanie(true);
+    setKomunikat("");
+    try {
+      for (const plik of Array.from(pliki)) {
+        const fd = new FormData();
+        fd.append("plik", plik);
+        const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+        const d = (await res.json().catch(() => ({}))) as { ok?: boolean; url?: string; powod?: string };
+        if (res.ok && d.ok && d.url) {
+          setZdjecia((z) => [...z, d.url as string]);
+        } else if (d.powod === "brak_bazy") {
+          setKomunikat("Wgrywanie plików wymaga podłączonej bazy (Supabase Storage). Na razie dodaj zdjęcia przez adres URL.");
+          break;
+        } else {
+          setKomunikat("Nie udało się wgrać pliku.");
+        }
+      }
+    } finally {
+      setWgrywanie(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
   }
 
   function dodajUrl() {
@@ -73,45 +82,80 @@ export default function AdminProdukty() {
     }
   }
 
-  function zapiszProdukt(e: React.FormEvent) {
+  async function zapiszProdukt(e: React.FormEvent) {
     e.preventDefault();
     const cena = parseFloat(form.cena.replace(",", "."));
     if (!form.nazwa.trim() || !Number.isFinite(cena)) {
       setKomunikat("Podaj nazwę i poprawną cenę.");
       return;
     }
-    const ok = dodajProdukt(
-      zbudujProdukt({
-        nazwa: form.nazwa,
-        cena,
-        kategoria: form.kategoria,
-        wiek: form.wiek,
-        rozmiary: form.rozmiary.split(",").map((s) => s.trim()).filter(Boolean),
-        zdjecia,
-        stan: form.stan.trim() === "" ? null : parseInt(form.stan, 10),
-        badge: form.badge || null,
-        opis: form.opis.trim() || undefined,
-      }),
-    );
-    if (!ok) {
-      setKomunikat("Nie udało się zapisać — zdjęcia mogą być za duże (limit przeglądarki). Użyj mniejszych plików lub adresów URL.");
-      return;
+    setZapis(true);
+    setKomunikat("");
+    const produkt = zbudujProdukt({
+      nazwa: form.nazwa,
+      cena,
+      kategoria: form.kategoria,
+      wiek: form.wiek,
+      rozmiary: form.rozmiary.split(",").map((s) => s.trim()).filter(Boolean),
+      zdjecia,
+      stan: form.stan.trim() === "" ? null : parseInt(form.stan, 10),
+      badge: form.badge || null,
+      opis: form.opis.trim() || undefined,
+    });
+    try {
+      const res = await fetch("/api/admin/produkty", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(produkt),
+      });
+      const d = (await res.json().catch(() => ({}))) as { ok?: boolean; powod?: string; blad?: string };
+      if (!res.ok || d.ok === false) {
+        setKomunikat(
+          d.powod === "brak_bazy"
+            ? "Dodawanie produktów wymaga podłączonej bazy (Supabase). Uzupełnij zmienne środowiskowe."
+            : d.blad || "Nie udało się zapisać produktu.",
+        );
+        return;
+      }
+      setForm(PUSTY);
+      setZdjecia([]);
+      setKomunikat("Produkt dodany ✓");
+      await odswiez();
+      setTimeout(() => setKomunikat(""), 3000);
+    } catch {
+      setKomunikat("Błąd połączenia. Spróbuj ponownie.");
+    } finally {
+      setZapis(false);
     }
-    setForm(PUSTY);
-    setZdjecia([]);
-    setKomunikat("Produkt dodany ✓");
-    odswiez();
-    setTimeout(() => setKomunikat(""), 3000);
   }
 
-  const edytuj = (id: string, zmiany: Partial<Pick<Produkt, "cena" | "stan" | "badge" | "ukryty">>) => {
-    ustawOverride(id, zmiany);
-    odswiez();
-  };
-  const usun = (id: string) => {
-    usunProdukt(id);
-    odswiez();
-  };
+  async function edytuj(id: string, zmiany: Partial<Pick<Produkt, "cena" | "stan" | "badge" | "ukryty">>) {
+    // Optymistycznie aktualizujemy widok.
+    setLista((prev) => prev.map((p) => (p.id === id ? { ...p, ...zmiany } : p)));
+    try {
+      await fetch("/api/admin/produkty", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, zmiany }),
+      });
+    } catch {
+      void odswiez();
+    }
+  }
+
+  async function usun(id: string) {
+    if (!confirm("Usunąć ten produkt na stałe?")) return;
+    setLista((prev) => prev.filter((p) => p.id !== id));
+    try {
+      await fetch("/api/admin/produkty", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+    } catch {
+      void odswiez();
+    }
+  }
 
   const input = "w-full border border-linia-2 bg-white px-3 py-2 text-[14px] outline-none focus:border-ink";
   const naStanie = lista.reduce((s, p) => s + (typeof p.stan === "number" ? p.stan : 0), 0);
@@ -122,7 +166,7 @@ export default function AdminProdukty() {
         <div>
           <h1 className="text-[26px] font-bold tracking-tight">Produkty</h1>
           <p className="text-[14px] text-ink-2">
-            {lista.length} ofert · {dodaneIds.size} dodanych w panelu · {naStanie} szt. z ustalonym stanem
+            {lista.length} ofert · {naStanie} szt. z ustalonym stanem
           </p>
         </div>
       </div>
@@ -155,6 +199,7 @@ export default function AdminProdukty() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <input ref={fileRef} type="file" accept="image/*" multiple onChange={dodajPliki} className="text-[13px]" />
+            {wgrywanie ? <span className="text-[12px] text-ink-2">Wgrywanie…</span> : null}
             <span className="text-[12px] text-ink-2">lub</span>
             <input
               className={`${input} max-w-xs`}
@@ -194,8 +239,8 @@ export default function AdminProdukty() {
           <input className={`${input} sm:col-span-2 lg:col-span-3`} placeholder="Krótki opis (opcjonalnie)" value={form.opis} onChange={(e) => setForm({ ...form, opis: e.target.value })} />
         </div>
         <div className="mt-4 flex items-center gap-4">
-          <button type="submit" className="bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent">
-            WYSTAW PRODUKT
+          <button type="submit" disabled={zapis} className="bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
+            {zapis ? "ZAPISYWANIE…" : "WYSTAW PRODUKT"}
           </button>
           {komunikat ? <span className="text-[13px] text-ink-2">{komunikat}</span> : null}
         </div>
@@ -217,7 +262,6 @@ export default function AdminProdukty() {
           </thead>
           <tbody className="divide-y divide-linia">
             {widoczne.slice(0, 60).map((p) => {
-              const dodany = dodaneIds.has(p.id);
               const zdj = glowneZdjecie(p);
               return (
                 <tr key={p.id} className="bg-white align-middle">
@@ -231,7 +275,7 @@ export default function AdminProdukty() {
                       </span>
                       <span>
                         <span className="block font-medium leading-tight">{p.nazwa}</span>
-                        <span className="text-[12px] text-ink-2">{p.kategoria} · {dodany ? "dodany" : "z kodu"}</span>
+                        <span className="text-[12px] text-ink-2">{p.kategoria}</span>
                       </span>
                     </div>
                   </td>
@@ -242,7 +286,7 @@ export default function AdminProdukty() {
                         defaultValue={p.cena}
                         onBlur={(e) => {
                           const v = parseFloat(e.target.value.replace(",", "."));
-                          if (Number.isFinite(v) && v !== p.cena) edytuj(p.id, { cena: v });
+                          if (Number.isFinite(v) && v !== p.cena) void edytuj(p.id, { cena: v });
                         }}
                         className="w-20 border border-linia-2 bg-white px-2 py-1 text-[13px] outline-none focus:border-ink"
                       />
@@ -252,7 +296,7 @@ export default function AdminProdukty() {
                   <td className="px-4 py-2.5">
                     <div className="flex items-center">
                       <button
-                        onClick={() => edytuj(p.id, { stan: Math.max(0, (typeof p.stan === "number" ? p.stan : 0) - 1) })}
+                        onClick={() => void edytuj(p.id, { stan: Math.max(0, (typeof p.stan === "number" ? p.stan : 0) - 1) })}
                         className="border border-linia-2 px-2 py-1 text-ink-2 hover:text-ink"
                         aria-label="Zmniejsz stan"
                       >
@@ -265,12 +309,12 @@ export default function AdminProdukty() {
                         onBlur={(e) => {
                           const t = e.target.value.trim();
                           const v = t === "" ? undefined : Math.max(0, parseInt(t, 10) || 0);
-                          if (v !== p.stan) edytuj(p.id, { stan: v });
+                          if (v !== p.stan) void edytuj(p.id, { stan: v });
                         }}
                         className="w-14 border-y border-linia-2 bg-white px-2 py-1 text-center text-[13px] outline-none focus:border-ink"
                       />
                       <button
-                        onClick={() => edytuj(p.id, { stan: (typeof p.stan === "number" ? p.stan : 0) + 1 })}
+                        onClick={() => void edytuj(p.id, { stan: (typeof p.stan === "number" ? p.stan : 0) + 1 })}
                         className="border border-linia-2 px-2 py-1 text-ink-2 hover:text-ink"
                         aria-label="Zwiększ stan"
                       >
@@ -280,20 +324,16 @@ export default function AdminProdukty() {
                   </td>
                   <td className="px-4 py-2.5">
                     <button
-                      onClick={() => edytuj(p.id, { ukryty: !p.ukryty })}
+                      onClick={() => void edytuj(p.id, { ukryty: !p.ukryty })}
                       className={`px-2.5 py-1 text-[11px] font-semibold ${p.ukryty ? "bg-szary text-ink-2" : "bg-[oklch(72%_0.12_150)] text-tlo"}`}
                     >
                       {p.ukryty ? "Wyłączona" : "Aktywna"}
                     </button>
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    {dodany ? (
-                      <button onClick={() => usun(p.id)} className="text-[13px] text-ink-2 underline underline-offset-2 hover:text-akcent">
-                        Usuń
-                      </button>
-                    ) : (
-                      <span className="text-[12px] text-ink-2">—</span>
-                    )}
+                    <button onClick={() => void usun(p.id)} className="text-[13px] text-ink-2 underline underline-offset-2 hover:text-akcent">
+                      Usuń
+                    </button>
                   </td>
                 </tr>
               );
@@ -301,15 +341,16 @@ export default function AdminProdukty() {
           </tbody>
         </table>
       </div>
-      {widoczne.length > 60 ? (
+      {ladowanie ? (
+        <p className="mt-3 text-[12px] text-ink-2">Wczytywanie…</p>
+      ) : widoczne.length > 60 ? (
         <p className="mt-3 text-[12px] text-ink-2">Pokazano 60 z {widoczne.length}. Zawęź wyszukiwaniem.</p>
       ) : null}
 
       <p className="mt-6 max-w-2xl text-[12px] leading-relaxed text-ink-2">
-        Zmiany (cena, stan, status) i nowe produkty zapisują się w tej przeglądarce (localStorage) i działają
-        w sklepie na tym urządzeniu. Aby były trwałe i wspólne dla wszystkich klientów — podłącz bazę danych
-        (patrz README). Duże zdjęcia wgrywane z dysku zajmują miejsce w pamięci przeglądarki; do wielu zdjęć
-        lepsze są adresy URL.
+        Zmiany (cena, stan, status) i nowe produkty zapisują się w bazie danych (Supabase) i są wspólne dla
+        wszystkich klientów sklepu — stan magazynowy zmniejsza się automatycznie po każdym zamówieniu. Zdjęcia
+        wgrywane z dysku trafiają do Supabase Storage; możesz też dodać zdjęcie przez adres URL.
       </p>
     </div>
   );

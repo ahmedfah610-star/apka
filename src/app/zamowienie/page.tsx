@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
 import { WyborPaczkomatu, type Paczkomat } from "@/components/WyborPaczkomatu";
 import { useKoszyk } from "@/components/KoszykContext";
-import { dodajZamowienie } from "@/lib/sklepStore";
-import { znajdzProdukt } from "@/data/produkty";
+import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { METODY_DOSTAWY, kosztDostawy } from "@/lib/dostawa";
 
@@ -44,20 +43,38 @@ function Kroki() {
 
 export default function StronaZamowienia() {
   const router = useRouter();
-  const { pozycje, suma, wyczysc } = useKoszyk();
+  const { pozycje, wyczysc } = useKoszyk();
 
+  const [katalog, setKatalog] = useState<Produkt[]>(PRODUKTY);
   const [metodaId, setMetodaId] = useState(METODY_DOSTAWY[0].id);
   const [paczkomat, setPaczkomat] = useState<Paczkomat | null>(null);
   const [platnoscId, setPlatnoscId] = useState(PLATNOSCI[0].id);
   const [dane, setDane] = useState({ imie: "", email: "", telefon: "", adres: "", miasto: "", kod: "" });
   const [blad, setBlad] = useState("");
+  const [wysylka, setWysylka] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/katalog")
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d.items) && d.items.length) setKatalog(d.items);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Katalog z bazy (lub kodu) — wyszukiwanie po id pozycji koszyka.
+  const znajdz = useMemo(() => {
+    const mapa = new Map(katalog.map((p) => [p.id, p]));
+    return (id: string): Produkt | null => mapa.get(id) ?? znajdzProdukt(id) ?? null;
+  }, [katalog]);
+
+  const pozycjeZDanymi = pozycje.map((poz) => ({ poz, produkt: znajdz(poz.id) })).filter((x) => x.produkt);
+  const suma = pozycjeZDanymi.reduce((s, { poz, produkt }) => s + produkt!.cena * poz.ilosc, 0);
 
   const metoda = METODY_DOSTAWY.find((m) => m.id === metodaId)!;
   const platnosc = PLATNOSCI.find((p) => p.id === platnoscId)!;
   const dostawa = kosztDostawy(metoda, suma);
   const razem = suma + dostawa;
-
-  const pozycjeZDanymi = pozycje.map((poz) => ({ poz, produkt: znajdzProdukt(poz.id) })).filter((x) => x.produkt);
 
   if (pozycjeZDanymi.length === 0) {
     return (
@@ -75,26 +92,48 @@ export default function StronaZamowienia() {
     );
   }
 
-  function zloz(e: React.FormEvent) {
+  async function zloz(e: React.FormEvent) {
     e.preventDefault();
     if (!dane.imie || !dane.email) return setBlad("Uzupełnij imię i e-mail.");
     if (metoda.paczkomat && !paczkomat) return setBlad("Wybierz paczkomat InPost.");
     if (!metoda.paczkomat && (!dane.adres || !dane.miasto || !dane.kod)) return setBlad("Uzupełnij adres dostawy.");
-    dodajZamowienie({
-      id: Date.now().toString(36),
-      data: new Date().toISOString(),
-      pozycje: pozycjeZDanymi.map(({ poz, produkt }) => ({
-        id: produkt!.id,
-        nazwa: produkt!.nazwa,
-        cena: produkt!.cena,
-        ilosc: poz.ilosc,
-        rozmiar: poz.rozmiar,
-      })),
-      suma,
-      dostawa,
-      razem,
-      metoda: `${metoda.nazwa} · ${platnosc.nazwa}`,
-    });
+    setBlad("");
+    setWysylka(true);
+    try {
+      const res = await fetch("/api/zamowienia", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pozycje: pozycjeZDanymi.map(({ poz, produkt }) => ({
+            id: produkt!.id,
+            nazwa: produkt!.nazwa,
+            cena: produkt!.cena,
+            ilosc: poz.ilosc,
+            rozmiar: poz.rozmiar,
+          })),
+          suma,
+          dostawa,
+          razem,
+          metoda: `${metoda.nazwa} · ${platnosc.nazwa}`,
+          klient: {
+            imie: dane.imie,
+            email: dane.email,
+            telefon: dane.telefon,
+            ...(metoda.paczkomat
+              ? { paczkomat: paczkomat?.kod, paczkomatOpis: paczkomat?.opis }
+              : { adres: dane.adres, miasto: dane.miasto, kod: dane.kod }),
+          },
+        }),
+      });
+      const dane2 = (await res.json().catch(() => ({}))) as { ok?: boolean; blad?: string };
+      if (!res.ok || dane2.ok === false) {
+        setWysylka(false);
+        return setBlad(dane2.blad || "Nie udało się złożyć zamówienia. Spróbuj ponownie.");
+      }
+    } catch {
+      setWysylka(false);
+      return setBlad("Błąd połączenia. Spróbuj ponownie.");
+    }
     wyczysc();
     router.push("/zamowienie/dziekujemy");
   }
@@ -225,8 +264,12 @@ export default function StronaZamowienia() {
 
           {blad ? <p className="mb-3 text-[13px] text-akcent">{blad}</p> : null}
 
-          <button type="submit" className="block w-full bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent">
-            ZAMAWIAM I PŁACĘ
+          <button
+            type="submit"
+            disabled={wysylka}
+            className="block w-full bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {wysylka ? "PRZETWARZANIE…" : "ZAMAWIAM I PŁACĘ"}
           </button>
           <p className="mt-3 text-[11px] leading-relaxed text-ink-2">
             Wersja demonstracyjna — zamówienie nie jest realnie przetwarzane ani opłacane.
