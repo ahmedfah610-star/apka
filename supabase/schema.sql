@@ -35,6 +35,23 @@ create table if not exists zamowienia (
 alter table zamowienia add column if not exists status text not null default 'nowe';
 alter table zamowienia add column if not exists platnosc_id text;
 
+-- Zapisy do newslettera.
+create table if not exists newsletter (
+  email text primary key,
+  created_at timestamptz not null default now()
+);
+
+-- Zgłoszenia "powiadom, gdy produkt/rozmiar znów dostępny".
+create table if not exists powiadomienia_dostepnosc (
+  id uuid primary key default gen_random_uuid(),
+  produkt_id text not null,
+  rozmiar text,
+  email text not null,
+  powiadomiony boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_powiad_produkt on powiadomienia_dostepnosc (produkt_id) where not powiadomiony;
+
 -- RLS: sklep czyta produkty publicznie; zapisy tylko przez service role (panel).
 alter table produkty enable row level security;
 drop policy if exists "public read produkty" on produkty;
@@ -42,6 +59,10 @@ create policy "public read produkty" on produkty for select using (true);
 
 alter table zamowienia enable row level security;
 -- brak publicznych polityk na zamowienia (dostęp tylko service role z serwera)
+
+alter table newsletter enable row level security;
+alter table powiadomienia_dostepnosc enable row level security;
+-- brak publicznych polityk — zapisy idą przez service role z endpointów /api
 
 -- Atomowe złożenie zamówienia + zdjęcie stanu (transakcyjnie), per rozmiar.
 create or replace function zloz_zamowienie(

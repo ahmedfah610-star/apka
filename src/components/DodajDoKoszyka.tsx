@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useKoszyk } from "@/components/KoszykContext";
+import { PowiadomODostepnosci } from "@/components/PowiadomODostepnosci";
 import type { Produkt } from "@/data/produkty";
 
 export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
@@ -45,12 +46,16 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
   if (niedostepny) {
     return (
       <div>
-        <button disabled className="mb-8 w-full cursor-not-allowed bg-szary px-8 py-4 text-[13px] font-semibold tracking-wide text-ink-2 sm:w-auto sm:min-w-[280px]">
+        <button disabled className="mb-4 w-full cursor-not-allowed bg-szary px-8 py-4 text-[13px] font-semibold tracking-wide text-ink-2 sm:w-auto sm:min-w-[280px]">
           PRODUKT NIEDOSTĘPNY
         </button>
+        <PowiadomODostepnosci produktId={produkt.id} rozmiar={null} />
       </div>
     );
   }
+
+  // Wybrany rozmiar wyprzedany (0 szt.) — pokaż formularz powiadomienia zamiast koszyka.
+  const wybranyWyprzedany = maRozmiary && rozmiar != null && sr != null && (sr[rozmiar] ?? 0) <= 0;
 
   return (
     <div>
@@ -73,15 +78,16 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
               return (
                 <button
                   key={s}
-                  disabled={brak}
-                  title={brak ? "Wyprzedany" : st !== null ? `${st} szt.` : undefined}
+                  title={brak ? "Wyprzedany — powiadomimy o dostępności" : st !== null ? `${st} szt.` : undefined}
                   onClick={() => {
                     setRozmiar(s);
                     setBlad(false);
                   }}
                   className={`relative border px-3.5 py-2 text-[13px] font-medium transition-colors ${
                     brak
-                      ? "cursor-not-allowed border-linia bg-szary/50 text-ink-2 line-through"
+                      ? on
+                        ? "border-ink bg-szary text-ink-2 line-through"
+                        : "border-linia bg-szary/50 text-ink-2 line-through hover:border-ink-2"
                       : on
                         ? "border-ink bg-ink text-tlo"
                         : "border-linia-2 hover:border-ink"
@@ -100,13 +106,16 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
         </div>
       ) : null}
 
-      <button
-        onClick={handleDodaj}
-        disabled={typeof dostepneTeraz === "number" && dostepneTeraz <= 0}
-        className="mb-3 w-full bg-ink px-8 py-4 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:cursor-not-allowed disabled:bg-szary disabled:text-ink-2 sm:w-auto sm:min-w-[280px]"
-      >
-        DODAJ DO KOSZYKA
-      </button>
+      {wybranyWyprzedany ? (
+        <PowiadomODostepnosci key={rozmiar} produktId={produkt.id} rozmiar={rozmiar} />
+      ) : (
+        <button
+          onClick={handleDodaj}
+          className="mb-3 w-full bg-ink px-8 py-4 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent sm:w-auto sm:min-w-[280px]"
+        >
+          DODAJ DO KOSZYKA
+        </button>
+      )}
 
       {dodano ? (
         <p className="mb-8 text-[14px] text-ink-2">

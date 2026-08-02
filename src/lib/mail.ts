@@ -73,6 +73,32 @@ async function wyslij(to: string, subject: string, html: string) {
   }
 }
 
+/** Mail powitalny po zapisie do newslettera. */
+export async function wyslijMailPowitalny(email: string) {
+  if (!mailWlaczony()) return;
+  const html = `
+  <div style="font-family:system-ui,Arial,sans-serif;max-width:520px;margin:0 auto;color:#1c1c1c">
+    <h1 style="font-size:22px">Cześć! 👋</h1>
+    <p style="font-size:15px;line-height:1.6">Dzięki za zapis do newslettera Fasolki. Damy Ci znać jako pierwszej/pierwszemu
+    o nowych kolekcjach i wyprzedażach.</p>
+    <p style="color:#999;font-size:12px;margin-top:24px">Fasolka — ubrania dziecięce</p>
+  </div>`;
+  await wyslij(email, "Witaj w Fasolce 🌱", html);
+}
+
+/** Mail: produkt/rozmiar znów dostępny. */
+export async function wyslijMailDostepnosci(email: string, nazwa: string, rozmiar: string | null, url: string) {
+  if (!mailWlaczony()) return;
+  const html = `
+  <div style="font-family:system-ui,Arial,sans-serif;max-width:520px;margin:0 auto;color:#1c1c1c">
+    <h1 style="font-size:22px">Znów dostępne! 🎉</h1>
+    <p style="font-size:15px;line-height:1.6"><strong>${nazwa}</strong>${rozmiar ? ` w rozmiarze <strong>${rozmiar}</strong>` : ""} jest znów na stanie.</p>
+    <p><a href="${url}" style="display:inline-block;background:#1c1c1c;color:#fff;text-decoration:none;padding:12px 22px;font-size:13px;font-weight:600">ZOBACZ PRODUKT</a></p>
+    <p style="color:#999;font-size:12px;margin-top:24px">Ilość jest ograniczona — nie zwlekaj. Fasolka</p>
+  </div>`;
+  await wyslij(email, `Znów dostępne: ${nazwa}`, html);
+}
+
 /** Wyślij potwierdzenie do klienta i powiadomienie do sklepu (jeśli skonfigurowane). */
 export async function wyslijMaileZamowienia(d: DaneMaila) {
   const { key, sklep } = konfiguracja();

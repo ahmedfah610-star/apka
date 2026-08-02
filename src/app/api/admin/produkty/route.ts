@@ -2,6 +2,8 @@ import type { Produkt } from "@/data/produkty";
 import { czyAdmin, odmowa } from "@/lib/adminAuth";
 import { doRzedu, katalogWszystko } from "@/lib/produktyDb";
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
+import { bazowyUrl } from "@/lib/platnosci";
+import { powiadomOOdblokowaniu } from "@/lib/restock";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +44,7 @@ export async function PATCH(req: Request) {
   if ("stan" in zmiany) map.stan = zmiany.stan ?? null;
   if ("badge" in zmiany) map.badge = zmiany.badge ?? null;
   if ("ukryty" in zmiany) map.ukryty = zmiany.ukryty;
+  const zmianaStanu = "stan" in zmiany || "stanRozmiary" in zmiany;
   if ("stanRozmiary" in zmiany) {
     map.stan_rozmiary = zmiany.stanRozmiary ?? null;
     // utrzymaj łączny stan w zgodzie z sumą po rozmiarach
@@ -49,8 +52,32 @@ export async function PATCH(req: Request) {
       map.stan = Object.values(zmiany.stanRozmiary).reduce((s, v) => s + (Number(v) || 0), 0);
     }
   }
+
+  // Stan sprzed zmiany — do wykrycia „znów dostępne".
+  const stary = zmianaStanu
+    ? (await sb.from("produkty").select("stan, stan_rozmiary, nazwa").eq("id", id).maybeSingle()).data
+    : null;
+
   const { error } = await sb.from("produkty").update(map).eq("id", id);
   if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
+
+  // Powiadomienia o dostępności (nie blokują odpowiedzi przy błędzie).
+  if (zmianaStanu && stary) {
+    try {
+      await powiadomOOdblokowaniu(
+        sb,
+        id,
+        (stary.nazwa as string) ?? "Produkt",
+        bazowyUrl(req),
+        (stary.stan as number) ?? null,
+        (stary.stan_rozmiary as Record<string, number> | null) ?? null,
+        (map.stan as number) ?? null,
+        (map.stan_rozmiary as Record<string, number> | null) ?? null,
+      );
+    } catch {
+      /* nie przerywaj zapisu z powodu maila */
+    }
+  }
   return Response.json({ ok: true });
 }
 
