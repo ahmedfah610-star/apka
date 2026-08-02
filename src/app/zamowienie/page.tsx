@@ -12,29 +12,29 @@ import { formatCena } from "@/lib/filtrowanie";
 import { METODY_DOSTAWY, kosztDostawy } from "@/lib/dostawa";
 
 const PLATNOSCI = [
-  { id: "blik", nazwa: "BLIK" },
-  { id: "karta", nazwa: "Karta płatnicza" },
-  { id: "przelewy24", nazwa: "Przelewy24" },
+  { id: "blik", nazwa: "BLIK", opis: "Kod z aplikacji banku" },
+  { id: "karta", nazwa: "Karta", opis: "Visa / Mastercard" },
+  { id: "przelewy24", nazwa: "Przelewy24", opis: "Szybki przelew" },
 ];
 
 function Kroki() {
   const kroki = ["Koszyk", "Dane i dostawa", "Gotowe"];
   const aktywny = 1;
   return (
-    <ol className="mb-8 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
+    <ol className="mb-8 flex items-center gap-2 text-[12.5px] sm:gap-3 sm:text-[13px]">
       {kroki.map((k, i) => (
-        <li key={k} className="flex items-center gap-3">
-          <span className={`flex items-center gap-2 ${i === aktywny ? "font-semibold text-ink" : "text-ink-2"}`}>
+        <li key={k} className="flex flex-1 items-center gap-2 sm:gap-3">
+          <span className={`flex items-center gap-2 whitespace-nowrap ${i === aktywny ? "font-semibold text-ink" : "text-ink-2"}`}>
             <span
-              className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold ${
-                i < aktywny ? "bg-[oklch(72%_0.12_150)] text-tlo" : i === aktywny ? "bg-ink text-tlo" : "bg-szary text-ink-2"
+              className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold ${
+                i < aktywny ? "bg-[oklch(66%_0.13_150)] text-tlo" : i === aktywny ? "bg-ink text-tlo" : "bg-szary text-ink-2"
               }`}
             >
               {i < aktywny ? "✓" : i + 1}
             </span>
-            {k}
+            <span className={i === 0 ? "hidden sm:inline" : ""}>{k}</span>
           </span>
-          {i < kroki.length - 1 ? <span className="text-ink-2">—</span> : null}
+          {i < kroki.length - 1 ? <span className="h-px flex-1 bg-linia" /> : null}
         </li>
       ))}
     </ol>
@@ -92,6 +92,8 @@ export default function StronaZamowienia() {
     );
   }
 
+  const numer = "flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-tlo";
+
   async function zloz(e: React.FormEvent) {
     e.preventDefault();
     if (!dane.imie || !dane.email) return setBlad("Uzupełnij imię i e-mail.");
@@ -138,21 +140,22 @@ export default function StronaZamowienia() {
     router.push("/zamowienie/dziekujemy");
   }
 
-  const input = "w-full border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none transition-colors focus:border-ink";
-  const naglowek = "mb-4 text-[13px] font-semibold uppercase tracking-wide text-ink-2";
+  const input = "w-full border border-linia-2 bg-white px-3.5 py-2.5 text-[16px] outline-none transition-colors focus:border-ink md:text-[14px]";
 
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-hidden bg-szary/30">
       <Nawigacja />
 
-      <form onSubmit={zloz} className="mx-auto grid max-w-content grid-cols-1 gap-10 px-6 py-10 md:px-12 lg:grid-cols-[1fr_380px]">
+      <form onSubmit={zloz} className="mx-auto grid max-w-content grid-cols-1 gap-6 px-4 py-8 sm:px-6 md:px-12 md:py-12 lg:grid-cols-[1fr_380px] lg:gap-10">
         <div>
           <Kroki />
-          <h1 className="mb-8 text-[30px] font-bold tracking-tight">Dane i dostawa</h1>
+          <h1 className="mb-7 text-[26px] font-bold tracking-tight md:text-[32px]">Dostawa i płatność</h1>
 
           {/* Dane kontaktowe */}
-          <section className="mb-8 border border-linia bg-white p-5">
-            <h2 className={naglowek}>Dane kontaktowe</h2>
+          <section className="mb-5 border border-linia bg-white p-5 md:p-6">
+            <h2 className="mb-4 flex items-center gap-2.5 text-[15px] font-bold">
+              <span className={numer}>1</span> Dane kontaktowe
+            </h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <input className={`${input} sm:col-span-2`} placeholder="Imię i nazwisko" value={dane.imie} onChange={(e) => setDane({ ...dane, imie: e.target.value })} />
               <input className={input} placeholder="E-mail" type="email" value={dane.email} onChange={(e) => setDane({ ...dane, email: e.target.value })} />
@@ -161,8 +164,10 @@ export default function StronaZamowienia() {
           </section>
 
           {/* Dostawa */}
-          <section className="mb-8 border border-linia bg-white p-5">
-            <h2 className={naglowek}>Sposób dostawy</h2>
+          <section className="mb-5 border border-linia bg-white p-5 md:p-6">
+            <h2 className="mb-4 flex items-center gap-2.5 text-[15px] font-bold">
+              <span className={numer}>2</span> Sposób dostawy
+            </h2>
             <div className="flex flex-col gap-3">
               {METODY_DOSTAWY.map((m) => {
                 const on = metodaId === m.id;
@@ -196,7 +201,7 @@ export default function StronaZamowienia() {
 
             {!metoda.paczkomat ? (
               <div className="mt-5 border-t border-linia pt-5">
-                <h3 className={naglowek}>Adres dostawy</h3>
+                <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-ink-2">Adres dostawy</h3>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <input className={`${input} sm:col-span-2`} placeholder="Ulica i numer" value={dane.adres} onChange={(e) => setDane({ ...dane, adres: e.target.value })} />
                   <input className={input} placeholder="Kod pocztowy" value={dane.kod} onChange={(e) => setDane({ ...dane, kod: e.target.value })} />
@@ -207,8 +212,10 @@ export default function StronaZamowienia() {
           </section>
 
           {/* Płatność */}
-          <section className="border border-linia bg-white p-5">
-            <h2 className={naglowek}>Płatność</h2>
+          <section className="border border-linia bg-white p-5 md:p-6">
+            <h2 className="mb-4 flex items-center gap-2.5 text-[15px] font-bold">
+              <span className={numer}>3</span> Płatność
+            </h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {PLATNOSCI.map((p) => {
                 const on = platnoscId === p.id;
@@ -217,9 +224,12 @@ export default function StronaZamowienia() {
                     key={p.id}
                     type="button"
                     onClick={() => setPlatnoscId(p.id)}
-                    className={`border px-4 py-3 text-[14px] font-medium transition-colors ${on ? "border-ink bg-szary/40" : "border-linia-2 hover:border-ink-2"}`}
+                    className={`flex flex-col items-start border px-4 py-3 text-left transition-colors ${
+                      on ? "border-ink bg-ink/[0.03] ring-1 ring-ink" : "border-linia-2 hover:border-ink-2"
+                    }`}
                   >
-                    {p.nazwa}
+                    <span className="text-[14px] font-semibold">{p.nazwa}</span>
+                    <span className="text-[12px] text-ink-2">{p.opis}</span>
                   </button>
                 );
               })}
@@ -229,23 +239,24 @@ export default function StronaZamowienia() {
 
         {/* Podsumowanie */}
         <aside className="h-fit border border-linia bg-white p-6 lg:sticky lg:top-24">
-          <h2 className="mb-4 text-[18px] font-bold">Twoje zamówienie</h2>
-          <div className="flex max-h-64 flex-col gap-3 overflow-y-auto border-b border-linia pb-4">
+          <h2 className="mb-4 text-[17px] font-bold">Twoje zamówienie</h2>
+          <div className="-mr-2 flex max-h-72 flex-col gap-3 overflow-y-auto border-b border-linia pb-4 pr-2">
             {pozycjeZDanymi.map(({ poz, produkt }) => (
               <div key={`${poz.id}-${poz.rozmiar ?? ""}`} className="flex items-center gap-3 text-[13.5px]">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center border border-linia bg-white">
+                <span className="relative flex h-14 w-14 shrink-0 items-center justify-center border border-linia bg-szary/40">
                   {produkt!.zdjecie ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={produkt!.zdjecie} alt="" className="h-full w-full object-contain p-0.5" />
                   ) : null}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-ink">{produkt!.nazwa}</span>
-                  <span className="block text-[12px] text-ink-2">
-                    {poz.rozmiar ? `rozm. ${poz.rozmiar} · ` : ""}× {poz.ilosc}
+                  <span className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-ink px-1 text-[11px] font-semibold text-tlo">
+                    {poz.ilosc}
                   </span>
                 </span>
-                <span className="whitespace-nowrap font-medium">{formatCena(produkt!.cena * poz.ilosc)} zł</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium text-ink">{produkt!.nazwa}</span>
+                  {poz.rozmiar ? <span className="block text-[12px] text-ink-2">rozmiar {poz.rozmiar}</span> : null}
+                </span>
+                <span className="whitespace-nowrap font-semibold">{formatCena(produkt!.cena * poz.ilosc)} zł</span>
               </div>
             ))}
           </div>
@@ -254,15 +265,17 @@ export default function StronaZamowienia() {
             <span>{formatCena(suma)} zł</span>
           </div>
           <div className="flex justify-between border-b border-linia pb-3 text-[14px]">
-            <span className="text-ink-2">Dostawa</span>
-            <span>{dostawa === 0 ? "gratis" : `${formatCena(dostawa)} zł`}</span>
+            <span className="text-ink-2">Dostawa{metoda ? ` · ${metoda.nazwa}` : ""}</span>
+            <span className={dostawa === 0 ? "font-medium text-[oklch(52%_0.13_150)]" : ""}>{dostawa === 0 ? "gratis" : `${formatCena(dostawa)} zł`}</span>
           </div>
-          <div className="flex justify-between py-4 text-[18px] font-bold">
-            <span>Razem</span>
-            <span>{formatCena(razem)} zł</span>
+          <div className="flex items-baseline justify-between py-4">
+            <span className="text-[15px] font-semibold">Razem</span>
+            <span className="text-[22px] font-bold">{formatCena(razem)} zł</span>
           </div>
 
-          {blad ? <p className="mb-3 text-[13px] text-akcent">{blad}</p> : null}
+          {blad ? (
+            <p className="mb-3 border border-akcent/40 bg-akcent/5 px-3 py-2 text-[13px] text-akcent">{blad}</p>
+          ) : null}
 
           <button
             type="submit"
@@ -271,7 +284,14 @@ export default function StronaZamowienia() {
           >
             {wysylka ? "PRZETWARZANIE…" : "ZAMAWIAM I PŁACĘ"}
           </button>
-          <p className="mt-3 text-[11px] leading-relaxed text-ink-2">
+          <p className="mt-3 flex items-center justify-center gap-1.5 text-[12px] text-ink-2">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <rect x="5" y="11" width="14" height="10" rx="1" />
+              <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+            </svg>
+            Bezpieczne zamówienie
+          </p>
+          <p className="mt-2 text-center text-[11px] leading-relaxed text-ink-2">
             Wersja demonstracyjna — zamówienie nie jest realnie przetwarzane ani opłacane.
           </p>
         </aside>
