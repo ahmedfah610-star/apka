@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
+import { Hero } from "@/components/Hero";
 import { KartaProduktu } from "@/components/KartaProduktu";
 import { Newsletter } from "@/components/Newsletter";
+import { Reveal } from "@/components/Reveal";
 import { Stopka } from "@/components/Stopka";
-import { PRODUKTY } from "@/data/produkty";
+import { PRODUKTY, znajdzProdukt } from "@/data/produkty";
 
 const KATEGORIE = [
-  { key: "dziewczynki", label: "Dziewczynki", hue: 340 },
-  { key: "chlopcy", label: "Chłopcy", hue: 230 },
-  { key: "niemowleta", label: "Niemowlęta", hue: 160 },
+  { key: "dziewczynki", label: "Dziewczynki", img: "dres-2-czesciowy-rozowy", hue: 340 },
+  { key: "chlopcy", label: "Chłopcy", img: "spodnie-dresowe-sportowe", hue: 230 },
+  { key: "niemowleta", label: "Niemowlęta", img: "komplet-dresowy-mis", hue: 160 },
 ];
 
 export default function StronaGlowna() {
@@ -23,51 +25,48 @@ export default function StronaGlowna() {
 
       <Nawigacja aktywna="home" />
 
-      {/* Hero */}
-      <section
-        className="fade-up relative flex h-[640px] items-end px-6 pb-14 md:px-12"
-        style={{
-          background:
-            "repeating-linear-gradient(115deg, oklch(92% 0.03 40) 0 26px, oklch(96% 0.02 40) 26px 52px)",
-        }}
-      >
-        <div className="max-w-[560px]">
-          <p className="mb-4 text-[13px] tracking-[0.12em]">KOLEKCJA LATO 2026</p>
-          <h1 className="mb-7 text-[40px] font-bold leading-[1.05] tracking-tight md:text-[52px]">
-            Ubrania, w których dzieci mogą być sobą
-          </h1>
-          <Link
-            href="/produkty"
-            className="inline-block bg-ink px-8 py-3.5 text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
-          >
-            ZOBACZ KOLEKCJĘ
-          </Link>
-        </div>
-      </section>
+      <Hero />
 
       {/* Kategorie */}
       <section className="px-6 py-20 md:px-12">
-        <div className="mx-auto grid max-w-content grid-cols-1 gap-1 sm:grid-cols-3">
-          {KATEGORIE.map((k) => (
-            <Link key={k.key} href={`/produkty?kategoria=${k.key}`} className="group block text-inherit no-underline">
-              <div
-                className="h-[380px] md:h-[460px]"
-                style={{
-                  background: `repeating-linear-gradient(115deg, oklch(91% 0.03 ${k.hue}) 0 22px, oklch(95% 0.02 ${k.hue}) 22px 44px)`,
-                }}
-              />
-              <div className="flex items-center justify-between py-4">
-                <span className="text-[17px] font-semibold">{k.label}</span>
-                <span className="text-sm text-ink-2 transition-colors group-hover:text-akcent">Zobacz →</span>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <Reveal className="mx-auto max-w-content">
+          <h2 className="mb-8 text-[26px] font-bold tracking-tight">Kupuj według kategorii</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {KATEGORIE.map((k, i) => {
+              const p = znajdzProdukt(k.img);
+              return (
+                <Reveal key={k.key} delay={i * 120}>
+                  <Link href={`/produkty?kategoria=${k.key}`} className="group block text-inherit no-underline">
+                    <div
+                      className="flex h-[380px] items-center justify-center overflow-hidden md:h-[440px]"
+                      style={{
+                        background: `linear-gradient(165deg, oklch(96% 0.03 ${k.hue}), oklch(92% 0.06 ${k.hue}))`,
+                      }}
+                    >
+                      {p?.zdjecie ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={p.zdjecie}
+                          alt={k.label}
+                          className="h-full w-full object-contain p-8 transition-transform duration-500 group-hover:scale-105"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="flex items-center justify-between py-4">
+                      <span className="text-[17px] font-semibold">{k.label}</span>
+                      <span className="text-sm text-ink-2 transition-colors group-hover:text-akcent">Zobacz →</span>
+                    </div>
+                  </Link>
+                </Reveal>
+              );
+            })}
+          </div>
+        </Reveal>
       </section>
 
       {/* Bestsellery */}
       <section className="px-6 pb-20 md:px-12">
-        <div className="mx-auto max-w-content">
+        <Reveal className="mx-auto max-w-content">
           <div className="mb-8 flex items-end justify-between">
             <h2 className="text-[26px] font-bold tracking-tight">Bestsellery i nowości</h2>
             <Link href="/produkty" className="text-sm text-ink-2 no-underline hover:text-akcent">
@@ -75,32 +74,36 @@ export default function StronaGlowna() {
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
-            {wyrozniona.map((p) => (
-              <KartaProduktu key={p.id} produkt={p} />
+            {wyrozniona.map((p, i) => (
+              <Reveal key={p.id} delay={i * 90}>
+                <KartaProduktu produkt={p} />
+              </Reveal>
             ))}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* Banner promocyjny */}
-      <section className="bg-akcent px-6 py-16 md:px-12">
-        <div className="mx-auto flex max-w-content flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-          <div className="text-tlo">
-            <h2 className="text-[32px] font-bold">Wyprzedaż do -30%</h2>
-            <p className="mt-1 text-sm opacity-90">Wybrane modele z poprzedniej kolekcji.</p>
+      <Reveal>
+        <section className="bg-akcent px-6 py-16 md:px-12">
+          <div className="mx-auto flex max-w-content flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+            <div className="text-tlo">
+              <h2 className="text-[32px] font-bold">Wyprzedaż do -30%</h2>
+              <p className="mt-1 text-sm opacity-90">Wybrane modele z poprzedniej kolekcji.</p>
+            </div>
+            <Link
+              href="/produkty"
+              className="bg-tlo px-8 py-3.5 text-[13px] font-semibold tracking-wide text-ink no-underline"
+            >
+              DO WYPRZEDAŻY
+            </Link>
           </div>
-          <Link
-            href="/produkty"
-            className="bg-tlo px-8 py-3.5 text-[13px] font-semibold tracking-wide text-ink no-underline"
-          >
-            DO WYPRZEDAŻY
-          </Link>
-        </div>
-      </section>
+        </section>
+      </Reveal>
 
       {/* O marce */}
       <section className="px-6 py-20 md:px-12">
-        <div className="mx-auto grid max-w-content grid-cols-1 gap-10 sm:grid-cols-3">
+        <Reveal className="mx-auto grid max-w-content grid-cols-1 gap-10 sm:grid-cols-3">
           {[
             { t: "Miękkie i oddychające", o: "Tkaniny przyjazne skórze — nie drapią i nie krępują ruchów." },
             { t: "Bezpieczne materiały", o: "Certyfikowane bawełny, bez szkodliwych barwników." },
@@ -112,7 +115,7 @@ export default function StronaGlowna() {
               <p className="text-sm text-ink-2">{c.o}</p>
             </div>
           ))}
-        </div>
+        </Reveal>
       </section>
 
       <Newsletter />
