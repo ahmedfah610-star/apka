@@ -5,7 +5,7 @@ import { Nawigacja } from "@/components/Nawigacja";
 import { KartaProduktu } from "@/components/KartaProduktu";
 import { DodajDoKoszyka } from "@/components/DodajDoKoszyka";
 import { Stopka } from "@/components/Stopka";
-import { KATEGORIE_LABEL, PRODUKTY, znajdzProdukt } from "@/data/produkty";
+import { KATEGORIE_LABEL, PRODUKTY, opisProduktu, znajdzProdukt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 
 export function generateStaticParams() {
@@ -15,7 +15,7 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: { id: string } }): Metadata {
   const p = znajdzProdukt(params.id);
   if (!p) return { title: "Produkt — Fasolka" };
-  return { title: `${p.nazwa} — Fasolka`, description: p.opis };
+  return { title: `${p.nazwa} — Fasolka`, description: opisProduktu(p) };
 }
 
 const CECHY: Record<string, string[]> = {
@@ -75,7 +75,7 @@ export default function StronaProduktu({ params }: { params: { id: string } }) {
 
           <DodajDoKoszyka produkt={p} />
 
-          {p.opis ? <p className="mb-6 max-w-prose text-[15px] leading-relaxed text-ink-2">{p.opis}</p> : null}
+          <p className="mb-6 max-w-prose text-[15px] leading-relaxed text-ink-2">{opisProduktu(p)}</p>
 
           <ul className="flex flex-col gap-2 border-t border-linia pt-6">
             {(CECHY[p.kategoria] ?? []).map((c) => (
