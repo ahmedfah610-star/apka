@@ -10,8 +10,28 @@ interface PunktInPost {
 
 export const revalidate = 3600;
 
-/** InPost wymaga nazwy miasta z wielkiej litery ("Warszawa", "Nowy Sącz"). */
+// Największe polskie miasta — pozwala trafić też przy pisowni bez polskich znaków
+// (np. "gdansk" -> "Gdańsk", "lodz" -> "Łódź").
+const MIASTA = [
+  "Warszawa", "Kraków", "Łódź", "Wrocław", "Poznań", "Gdańsk", "Szczecin", "Bydgoszcz", "Lublin",
+  "Białystok", "Katowice", "Gdynia", "Częstochowa", "Radom", "Sosnowiec", "Toruń", "Kielce", "Rzeszów",
+  "Gliwice", "Zabrze", "Olsztyn", "Bielsko-Biała", "Bytom", "Zielona Góra", "Rybnik", "Ruda Śląska",
+  "Opole", "Tychy", "Gorzów Wielkopolski", "Dąbrowa Górnicza", "Płock", "Elbląg", "Wałbrzych",
+  "Włocławek", "Tarnów", "Chorzów", "Koszalin", "Kalisz", "Legnica", "Grudziądz", "Słupsk", "Jaworzno",
+  "Jastrzębie-Zdrój", "Nowy Sącz", "Jelenia Góra", "Siedlce", "Mysłowice", "Konin", "Piotrków Trybunalski",
+  "Inowrocław", "Lubin", "Ostrów Wielkopolski", "Suwałki", "Stargard", "Gniezno", "Głogów", "Pabianice",
+  "Leszno", "Żory", "Zamość", "Pruszków", "Łomża", "Ełk", "Chełm", "Mielec", "Przemyśl", "Stalowa Wola",
+  "Tomaszów Mazowiecki", "Piła", "Legionowo", "Racibórz", "Otwock", "Ostrołęka", "Świdnica", "Sopot",
+];
+function bezZnakow(s: string): string {
+  return s.toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[̀-ͯ]/g, "");
+}
+const MAPA_MIAST = new Map(MIASTA.map((m) => [bezZnakow(m), m]));
+
+/** Poprawia pisownię miasta pod API InPost (wielkość liter + polskie znaki). */
 function normalizujMiasto(s: string): string {
+  const znane = MAPA_MIAST.get(bezZnakow(s));
+  if (znane) return znane;
   return s.toLocaleLowerCase("pl").replace(/\p{L}+/gu, (w) => w[0].toLocaleUpperCase("pl") + w.slice(1));
 }
 
