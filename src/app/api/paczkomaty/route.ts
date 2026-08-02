@@ -6,6 +6,7 @@ interface PunktInPost {
   address?: { line1?: string; line2?: string };
   location_description?: string | null;
   address_details?: { city?: string };
+  location?: { latitude?: number; longitude?: number };
 }
 
 export const revalidate = 3600;
@@ -55,6 +56,8 @@ export async function GET(req: Request) {
       kod: p.name,
       miasto: p.address_details?.city ?? "",
       opis: [p.address?.line1, p.location_description].filter(Boolean).join(" · "),
+      lat: p.location?.latitude,
+      lng: p.location?.longitude,
     }));
     return Response.json({ items });
   } catch {
