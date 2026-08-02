@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { type Kategoria, type Produkt, type Wiek } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { glowneZdjecie, zbudujProdukt } from "@/lib/sklepStore";
@@ -26,6 +26,7 @@ export default function AdminProdukty() {
   const [komunikat, setKomunikat] = useState("");
   const [wgrywanie, setWgrywanie] = useState(false);
   const [zapis, setZapis] = useState(false);
+  const [rozwiniety, setRozwiniety] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const odswiez = async () => {
@@ -129,9 +130,14 @@ export default function AdminProdukty() {
     }
   }
 
-  async function edytuj(id: string, zmiany: Partial<Pick<Produkt, "cena" | "stan" | "badge" | "ukryty">>) {
+  async function edytuj(id: string, zmiany: Partial<Pick<Produkt, "cena" | "stan" | "badge" | "ukryty" | "stanRozmiary">>) {
+    // Gdy zmieniamy stan per rozmiar — utrzymaj też łączny stan w widoku.
+    const patch = { ...zmiany };
+    if (zmiany.stanRozmiary) {
+      patch.stan = Object.values(zmiany.stanRozmiary).reduce((s, v) => s + (Number(v) || 0), 0);
+    }
     // Optymistycznie aktualizujemy widok.
-    setLista((prev) => prev.map((p) => (p.id === id ? { ...p, ...zmiany } : p)));
+    setLista((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
     try {
       await fetch("/api/admin/produkty", {
         method: "PATCH",
@@ -264,7 +270,8 @@ export default function AdminProdukty() {
             {widoczne.slice(0, 60).map((p) => {
               const zdj = glowneZdjecie(p);
               return (
-                <tr key={p.id} className="bg-white align-middle">
+                <Fragment key={p.id}>
+                <tr className="bg-white align-middle">
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-3">
                       <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-szary">
@@ -294,33 +301,43 @@ export default function AdminProdukty() {
                     </div>
                   </td>
                   <td className="px-4 py-2.5">
-                    <div className="flex items-center">
+                    {p.stanRozmiary && p.rozmiary && p.rozmiary.length ? (
                       <button
-                        onClick={() => void edytuj(p.id, { stan: Math.max(0, (typeof p.stan === "number" ? p.stan : 0) - 1) })}
-                        className="border border-linia-2 px-2 py-1 text-ink-2 hover:text-ink"
-                        aria-label="Zmniejsz stan"
+                        onClick={() => setRozwiniety((r) => (r === p.id ? null : p.id))}
+                        className="flex items-center gap-2 border border-linia-2 px-3 py-1.5 text-[13px] hover:border-ink"
                       >
-                        −
+                        <span className="font-semibold">{p.stan ?? 0} szt.</span>
+                        <span className="text-[12px] text-ink-2">wg rozmiarów {rozwiniety === p.id ? "▲" : "▼"}</span>
                       </button>
-                      <input
-                        key={`s-${p.id}-${p.stan ?? "x"}`}
-                        defaultValue={p.stan ?? ""}
-                        placeholder="∞"
-                        onBlur={(e) => {
-                          const t = e.target.value.trim();
-                          const v = t === "" ? undefined : Math.max(0, parseInt(t, 10) || 0);
-                          if (v !== p.stan) void edytuj(p.id, { stan: v });
-                        }}
-                        className="w-14 border-y border-linia-2 bg-white px-2 py-1 text-center text-[13px] outline-none focus:border-ink"
-                      />
-                      <button
-                        onClick={() => void edytuj(p.id, { stan: (typeof p.stan === "number" ? p.stan : 0) + 1 })}
-                        className="border border-linia-2 px-2 py-1 text-ink-2 hover:text-ink"
-                        aria-label="Zwiększ stan"
-                      >
-                        +
-                      </button>
-                    </div>
+                    ) : (
+                      <div className="flex items-center">
+                        <button
+                          onClick={() => void edytuj(p.id, { stan: Math.max(0, (typeof p.stan === "number" ? p.stan : 0) - 1) })}
+                          className="border border-linia-2 px-2 py-1 text-ink-2 hover:text-ink"
+                          aria-label="Zmniejsz stan"
+                        >
+                          −
+                        </button>
+                        <input
+                          key={`s-${p.id}-${p.stan ?? "x"}`}
+                          defaultValue={p.stan ?? ""}
+                          placeholder="∞"
+                          onBlur={(e) => {
+                            const t = e.target.value.trim();
+                            const v = t === "" ? undefined : Math.max(0, parseInt(t, 10) || 0);
+                            if (v !== p.stan) void edytuj(p.id, { stan: v });
+                          }}
+                          className="w-14 border-y border-linia-2 bg-white px-2 py-1 text-center text-[13px] outline-none focus:border-ink"
+                        />
+                        <button
+                          onClick={() => void edytuj(p.id, { stan: (typeof p.stan === "number" ? p.stan : 0) + 1 })}
+                          className="border border-linia-2 px-2 py-1 text-ink-2 hover:text-ink"
+                          aria-label="Zwiększ stan"
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-2.5">
                     <button
@@ -336,6 +353,34 @@ export default function AdminProdukty() {
                     </button>
                   </td>
                 </tr>
+                {rozwiniety === p.id && p.stanRozmiary && p.rozmiary ? (
+                  <tr className="bg-szary/40">
+                    <td colSpan={5} className="px-4 py-3">
+                      <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-2">Stan wg rozmiarów</p>
+                      <div className="flex flex-wrap gap-2.5">
+                        {p.rozmiary.map((s) => (
+                          <label key={s} className="flex items-center gap-1.5 border border-linia-2 bg-white px-2.5 py-1.5">
+                            <span className="text-[12px] font-semibold text-ink-2">{s}</span>
+                            <input
+                              key={`sr-${p.id}-${s}-${p.stanRozmiary?.[s] ?? 0}`}
+                              type="number"
+                              min={0}
+                              defaultValue={p.stanRozmiary?.[s] ?? 0}
+                              onBlur={(e) => {
+                                const v = Math.max(0, parseInt(e.target.value, 10) || 0);
+                                const akt = p.stanRozmiary?.[s] ?? 0;
+                                if (v !== akt) void edytuj(p.id, { stanRozmiary: { ...(p.stanRozmiary ?? {}), [s]: v } });
+                              }}
+                              className="w-14 border border-linia-2 bg-white px-1.5 py-1 text-center text-[13px] outline-none focus:border-ink"
+                            />
+                          </label>
+                        ))}
+                      </div>
+                      <p className="mt-2 text-[11px] text-ink-2">Zmiana zapisuje się po kliknięciu poza pole. Łączny stan liczy się automatycznie.</p>
+                    </td>
+                  </tr>
+                ) : null}
+                </Fragment>
               );
             })}
           </tbody>

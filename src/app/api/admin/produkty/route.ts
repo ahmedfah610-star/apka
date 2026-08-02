@@ -33,12 +33,22 @@ export async function PATCH(req: Request) {
   if (!supabaseWlaczony()) return brakBazy();
   const sb = sbService();
   if (!sb) return brakBazy();
-  const { id, zmiany } = (await req.json()) as { id: string; zmiany: Partial<Pick<Produkt, "cena" | "stan" | "badge" | "ukryty">> };
+  const { id, zmiany } = (await req.json()) as {
+    id: string;
+    zmiany: Partial<Pick<Produkt, "cena" | "stan" | "badge" | "ukryty" | "stanRozmiary">>;
+  };
   const map: Record<string, unknown> = {};
   if ("cena" in zmiany) map.cena = zmiany.cena;
   if ("stan" in zmiany) map.stan = zmiany.stan ?? null;
   if ("badge" in zmiany) map.badge = zmiany.badge ?? null;
   if ("ukryty" in zmiany) map.ukryty = zmiany.ukryty;
+  if ("stanRozmiary" in zmiany) {
+    map.stan_rozmiary = zmiany.stanRozmiary ?? null;
+    // utrzymaj łączny stan w zgodzie z sumą po rozmiarach
+    if (zmiany.stanRozmiary) {
+      map.stan = Object.values(zmiany.stanRozmiary).reduce((s, v) => s + (Number(v) || 0), 0);
+    }
+  }
   const { error } = await sb.from("produkty").update(map).eq("id", id);
   if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
   return Response.json({ ok: true });

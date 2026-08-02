@@ -12,7 +12,8 @@ create table if not exists produkty (
   zdjecie text,
   zdjecia text[] not null default '{}',
   opis text,
-  stan integer,               -- null = dostępny bez limitu, 0 = brak
+  stan integer,               -- łączny stan (suma po rozmiarach); null = bez limitu, 0 = brak
+  stan_rozmiary jsonb,        -- stan per rozmiar: {"104": 3, "110": 0, ...}; null = brak podziału
   ukryty boolean not null default false,
   hue integer not null default 30,
   created_at timestamptz not null default now()
@@ -37,17 +38,32 @@ create policy "public read produkty" on produkty for select using (true);
 alter table zamowienia enable row level security;
 -- brak publicznych polityk na zamowienia (dostęp tylko service role z serwera)
 
--- Atomowe złożenie zamówienia + zdjęcie stanu (transakcyjnie).
+-- Atomowe złożenie zamówienia + zdjęcie stanu (transakcyjnie), per rozmiar.
 create or replace function zloz_zamowienie(
   p_pozycje jsonb, p_suma numeric, p_dostawa numeric, p_razem numeric, p_metoda text, p_klient jsonb
 ) returns uuid language plpgsql security definer as $$
-declare poz jsonb; nowe_id uuid;
+declare poz jsonb; nowe_id uuid; v_rozmiar text; v_ilosc int; v_sr jsonb; v_akt int;
 begin
   insert into zamowienia(pozycje, suma, dostawa, razem, metoda, klient)
   values (p_pozycje, p_suma, p_dostawa, p_razem, p_metoda, p_klient) returning id into nowe_id;
   for poz in select * from jsonb_array_elements(p_pozycje) loop
+    v_rozmiar := poz->>'rozmiar';
+    v_ilosc := coalesce((poz->>'ilosc')::int, 0);
+    -- odejmij od konkretnego rozmiaru (jeśli produkt ma podział i rozmiar podany)
+    if v_rozmiar is not null and v_rozmiar <> '' then
+      select stan_rozmiary into v_sr from produkty where id = poz->>'id';
+      if v_sr is not null and v_sr ? v_rozmiar then
+        v_akt := greatest(0, coalesce((v_sr->>v_rozmiar)::int, 0) - v_ilosc);
+        update produkty
+          set stan_rozmiary = jsonb_set(stan_rozmiary, array[v_rozmiar], to_jsonb(v_akt)),
+              stan = greatest(0, coalesce(stan,0) - v_ilosc)
+          where id = poz->>'id';
+        continue;
+      end if;
+    end if;
+    -- fallback: produkt bez podziału na rozmiary
     update produkty
-      set stan = greatest(0, stan - (poz->>'ilosc')::int)
+      set stan = greatest(0, stan - v_ilosc)
       where id = poz->>'id' and stan is not null;
   end loop;
   return nowe_id;

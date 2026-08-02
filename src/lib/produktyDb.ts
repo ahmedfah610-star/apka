@@ -20,6 +20,7 @@ function zRzedu(r: any): Produkt {
     zdjecia: r.zdjecia ?? [],
     opis: r.opis ?? undefined,
     stan: r.stan ?? undefined,
+    stanRozmiary: r.stan_rozmiary ?? null,
     ukryty: !!r.ukryty,
     hue: r.hue ?? 30,
   };
@@ -39,6 +40,7 @@ export function doRzedu(p: Produkt): Record<string, unknown> {
     zdjecia: p.zdjecia ?? [],
     opis: p.opis ?? null,
     stan: p.stan ?? null,
+    stan_rozmiary: p.stanRozmiary ?? null,
     ukryty: !!p.ukryty,
     hue: p.hue,
   };
