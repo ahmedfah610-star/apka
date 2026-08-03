@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useKoszyk } from "@/components/KoszykContext";
 import { PowiadomODostepnosci } from "@/components/PowiadomODostepnosci";
+import { TabelaRozmiarow } from "@/components/TabelaRozmiarow";
+import { PrzyciskUlubione } from "@/components/PrzyciskUlubione";
 import type { Produkt } from "@/data/produkty";
 
 export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
@@ -66,10 +68,13 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
       ) : null}
       {maRozmiary ? (
         <div className="mb-7">
-          <h3 className="mb-3 text-[13px] font-semibold tracking-wide text-ink-2">
-            WYBIERZ ROZMIAR
-            {blad ? <span className="ml-2 font-normal text-akcent">— wybierz rozmiar</span> : null}
-          </h3>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="text-[13px] font-semibold tracking-wide text-ink-2">
+              WYBIERZ ROZMIAR
+              {blad ? <span className="ml-2 font-normal text-akcent">— wybierz rozmiar</span> : null}
+            </h3>
+            <TabelaRozmiarow />
+          </div>
           <div className="flex flex-wrap gap-2">
             {produkt.rozmiary!.map((s) => {
               const on = rozmiar === s;
@@ -109,12 +114,15 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
       {wybranyWyprzedany ? (
         <PowiadomODostepnosci key={rozmiar} produktId={produkt.id} rozmiar={rozmiar} />
       ) : (
-        <button
-          onClick={handleDodaj}
-          className="mb-3 w-full bg-ink px-8 py-4 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent sm:w-auto sm:min-w-[280px]"
-        >
-          DODAJ DO KOSZYKA
-        </button>
+        <div className="mb-3 flex flex-col gap-2.5 sm:flex-row">
+          <button
+            onClick={handleDodaj}
+            className="w-full bg-ink px-8 py-4 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent sm:w-auto sm:min-w-[280px]"
+          >
+            DODAJ DO KOSZYKA
+          </button>
+          <PrzyciskUlubione id={produkt.id} wariant="produkt" />
+        </div>
       )}
 
       {dodano ? (

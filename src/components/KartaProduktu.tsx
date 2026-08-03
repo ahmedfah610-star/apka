@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
+import { PrzyciskUlubione } from "@/components/PrzyciskUlubione";
 
 export function KartaProduktu({ produkt }: { produkt: Produkt }) {
   const placeholder = {
@@ -13,6 +14,7 @@ export function KartaProduktu({ produkt }: { produkt: Produkt }) {
         className="relative mb-3.5 flex h-[320px] items-center justify-center overflow-hidden bg-white"
         style={produkt.zdjecie ? undefined : placeholder}
       >
+        <PrzyciskUlubione id={produkt.id} />
         {produkt.zdjecie ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

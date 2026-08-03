@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { IkonaKoszyka } from "@/components/IkonaKoszyka";
+import { IkonaUlubione } from "@/components/IkonaUlubione";
 import { Szukajka } from "@/components/Szukajka";
 import { MenuMobilne } from "@/components/MenuMobilne";
 
@@ -37,6 +38,7 @@ export function Nawigacja({ aktywna }: { aktywna?: "home" | "produkty" }) {
               PRODUKTY
             </Link>
           </nav>
+          <IkonaUlubione />
           <IkonaKoszyka />
         </div>
       </div>

@@ -3,6 +3,7 @@ import { Nawigacja } from "@/components/Nawigacja";
 import { KartaProduktu } from "@/components/KartaProduktu";
 import { DodajDoKoszyka } from "@/components/DodajDoKoszyka";
 import { Galeria } from "@/components/Galeria";
+import { OstatnioOgladane } from "@/components/OstatnioOgladane";
 import { Stopka } from "@/components/Stopka";
 import { KATEGORIE_LABEL, opisProduktu, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
@@ -81,6 +82,8 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
           </div>
         </section>
       ) : null}
+
+      <OstatnioOgladane aktualnyId={p.id} />
 
       <Stopka />
     </div>

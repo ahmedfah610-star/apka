@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { KoszykProvider } from "@/components/KoszykContext";
+import { UlubioneProvider } from "@/components/UlubioneContext";
 
 export const metadata: Metadata = {
   title: "Fasolka — ubrania dziecięce",
@@ -20,7 +21,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen bg-tlo font-sans text-ink antialiased">
-        <KoszykProvider>{children}</KoszykProvider>
+        <UlubioneProvider>
+          <KoszykProvider>{children}</KoszykProvider>
+        </UlubioneProvider>
       </body>
     </html>
   );
