@@ -22,25 +22,29 @@ export function Stopka() {
         <div>
           <h4 className="mb-3 text-[13px] font-semibold tracking-wide text-ink-2">OBSŁUGA</h4>
           <ul className="flex flex-col gap-2 text-sm text-ink-2">
-            <li>Dostawa i zwroty</li>
-            <li>Tabela rozmiarów</li>
-            <li>Kontakt</li>
+            <li><Link href="/dostawa-i-zwroty" className="no-underline hover:text-akcent">Dostawa i zwroty</Link></li>
+            <li><Link href="/faq" className="no-underline hover:text-akcent">FAQ</Link></li>
+            <li><Link href="/kontakt" className="no-underline hover:text-akcent">Kontakt</Link></li>
+            <li><Link href="/ulubione" className="no-underline hover:text-akcent">Ulubione</Link></li>
           </ul>
         </div>
         <div>
-          <h4 className="mb-3 text-[13px] font-semibold tracking-wide text-ink-2">ŚLEDŹ NAS</h4>
+          <h4 className="mb-3 text-[13px] font-semibold tracking-wide text-ink-2">INFORMACJE</h4>
           <ul className="flex flex-col gap-2 text-sm text-ink-2">
-            <li>Instagram</li>
-            <li>Facebook</li>
-            <li>Allegro</li>
+            <li><Link href="/o-nas" className="no-underline hover:text-akcent">O nas</Link></li>
+            <li><Link href="/regulamin" className="no-underline hover:text-akcent">Regulamin</Link></li>
+            <li><Link href="/polityka-prywatnosci" className="no-underline hover:text-akcent">Polityka prywatności</Link></li>
+            <li><Link href="/cookies" className="no-underline hover:text-akcent">Polityka cookies</Link></li>
           </ul>
         </div>
       </div>
-      <div className="mx-auto mt-10 flex max-w-content items-center justify-between gap-4 text-xs text-ink-2">
+      <div className="mx-auto mt-10 flex max-w-content flex-col items-start justify-between gap-3 border-t border-linia pt-6 text-xs text-ink-2 sm:flex-row sm:items-center">
         <span>© 2026 Fasolka. Wszystkie prawa zastrzeżone.</span>
-        <Link href="/admin" className="no-underline hover:text-akcent">
-          Panel
-        </Link>
+        <span className="flex items-center gap-4">
+          <Link href="/regulamin" className="no-underline hover:text-akcent">Regulamin</Link>
+          <Link href="/polityka-prywatnosci" className="no-underline hover:text-akcent">Prywatność</Link>
+          <Link href="/admin" className="no-underline hover:text-akcent">Panel</Link>
+        </span>
       </div>
     </footer>
   );

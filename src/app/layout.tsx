@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { KoszykProvider } from "@/components/KoszykContext";
 import { UlubioneProvider } from "@/components/UlubioneContext";
+import { BannerCookies } from "@/components/BannerCookies";
 
 export const metadata: Metadata = {
   title: "Fasolka — ubrania dziecięce",
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <UlubioneProvider>
           <KoszykProvider>{children}</KoszykProvider>
         </UlubioneProvider>
+        <BannerCookies />
       </body>
     </html>
   );
