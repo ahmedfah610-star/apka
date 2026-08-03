@@ -1,6 +1,6 @@
 import { StronaInfo, Sekcja, Lista, Placeholder } from "@/components/StronaInfo";
 
-export const metadata = { title: "Regulamin — Fasolka" };
+export const metadata = { title: "Regulamin" };
 
 export default function Regulamin() {
   return (

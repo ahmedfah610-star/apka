@@ -1,8 +1,9 @@
 import { StronaInfo } from "@/components/StronaInfo";
+import { jsonLd } from "@/lib/seo";
 
-export const metadata = { title: "FAQ — najczęstsze pytania — Fasolka" };
+export const metadata = { title: "FAQ — najczęstsze pytania" };
 
-const PYTANIA: { q: string; a: React.ReactNode }[] = [
+const PYTANIA: { q: string; a: string }[] = [
   { q: "Jak dobrać rozmiar?", a: "Rozmiar odpowiada wzrostowi dziecka w centymetrach. Skorzystaj z tabeli rozmiarów dostępnej na karcie każdego produktu. Jeśli dziecko jest pomiędzy rozmiarami — wybierz większy." },
   { q: "Jakie są sposoby dostawy?", a: "Wysyłamy przez InPost (Paczkomaty 24/7 i kurier) oraz kurierem standardowym. Szczegóły i koszty znajdziesz na stronie „Dostawa i zwroty”." },
   { q: "Jak długo czekam na paczkę?", a: "Zwykle kilka dni roboczych od zaksięgowania płatności. Dokładny czas realizacji podajemy w zakładce dostawy." },
@@ -12,9 +13,20 @@ const PYTANIA: { q: string; a: React.ReactNode }[] = [
   { q: "Czy wystawiacie fakturę?", a: "Tak, na życzenie. Zaznacz taką potrzebę w zamówieniu lub napisz do nas z danymi do faktury." },
 ];
 
+const faqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: PYTANIA.map((p) => ({
+    "@type": "Question",
+    name: p.q,
+    acceptedAnswer: { "@type": "Answer", text: p.a },
+  })),
+};
+
 export default function Faq() {
   return (
     <StronaInfo tytul="Najczęstsze pytania" wstep="Krótkie odpowiedzi na to, o co pytacie najczęściej.">
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(faqLd)} />
       <div className="flex flex-col divide-y divide-linia border-y border-linia">
         {PYTANIA.map((p) => (
           <details key={p.q} className="group py-4">

@@ -1,6 +1,6 @@
 import { StronaInfo, Sekcja, Placeholder } from "@/components/StronaInfo";
 
-export const metadata = { title: "Kontakt — Fasolka" };
+export const metadata = { title: "Kontakt" };
 
 export default function Kontakt() {
   return (

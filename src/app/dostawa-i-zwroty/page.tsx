@@ -1,6 +1,6 @@
 import { StronaInfo, Sekcja, Lista, Placeholder } from "@/components/StronaInfo";
 
-export const metadata = { title: "Dostawa i zwroty — Fasolka" };
+export const metadata = { title: "Dostawa i zwroty" };
 
 export default function DostawaZwroty() {
   return (

@@ -1,6 +1,6 @@
 import { StronaInfo, Sekcja, Lista } from "@/components/StronaInfo";
 
-export const metadata = { title: "Polityka cookies — Fasolka" };
+export const metadata = { title: "Polityka cookies" };
 
 export default function Cookies() {
   return (

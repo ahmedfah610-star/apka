@@ -1,6 +1,6 @@
 import { StronaInfo, Sekcja, Lista, Placeholder } from "@/components/StronaInfo";
 
-export const metadata = { title: "Polityka prywatności — Fasolka" };
+export const metadata = { title: "Polityka prywatności" };
 
 export default function PolitykaPrywatnosci() {
   return (

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
 
-export const metadata = { title: "Dziękujemy za zamówienie — Fasolka" };
+export const metadata = { title: "Dziękujemy za zamówienie" };
 
 export default function StronaDziekujemy({ searchParams }: { searchParams: { zamowienie?: string } }) {
   const nr = searchParams.zamowienie ? searchParams.zamowienie.slice(0, 8) : null;

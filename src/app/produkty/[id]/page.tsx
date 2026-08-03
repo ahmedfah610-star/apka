@@ -3,8 +3,9 @@ import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
 import { WidokProduktu } from "@/components/WidokProduktu";
-import { opisProduktu } from "@/data/produkty";
+import { KATEGORIE_LABEL, opisProduktu, type Produkt } from "@/data/produkty";
 import { katalogWidoczny, znajdzProduktDb } from "@/lib/produktyDb";
+import { BAZA_URL, NAZWA_SKLEPU, jsonLd } from "@/lib/seo";
 
 // Strona produktu czytana z bazy przy żądaniu (świeże ceny/stany, także dla
 // pozycji dodanych w panelu). Bez bazy — fallback do katalogu z kodu.
@@ -12,8 +13,55 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const p = await znajdzProduktDb(params.id);
-  if (!p) return { title: "Produkt — Fasolka" };
-  return { title: `${p.nazwa} — Fasolka`, description: opisProduktu(p) };
+  if (!p) return { title: "Produkt niedostępny" };
+  const zdjecia = (p.zdjecia?.length ? p.zdjecia : p.zdjecie ? [p.zdjecie] : []).slice(0, 4);
+  const opis = opisProduktu(p);
+  return {
+    title: `${p.nazwa} — ${KATEGORIE_LABEL[p.kategoria]}`,
+    description: opis,
+    alternates: { canonical: `/produkty/${p.id}` },
+    openGraph: {
+      type: "website",
+      title: p.nazwa,
+      description: opis,
+      url: `${BAZA_URL}/produkty/${p.id}`,
+      images: zdjecia.map((u) => ({ url: u })),
+    },
+    twitter: { card: "summary_large_image", title: p.nazwa, description: opis, images: zdjecia },
+  };
+}
+
+function daneProduktu(p: Produkt) {
+  const zdjecia = p.zdjecia?.length ? p.zdjecia : p.zdjecie ? [p.zdjecie] : [];
+  const dostepny = p.stan === undefined || p.stan === null || p.stan > 0;
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: p.nazwa,
+      image: zdjecia,
+      description: opisProduktu(p),
+      brand: { "@type": "Brand", name: NAZWA_SKLEPU },
+      category: KATEGORIE_LABEL[p.kategoria],
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "PLN",
+        price: p.cena.toFixed(2),
+        availability: dostepny ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        url: `${BAZA_URL}/produkty/${p.id}`,
+        seller: { "@type": "Organization", name: NAZWA_SKLEPU },
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Produkty", item: `${BAZA_URL}/produkty` },
+        { "@type": "ListItem", position: 2, name: KATEGORIE_LABEL[p.kategoria], item: `${BAZA_URL}/produkty?kategoria=${p.kategoria}` },
+        { "@type": "ListItem", position: 3, name: p.nazwa, item: `${BAZA_URL}/produkty/${p.id}` },
+      ],
+    },
+  ];
 }
 
 export default async function StronaProduktu({ params }: { params: { id: string } }) {
@@ -35,5 +83,10 @@ export default async function StronaProduktu({ params }: { params: { id: string 
     );
   }
 
-  return <WidokProduktu produkt={p} wszystkie={wszystkie} />;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(daneProduktu(p))} />
+      <WidokProduktu produkt={p} wszystkie={wszystkie} />
+    </>
+  );
 }

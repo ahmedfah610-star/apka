@@ -1,6 +1,6 @@
 import { StronaInfo, Sekcja, Placeholder } from "@/components/StronaInfo";
 
-export const metadata = { title: "O nas — Fasolka" };
+export const metadata = { title: "O nas" };
 
 export default function ONas() {
   return (
