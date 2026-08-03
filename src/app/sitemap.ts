@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { BAZA_URL } from "@/lib/seo";
 import { katalogWidoczny } from "@/lib/produktyDb";
+import { ARTYKULY } from "@/data/blog";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BAZA_URL}/produkty?kategoria=dziewczynki`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${BAZA_URL}/produkty?kategoria=chlopcy`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${BAZA_URL}/produkty?kategoria=niemowleta`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${BAZA_URL}/blog`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${BAZA_URL}/o-nas`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${BAZA_URL}/kontakt`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${BAZA_URL}/faq`, changeFrequency: "monthly", priority: 0.4 },
@@ -35,5 +37,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     /* brak bazy — sam szkielet stron */
   }
 
-  return [...statyczne, ...produkty];
+  const blog: MetadataRoute.Sitemap = ARTYKULY.map((a) => ({
+    url: `${BAZA_URL}/blog/${a.slug}`,
+    lastModified: new Date(a.data),
+    changeFrequency: "monthly",
+    priority: 0.5,
+  }));
+
+  return [...statyczne, ...produkty, ...blog];
 }

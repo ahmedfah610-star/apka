@@ -9,6 +9,7 @@ const LINKI = [
   { href: "/produkty?kategoria=dziewczynki", label: "Dziewczynki" },
   { href: "/produkty?kategoria=chlopcy", label: "Chłopcy" },
   { href: "/produkty?kategoria=niemowleta", label: "Niemowlęta" },
+  { href: "/blog", label: "Blog" },
 ];
 
 export function MenuMobilne({ aktywna }: { aktywna?: "home" | "produkty" }) {

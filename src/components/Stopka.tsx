@@ -24,8 +24,8 @@ export function Stopka() {
           <ul className="flex flex-col gap-2 text-sm text-ink-2">
             <li><Link href="/dostawa-i-zwroty" className="no-underline hover:text-akcent">Dostawa i zwroty</Link></li>
             <li><Link href="/faq" className="no-underline hover:text-akcent">FAQ</Link></li>
+            <li><Link href="/blog" className="no-underline hover:text-akcent">Blog</Link></li>
             <li><Link href="/kontakt" className="no-underline hover:text-akcent">Kontakt</Link></li>
-            <li><Link href="/ulubione" className="no-underline hover:text-akcent">Ulubione</Link></li>
           </ul>
         </div>
         <div>
