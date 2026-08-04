@@ -45,6 +45,11 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
   },
+  verification: {
+    // Weryfikacja Google Search Console (metoda „znacznik HTML" / usługa typu „Prefiks URL").
+    // Token można nadpisać zmienną NEXT_PUBLIC_GOOGLE_VERIFICATION.
+    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "O6bHjQAk8ppz3H1qghd6jf-h039XwR-aRImryDw8lk4",
+  },
   category: "shopping",
 };
 
