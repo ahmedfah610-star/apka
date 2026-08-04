@@ -75,7 +75,7 @@ export function DaneSprzedawcy() {
         <br />
         ul. Tomasza Zana 43/2.1, 20-601 Lublin, Polska
         <br />
-        NIP <Placeholder>[NIP]</Placeholder> · REGON <Placeholder>[REGON]</Placeholder> · KRS <Placeholder>[KRS]</Placeholder>
+        NIP 7123438950 · REGON 522694079 · KRS 0000984936
       </p>
       <p className="mt-2 text-ink">
         E-mail: <a href="mailto:amin.kids1@hotmail.com" className="underline underline-offset-2 hover:text-akcent">amin.kids1@hotmail.com</a>
