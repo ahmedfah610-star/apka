@@ -54,6 +54,7 @@ export default function Artykul({ params }: { params: { slug: string } }) {
       "@type": "BlogPosting",
       headline: a.tytul,
       description: a.opis,
+      image: a.zdjecie ? [`${BAZA_URL}${a.zdjecie}`] : undefined,
       datePublished: a.data,
       dateModified: a.data,
       inLanguage: "pl-PL",
@@ -81,9 +82,18 @@ export default function Artykul({ params }: { params: { slug: string } }) {
           <Link href="/blog" className="no-underline hover:text-akcent">Blog</Link> / <span className="text-ink">{a.kategoria}</span>
         </nav>
         <h1 className="mb-3 text-[30px] font-bold leading-tight tracking-tight md:text-[40px]">{a.tytul}</h1>
-        <p className="mb-8 text-[13px] text-ink-2">
+        <p className="mb-6 text-[13px] text-ink-2">
           {DATA_PL(a.data)} · {a.czasCzytania} min czytania
         </p>
+
+        {a.zdjecie ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={a.zdjecie}
+            alt={a.tytul}
+            className="mb-8 aspect-[16/9] w-full rounded-xl object-cover"
+          />
+        ) : null}
 
         <div className="flex flex-col gap-4">
           {a.tresc.map((b, i) => (
@@ -104,9 +114,23 @@ export default function Artykul({ params }: { params: { slug: string } }) {
             <h2 className="mb-6 text-[20px] font-bold tracking-tight">Zobacz też</h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
               {inne.map((x) => (
-                <Link key={x.slug} href={`/blog/${x.slug}`} className="text-inherit no-underline">
+                <Link key={x.slug} href={`/blog/${x.slug}`} className="group text-inherit no-underline">
+                  <div
+                    className="relative mb-2.5 h-[130px] overflow-hidden rounded-lg"
+                    style={{ background: `linear-gradient(135deg, oklch(94% 0.04 ${x.hue}) 0%, oklch(88% 0.07 ${x.hue}) 100%)` }}
+                  >
+                    {x.zdjecie ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={x.zdjecie}
+                        alt={x.tytul}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : null}
+                  </div>
                   <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-ink-2">{x.kategoria}</span>
-                  <span className="block text-[16px] font-semibold leading-snug hover:text-akcent">{x.tytul}</span>
+                  <span className="block text-[16px] font-semibold leading-snug group-hover:text-akcent">{x.tytul}</span>
                 </Link>
               ))}
             </div>

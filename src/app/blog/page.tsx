@@ -24,10 +24,21 @@ export default function Blog() {
           {ARTYKULY.map((a) => (
             <Link key={a.slug} href={`/blog/${a.slug}`} className="group flex flex-col text-inherit no-underline">
               <div
-                className="mb-4 flex h-[180px] items-end p-5"
+                className="relative mb-4 flex h-[190px] items-end overflow-hidden rounded-lg p-4"
                 style={{ background: `linear-gradient(135deg, oklch(94% 0.04 ${a.hue}) 0%, oklch(88% 0.07 ${a.hue}) 100%)` }}
               >
-                <span className="bg-white/85 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-ink">{a.kategoria}</span>
+                {a.zdjecie ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={a.zdjecie}
+                    alt={a.tytul}
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : null}
+                <span className="relative z-10 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-ink shadow-sm backdrop-blur">
+                  {a.kategoria}
+                </span>
               </div>
               <h2 className="mb-1.5 text-[18px] font-bold leading-snug transition-colors group-hover:text-akcent">{a.tytul}</h2>
               <p className="mb-3 text-[14px] leading-relaxed text-ink-2">{a.opis}</p>
