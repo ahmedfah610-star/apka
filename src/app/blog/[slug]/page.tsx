@@ -116,7 +116,7 @@ export default function Artykul({ params }: { params: { slug: string } }) {
               {inne.map((x) => (
                 <Link key={x.slug} href={`/blog/${x.slug}`} className="group text-inherit no-underline">
                   <div
-                    className="relative mb-2.5 h-[130px] overflow-hidden rounded-lg"
+                    className="relative mb-2.5 aspect-[16/9] overflow-hidden rounded-lg"
                     style={{ background: `linear-gradient(135deg, oklch(94% 0.04 ${x.hue}) 0%, oklch(88% 0.07 ${x.hue}) 100%)` }}
                   >
                     {x.zdjecie ? (
