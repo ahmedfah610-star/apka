@@ -44,23 +44,23 @@ export function Hero() {
 
       <div className="relative mx-auto max-w-content px-6 py-20 md:px-12 md:py-40">
         <div className="fade-up max-w-2xl">
-          <p className="mb-4 text-[12px] tracking-[0.2em] text-ink-2 md:mb-5 md:text-[13px]">KOLEKCJA LATO 2026</p>
-          <h1 className="mb-5 text-[34px] font-bold leading-[1.05] tracking-tight sm:text-[44px] md:mb-6 md:text-[64px]">
+          <p className="mb-4 text-[12px] font-semibold tracking-[0.2em] text-akcent md:mb-5 md:text-[13px]">KOLEKCJA LATO 2026</p>
+          <h1 className="mb-5 text-[34px] font-bold leading-[1.05] tracking-tight text-ink sm:text-[44px] md:mb-6 md:text-[64px]">
             Ubrania, w których dzieci mogą być sobą
           </h1>
-          <p className="mb-8 max-w-lg text-[15px] leading-relaxed text-ink-2 md:mb-9 md:text-[16px]">
+          <p className="mb-8 max-w-lg text-[15px] font-medium leading-relaxed text-ink md:mb-9 md:text-[16px]">
             Miękkie, bezpieczne i gotowe na każdą przygodę — od pierwszych chwil po pierwszy dzień w przedszkolu.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               href="/produkty"
-              className="inline-block bg-ink px-9 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
+              className="inline-block bg-ink px-9 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo no-underline shadow-lg transition-colors hover:bg-akcent"
             >
               ZOBACZ KOLEKCJĘ
             </Link>
             <Link
               href="/produkty?kategoria=niemowleta"
-              className="inline-block border border-ink px-9 py-4 text-center text-[13px] font-semibold tracking-wide text-ink no-underline transition-colors hover:bg-ink hover:text-tlo"
+              className="inline-block border-[1.5px] border-ink bg-tlo/85 px-9 py-4 text-center text-[13px] font-semibold tracking-wide text-ink no-underline backdrop-blur-sm transition-colors hover:bg-ink hover:text-tlo"
             >
               DLA NIEMOWLĄT
             </Link>
