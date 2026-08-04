@@ -43,7 +43,8 @@ function Listing() {
     fetch("/api/katalog")
       .then((r) => r.json())
       .then((d) => {
-        if (Array.isArray(d.items)) setWszystkie(d.items);
+        // Nie nadpisuj działającego katalogu pustą odpowiedzią (ochrona wyszukiwarki i listy).
+        if (Array.isArray(d.items) && d.items.length) setWszystkie(d.items);
       })
       .catch(() => {});
   }, []);
@@ -274,8 +275,22 @@ function Listing() {
             </div>
           ) : (
             <div className="py-16 text-center text-ink-2">
-              <p className="mb-2 text-[17px] font-semibold">Brak produktów dla tych filtrów</p>
-              <p className="text-sm">Spróbuj poluzować lub wyczyścić filtry powyżej.</p>
+              <p className="mb-2 text-[17px] font-semibold">
+                {fraza ? <>Brak wyników dla „{fraza}"</> : "Brak produktów dla tych filtrów"}
+              </p>
+              <p className="text-sm">
+                {fraza
+                  ? "Spróbuj prostszego słowa lub przejrzyj wszystkie produkty."
+                  : "Spróbuj poluzować lub wyczyścić filtry powyżej."}
+              </p>
+              {fraza ? (
+                <a
+                  href="/produkty"
+                  className="mt-4 inline-block bg-ink px-6 py-3 text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
+                >
+                  ZOBACZ WSZYSTKIE PRODUKTY
+                </a>
+              ) : null}
             </div>
           )}
         </div>

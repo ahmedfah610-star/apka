@@ -35,7 +35,15 @@ export function pasujeFraza(p: Produkt, fraza: string): boolean {
   const zapytanie = tokeny(fraza).filter((t) => !STOP.has(t));
   if (zapytanie.length === 0) return true;
   const zrodlo = tokeny(
-    [p.nazwa, p.kategoria, SYNONIMY[p.kategoria], p.wiekLabel, p.badge ?? "", (p.rozmiary ?? []).join(" ")].join(" "),
+    [
+      p.nazwa,
+      p.kategoria,
+      SYNONIMY[p.kategoria],
+      p.wiekLabel,
+      p.badge ?? "",
+      p.opis ?? "",
+      (p.rozmiary ?? []).join(" "),
+    ].join(" "),
   );
   return zapytanie.every((qt) => zrodlo.some((pt) => tokenPasuje(pt, qt)));
 }
