@@ -69,19 +69,29 @@ export default async function StronaGlowna() {
         </Reveal>
       </section>
 
-      {/* Banner promocyjny */}
+      {/* Kontakt / pomoc */}
       <Reveal>
-        <section className="bg-akcent px-6 py-16 md:px-12">
-          <div className="mx-auto flex max-w-content flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+        <section className="bg-ink px-6 py-16 md:px-12">
+          <div className="mx-auto flex max-w-content flex-col items-start justify-between gap-7 md:flex-row md:items-center">
             <div className="text-tlo">
-              <h2 className="text-[32px] font-bold">Wyprzedaż do -30%</h2>
-              <p className="mt-1 text-sm opacity-90">Wybrane modele z poprzedniej kolekcji.</p>
+              <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.2em] text-akcent">Pomoc i kontakt</p>
+              <h2 className="text-[28px] font-bold tracking-tight md:text-[32px]">Masz pytanie? Chętnie pomożemy</h2>
+              <p className="mt-2 max-w-lg text-[15px] leading-relaxed text-tlo/75">
+                Doradzimy w doborze rozmiaru, pomożemy z zamówieniem lub zwrotem. Napisz do nas — odpisujemy
+                zwykle tego samego dnia roboczego.
+              </p>
+              <a
+                href="mailto:kontakt@bobas-shopping.pl"
+                className="mt-3 inline-block text-[15px] font-medium text-tlo underline decoration-akcent underline-offset-4 transition-colors hover:text-akcent"
+              >
+                kontakt@bobas-shopping.pl
+              </a>
             </div>
             <Link
-              href="/produkty"
-              className="bg-tlo px-8 py-3.5 text-[13px] font-semibold tracking-wide text-ink no-underline"
+              href="/kontakt"
+              className="shrink-0 bg-tlo px-8 py-3.5 text-[13px] font-semibold tracking-wide text-ink no-underline transition-colors hover:bg-akcent hover:text-tlo"
             >
-              DO WYPRZEDAŻY
+              NAPISZ DO NAS
             </Link>
           </div>
         </section>
