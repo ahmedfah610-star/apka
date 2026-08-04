@@ -17,7 +17,7 @@ export default function Cookies() {
     <StronaInfo
       tytul="Polityka cookies"
       wstep="Wyjaśniamy, czym są pliki cookies, w jakim celu je wykorzystujemy oraz jak możesz zarządzać zgodą i ustawieniami przeglądarki."
-      aktualizacja="[DATA]"
+      aktualizacja="4 sierpnia 2026"
     >
       <Sekcja tytul="Czym są pliki cookies">
         <p>

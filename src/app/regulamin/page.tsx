@@ -7,14 +7,14 @@ export default function Regulamin() {
     <StronaInfo
       tytul="Regulamin sklepu internetowego bobas-shopping"
       wstep="Regulamin określa zasady korzystania ze sklepu, składania zamówień, płatności, dostawy, prawa odstąpienia od umowy oraz postępowania reklamacyjnego."
-      aktualizacja="[DATA]"
+      aktualizacja="4 sierpnia 2026"
     >
       <DaneSprzedawcy />
 
       <Sekcja tytul="§1. Postanowienia ogólne">
         <p>
           Niniejszy Regulamin określa zasady zawierania umów sprzedaży za pośrednictwem sklepu internetowego działającego
-          pod adresem <Placeholder>[adres www]</Placeholder> („Sklep") oraz zasady korzystania ze Sklepu przez Klientów.
+          pod adresem bobas-shopping.pl („Sklep") oraz zasady korzystania ze Sklepu przez Klientów.
         </p>
         <p>
           Sprzedawcą i administratorem Sklepu jest podmiot wskazany w danych sprzedawcy powyżej („Sprzedawca"). Kontakt ze
@@ -259,7 +259,7 @@ export default function Regulamin() {
           obowiązującym w chwili złożenia Zamówienia. O zmianach Klienci posiadający konto informowani są z wyprzedzeniem.
         </p>
         <p>
-          Regulamin obowiązuje od dnia <Placeholder>[data]</Placeholder>.
+          Regulamin obowiązuje od dnia 4 sierpnia 2026 r.
         </p>
       </Sekcja>
     </StronaInfo>

@@ -81,10 +81,10 @@ export default async function StronaGlowna() {
                 zwykle tego samego dnia roboczego.
               </p>
               <a
-                href="mailto:kontakt@bobas-shopping.pl"
+                href="mailto:amin.kids1@hotmail.com"
                 className="mt-3 inline-block text-[15px] font-medium text-tlo underline decoration-akcent underline-offset-4 transition-colors hover:text-akcent"
               >
-                kontakt@bobas-shopping.pl
+                amin.kids1@hotmail.com
               </a>
             </div>
             <Link

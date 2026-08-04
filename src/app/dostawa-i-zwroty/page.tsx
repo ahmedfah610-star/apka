@@ -35,12 +35,12 @@ export default function DostawaZwroty() {
         </p>
         <p>
           Aby odstąpić od umowy, poinformuj nas o swojej decyzji jednoznacznym oświadczeniem — najwygodniej e-mailem na{" "}
-          <Placeholder>[adres e-mail]</Placeholder> lub pisemnie na adres do zwrotów. Możesz skorzystać z poniższego wzoru
+          <a href="mailto:amin.kids1@hotmail.com" className="underline underline-offset-2 hover:text-akcent">amin.kids1@hotmail.com</a> lub pisemnie na adres do zwrotów. Możesz skorzystać z poniższego wzoru
           formularza, ale nie jest to obowiązkowe. Do zachowania terminu wystarczy wysłanie oświadczenia przed jego upływem.
         </p>
         <p>
           Zwracany Towar odeślij niezwłocznie, nie później niż w ciągu 14 dni od odstąpienia, na adres:{" "}
-          <Placeholder>[adres do zwrotów]</Placeholder>. Bezpośrednie koszty odesłania Towaru ponosi kupujący. Prosimy
+          AMIN.KIDS Sp. z o.o., ul. Tomasza Zana 43/2.1, 20-601 Lublin. Bezpośrednie koszty odesłania Towaru ponosi kupujący. Prosimy
           o dołączenie informacji pozwalającej powiązać zwrot z zamówieniem (np. numer zamówienia).
         </p>
         <p>
@@ -57,7 +57,7 @@ export default function DostawaZwroty() {
 
       <Sekcja tytul="Wzór formularza odstąpienia od umowy">
         <Ramka>
-          <p>Adresat: <Placeholder>[nazwa firmy, adres, e-mail]</Placeholder></p>
+          <p>Adresat: AMIN.KIDS Sp. z o.o., ul. Tomasza Zana 43/2.1, 20-601 Lublin, amin.kids1@hotmail.com</p>
           <p className="mt-2">
             Ja/My niniejszym informuję/informujemy o moim/naszym odstąpieniu od umowy sprzedaży następujących rzeczy: ______________
           </p>
@@ -77,7 +77,7 @@ export default function DostawaZwroty() {
           lub odstąpienia od umowy, na zasadach wskazanych w ustawie i w Regulaminie.
         </p>
         <p>
-          Reklamację zgłoś na adres <Placeholder>[adres e-mail]</Placeholder>, opisując wadę, wskazując swoje żądanie oraz
+          Reklamację zgłoś na adres <a href="mailto:amin.kids1@hotmail.com" className="underline underline-offset-2 hover:text-akcent">amin.kids1@hotmail.com</a>, opisując wadę, wskazując swoje żądanie oraz
           podając numer zamówienia. Reklamację rozpatrzymy niezwłocznie, nie później niż w terminie 14 dni od jej otrzymania.
         </p>
       </Sekcja>

@@ -71,18 +71,16 @@ export function DaneSprzedawcy() {
       <p className="mb-1 text-[13px] font-semibold uppercase tracking-wide text-ink-2">Sprzedawca</p>
       <p className="text-ink">
         Sklep internetowy <strong>bobas-shopping</strong> prowadzony jest przez{" "}
-        <Placeholder>[NAZWA FIRMY / Amin kids]</Placeholder>
+        <strong>AMIN.KIDS Sp. z o.o.</strong>
         <br />
-        <Placeholder>[ulica i numer]</Placeholder>, <Placeholder>[kod pocztowy, miejscowość]</Placeholder>
+        ul. Tomasza Zana 43/2.1, 20-601 Lublin, Polska
         <br />
-        NIP <Placeholder>[NIP]</Placeholder> · REGON <Placeholder>[REGON]</Placeholder>
-        {" "}<Placeholder>[· KRS, jeśli spółka]</Placeholder>
+        NIP <Placeholder>[NIP]</Placeholder> · REGON <Placeholder>[REGON]</Placeholder> · KRS <Placeholder>[KRS]</Placeholder>
       </p>
       <p className="mt-2 text-ink">
-        E-mail: <a href="mailto:kontakt@bobas-shopping.pl" className="underline underline-offset-2 hover:text-akcent">kontakt@bobas-shopping.pl</a>{" "}
-        <Placeholder>[docelowy adres e-mail]</Placeholder>
+        E-mail: <a href="mailto:amin.kids1@hotmail.com" className="underline underline-offset-2 hover:text-akcent">amin.kids1@hotmail.com</a>
         <br />
-        Telefon: <Placeholder>[telefon]</Placeholder> (pon.–pt. <Placeholder>[godziny]</Placeholder>)
+        Telefon: <Placeholder>[telefon — opcjonalnie]</Placeholder>
       </p>
     </Ramka>
   );

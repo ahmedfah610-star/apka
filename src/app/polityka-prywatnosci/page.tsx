@@ -7,7 +7,7 @@ export default function PolitykaPrywatnosci() {
     <StronaInfo
       tytul="Polityka prywatności"
       wstep="Dbamy o Twoją prywatność. Poniżej wyjaśniamy, jakie dane zbieramy, w jakim celu i na jakiej podstawie prawnej je przetwarzamy oraz jakie prawa Ci przysługują — zgodnie z RODO."
-      aktualizacja="[DATA]"
+      aktualizacja="4 sierpnia 2026"
     >
       <Sekcja tytul="1. Administrator danych">
         <p>Administratorem Twoich danych osobowych jest Sprzedawca prowadzący sklep internetowy bobas-shopping:</p>
