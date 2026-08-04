@@ -46,6 +46,12 @@ export function Nawigacja({ aktywna }: { aktywna?: "home" | "produkty" }) {
             >
               PRODUKTY
             </Link>
+            <Link
+              href="/blog"
+              className="whitespace-nowrap text-[13px] tracking-wide text-ink no-underline transition-colors hover:text-akcent"
+            >
+              BLOG
+            </Link>
           </nav>
           <div className="flex items-center gap-4 sm:gap-5">
             <IkonaUlubione />

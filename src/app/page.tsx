@@ -29,7 +29,7 @@ export default async function StronaGlowna() {
     <div className="overflow-x-hidden">
       {/* Pasek informacyjny */}
       <div className="bg-ink px-4 py-[9px] text-center text-[13px] text-tlo">
-        Darmowa dostawa od 150 zł — zamów do 15:00 i wyślemy dziś
+        Darmowa dostawa od 150 zł
       </div>
 
       <Nawigacja aktywna="home" />
