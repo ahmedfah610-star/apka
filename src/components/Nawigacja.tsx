@@ -14,13 +14,11 @@ export function Nawigacja({ aktywna }: { aktywna?: "home" | "produkty" }) {
           <Link href="/" className="flex shrink-0 items-center gap-2 text-inherit no-underline sm:gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/img/logo-mark.png"
-              alt="bobas-shopping — logo"
-              width={44}
-              height={44}
-              className="h-9 w-9 shrink-0 sm:h-11 sm:w-11"
+              src="/img/logo.png"
+              alt="bobas-shopping — sklep z ubrankami dla dzieci"
+              className="h-11 w-auto shrink-0 sm:h-14"
             />
-            <span className="text-[18px] font-bold tracking-tight sm:text-[21px]">bobas-shopping</span>
+            <span className="hidden text-[19px] font-bold tracking-tight sm:inline md:text-[22px]">bobas-shopping</span>
           </Link>
         </div>
 
