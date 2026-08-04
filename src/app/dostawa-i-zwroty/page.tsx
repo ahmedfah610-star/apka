@@ -1,66 +1,94 @@
-import { StronaInfo, Sekcja, Lista, Placeholder } from "@/components/StronaInfo";
+import { StronaInfo, Sekcja, Lista, Placeholder, Ramka } from "@/components/StronaInfo";
 
 export const metadata = { title: "Dostawa i zwroty" };
 
 export default function DostawaZwroty() {
   return (
-    <StronaInfo tytul="Dostawa i zwroty" wstep="Wysyłka InPost oraz 14 dni na zwrot bez podania przyczyny.">
+    <StronaInfo
+      tytul="Dostawa i zwroty"
+      wstep="Wygodna wysyłka InPost oraz 14 dni na zwrot bez podania przyczyny. Poniżej znajdziesz wszystkie zasady i wzór formularza odstąpienia."
+    >
       <Sekcja tytul="Sposoby i koszt dostawy">
         <Lista
           punkty={[
-            <>InPost Paczkomat 24/7 — <Placeholder>[KOSZT]</Placeholder> zł</>,
-            <>InPost Kurier — <Placeholder>[KOSZT]</Placeholder> zł</>,
-            <>Kurier standardowy — <Placeholder>[KOSZT]</Placeholder> zł</>,
-            <>Darmowa dostawa od <Placeholder>[KWOTA]</Placeholder> zł</>,
+            <>InPost Paczkomat 24/7 — <Placeholder>[koszt]</Placeholder> zł</>,
+            <>InPost Kurier — <Placeholder>[koszt]</Placeholder> zł</>,
+            <>Kurier standardowy — <Placeholder>[koszt]</Placeholder> zł</>,
+            <>Darmowa dostawa dla zamówień powyżej <Placeholder>[kwota]</Placeholder> zł</>,
           ]}
         />
-        <p>Czas realizacji: zwykle <Placeholder>[X]</Placeholder> dni roboczych. Wysyłamy na terenie Polski.</p>
+        <p>
+          Zamówienia wysyłamy na terenie Polski <Placeholder>[oraz — jeśli dotyczy — wybrane kraje UE]</Placeholder>. Czas
+          realizacji (przygotowanie i nadanie) to zwykle <Placeholder>[X]</Placeholder> dni roboczych od zaksięgowania
+          płatności, powiększony o czas dostawy przewoźnika (najczęściej 1–2 dni robocze dla InPost).
+        </p>
+        <p>
+          Po nadaniu paczki otrzymasz e-mail z numerem przesyłki, dzięki któremu możesz śledzić jej status.
+        </p>
       </Sekcja>
 
       <Sekcja tytul="Prawo odstąpienia od umowy (14 dni)">
         <p>
-          Jako konsument masz prawo odstąpić od umowy zawartej na odległość w terminie <strong>14 dni</strong> bez
-          podania przyczyny (ustawa o prawach konsumenta). Termin liczy się od dnia otrzymania towaru.
+          Jako Konsument (a także przedsiębiorca na prawach konsumenta) masz prawo odstąpić od umowy zawartej na odległość
+          w terminie <strong>14 dni</strong> bez podawania przyczyny i bez ponoszenia kosztów innych niż bezpośredni koszt
+          odesłania Towaru. Termin liczony jest od dnia, w którym otrzymałeś Towar (lub ostatnią część zamówienia).
         </p>
         <p>
-          Aby odstąpić, poinformuj nas o tym jednoznacznym oświadczeniem — e-mailem na <Placeholder>[EMAIL]</Placeholder>
-          {" "}lub pocztą na adres do zwrotów. Możesz skorzystać ze wzoru formularza odstąpienia (poniżej), ale nie jest to obowiązkowe.
+          Aby odstąpić od umowy, poinformuj nas o swojej decyzji jednoznacznym oświadczeniem — najwygodniej e-mailem na{" "}
+          <Placeholder>[adres e-mail]</Placeholder> lub pisemnie na adres do zwrotów. Możesz skorzystać z poniższego wzoru
+          formularza, ale nie jest to obowiązkowe. Do zachowania terminu wystarczy wysłanie oświadczenia przed jego upływem.
         </p>
         <p>
-          Zwracany towar odeślij nie później niż 14 dni od odstąpienia na adres: <Placeholder>[ADRES DO ZWROTÓW]</Placeholder>.
-          Bezpośrednie koszty zwrotu towaru ponosi kupujący.
+          Zwracany Towar odeślij niezwłocznie, nie później niż w ciągu 14 dni od odstąpienia, na adres:{" "}
+          <Placeholder>[adres do zwrotów]</Placeholder>. Bezpośrednie koszty odesłania Towaru ponosi kupujący. Prosimy
+          o dołączenie informacji pozwalającej powiązać zwrot z zamówieniem (np. numer zamówienia).
         </p>
         <p>
-          Zwrot płatności (w tym kosztów najtańszej oferowanej dostawy) nastąpi niezwłocznie, nie później niż w ciągu
-          14 dni, tą samą metodą płatności, chyba że wyrazisz zgodę na inny sposób. Możemy wstrzymać zwrot do czasu
-          otrzymania towaru lub dowodu jego odesłania.
+          Zwrotu wszystkich otrzymanych płatności — w tym kosztów najtańszej oferowanej przez nas dostawy — dokonamy
+          niezwłocznie, nie później niż w ciągu 14 dni, tą samą metodą płatności, której użyłeś, chyba że zgodzisz się na inne
+          rozwiązanie. Możemy wstrzymać się ze zwrotem do chwili otrzymania Towaru lub dowodu jego odesłania — w zależności od
+          tego, co nastąpi wcześniej.
+        </p>
+        <p className="text-[13.5px] text-ink-2">
+          Odpowiadasz za zmniejszenie wartości Towaru wynikające z korzystania z niego w sposób wykraczający poza niezbędny do
+          stwierdzenia jego charakteru, cech i funkcjonowania (podobnie jak przy przymierzaniu w sklepie stacjonarnym).
         </p>
       </Sekcja>
 
       <Sekcja tytul="Wzór formularza odstąpienia od umowy">
-        <div className="border border-linia bg-szary/40 p-4 text-[14px] leading-relaxed text-ink-2">
-          <p>Adresat: <Placeholder>[NAZWA FIRMY, ADRES, EMAIL]</Placeholder></p>
-          <p className="mt-2">Ja/My niniejszym informuję/informujemy o moim/naszym odstąpieniu od umowy sprzedaży następujących rzeczy: ______________</p>
-          <p className="mt-2">Data zawarcia umowy / odbioru: ______________</p>
+        <Ramka>
+          <p>Adresat: <Placeholder>[nazwa firmy, adres, e-mail]</Placeholder></p>
+          <p className="mt-2">
+            Ja/My niniejszym informuję/informujemy o moim/naszym odstąpieniu od umowy sprzedaży następujących rzeczy: ______________
+          </p>
+          <p className="mt-2">Data zawarcia umowy / odbioru Towaru: ______________</p>
+          <p>Numer zamówienia: ______________</p>
           <p>Imię i nazwisko konsumenta: ______________</p>
           <p>Adres konsumenta: ______________</p>
-          <p>Numer zamówienia: ______________</p>
-          <p>Data i podpis (jeśli formularz przesyłany w wersji papierowej): ______________</p>
-        </div>
+          <p>Numer rachunku do zwrotu (jeśli inny niż użyty do płatności): ______________</p>
+          <p>Data i podpis (jeśli formularz przesyłany jest w wersji papierowej): ______________</p>
+        </Ramka>
       </Sekcja>
 
-      <Sekcja tytul="Reklamacje (rękojmia / niezgodność towaru z umową)">
+      <Sekcja tytul="Reklamacje (niezgodność Towaru z umową)">
         <p>
-          Jeśli towar jest niezgodny z umową, przysługują Ci uprawnienia z tytułu rękojmi/niezgodności towaru z umową
-          zgodnie z ustawą o prawach konsumenta. Reklamację zgłoś na <Placeholder>[EMAIL]</Placeholder>, opisując wadę.
-          Rozpatrzymy ją w terminie 14 dni.
+          Jeśli otrzymany Towar jest niezgodny z umową (np. wadliwy lub uszkodzony), przysługują Ci uprawnienia określone
+          w ustawie o prawach konsumenta. Możesz żądać naprawy albo wymiany Towaru, a w dalszej kolejności — obniżenia ceny
+          lub odstąpienia od umowy, na zasadach wskazanych w ustawie i w Regulaminie.
+        </p>
+        <p>
+          Reklamację zgłoś na adres <Placeholder>[adres e-mail]</Placeholder>, opisując wadę, wskazując swoje żądanie oraz
+          podając numer zamówienia. Reklamację rozpatrzymy niezwłocznie, nie później niż w terminie 14 dni od jej otrzymania.
         </p>
       </Sekcja>
 
       <Sekcja tytul="Wyjątki od prawa odstąpienia">
         <p>
-          Prawo odstąpienia nie przysługuje m.in. dla towarów wykonanych na indywidualne zamówienie oraz towarów
-          zapieczętowanych, których po otwarciu nie można zwrócić ze względów higienicznych, jeśli opakowanie zostało otwarte.
+          Prawo odstąpienia nie przysługuje m.in. w odniesieniu do Towarów wykonanych na indywidualne zamówienie lub według
+          specyfikacji Konsumenta oraz Towarów dostarczanych w zapieczętowanym opakowaniu, których po otwarciu nie można
+          zwrócić ze względu na ochronę zdrowia lub higienę, jeżeli opakowanie zostało otwarte po dostarczeniu. Pełny katalog
+          wyjątków znajduje się w{" "}
+          <a href="/regulamin" className="underline underline-offset-2 hover:text-akcent">Regulaminie</a>.
         </p>
       </Sekcja>
     </StronaInfo>

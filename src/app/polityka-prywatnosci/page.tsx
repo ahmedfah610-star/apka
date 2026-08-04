@@ -1,4 +1,4 @@
-import { StronaInfo, Sekcja, Lista, Placeholder } from "@/components/StronaInfo";
+import { StronaInfo, Sekcja, Lista, Placeholder, DaneSprzedawcy } from "@/components/StronaInfo";
 
 export const metadata = { title: "Polityka prywatności" };
 
@@ -6,85 +6,128 @@ export default function PolitykaPrywatnosci() {
   return (
     <StronaInfo
       tytul="Polityka prywatności"
-      wstep="Informacje o przetwarzaniu danych osobowych zgodnie z RODO. Szablon — uzupełnij dane i zweryfikuj z prawnikiem/IOD."
+      wstep="Dbamy o Twoją prywatność. Poniżej wyjaśniamy, jakie dane zbieramy, w jakim celu i na jakiej podstawie prawnej je przetwarzamy oraz jakie prawa Ci przysługują — zgodnie z RODO."
       aktualizacja="[DATA]"
     >
       <Sekcja tytul="1. Administrator danych">
+        <p>Administratorem Twoich danych osobowych jest Sprzedawca prowadzący sklep internetowy Fasolka:</p>
+        <DaneSprzedawcy />
         <p>
-          Administratorem danych osobowych jest <Placeholder>[NAZWA FIRMY]</Placeholder>, <Placeholder>[ADRES]</Placeholder>,
-          NIP <Placeholder>[NIP]</Placeholder>. Kontakt w sprawach danych: <Placeholder>[EMAIL]</Placeholder>.
-          <Placeholder>[Jeśli powołano — Inspektor Ochrony Danych: dane kontaktowe]</Placeholder>.
+          We wszystkich sprawach dotyczących przetwarzania danych osobowych oraz korzystania z przysługujących Ci praw możesz
+          kontaktować się z nami za pomocą podanego wyżej adresu e-mail. <Placeholder>[Jeśli powołano Inspektora Ochrony
+          Danych — podaj jego dane kontaktowe.]</Placeholder>
         </p>
       </Sekcja>
 
       <Sekcja tytul="2. Jakie dane przetwarzamy">
         <Lista
           punkty={[
-            "Dane zamówienia: imię i nazwisko, adres dostawy/paczkomat, e-mail, telefon.",
-            "Dane rozliczeniowe (obsługiwane przez operatora płatności).",
-            "Adres e-mail (newsletter, powiadomienia o dostępności).",
-            "Dane techniczne: adres IP, pliki cookies (patrz Polityka cookies).",
+            "Dane niezbędne do realizacji zamówienia: imię i nazwisko, adres dostawy lub numer paczkomatu, adres e-mail, numer telefonu.",
+            "Dane do faktury (jeśli jej zażądasz): nazwa, adres, NIP.",
+            "Dane rozliczeniowe — obsługiwane bezpośrednio przez operatora płatności; nie przechowujemy pełnych danych kart płatniczych.",
+            "Adres e-mail — w przypadku zapisu na newsletter lub powiadomienie o dostępności produktu.",
+            "Treść korespondencji — gdy kontaktujesz się z nami w sprawie zamówienia, zwrotu lub reklamacji.",
+            "Dane techniczne: adres IP, informacje o urządzeniu i przeglądarce oraz pliki cookies (zob. Polityka cookies).",
           ]}
         />
       </Sekcja>
 
-      <Sekcja tytul="3. Cele i podstawy prawne (art. 6 RODO)">
+      <Sekcja tytul="3. Cele i podstawy prawne przetwarzania">
         <Lista
           punkty={[
-            "Realizacja zamówienia i umowy sprzedaży — art. 6 ust. 1 lit. b RODO.",
-            "Obowiązki podatkowe i rachunkowe — art. 6 ust. 1 lit. c RODO.",
-            "Newsletter i powiadomienia — zgoda, art. 6 ust. 1 lit. a RODO.",
-            "Obsługa reklamacji i dochodzenie roszczeń — prawnie uzasadniony interes, art. 6 ust. 1 lit. f RODO.",
+            "Realizacja zamówienia i wykonanie umowy sprzedaży — art. 6 ust. 1 lit. b RODO (niezbędność do wykonania umowy).",
+            "Wypełnienie obowiązków prawnych, m.in. podatkowych i rachunkowych (wystawianie i przechowywanie faktur) — art. 6 ust. 1 lit. c RODO.",
+            "Rozpatrywanie reklamacji i obsługa zwrotów — art. 6 ust. 1 lit. b oraz lit. c RODO.",
+            "Wysyłka newslettera oraz powiadomień o dostępności — Twoja zgoda, art. 6 ust. 1 lit. a RODO.",
+            "Ustalenie, dochodzenie i obrona roszczeń oraz zapewnienie bezpieczeństwa Sklepu — prawnie uzasadniony interes administratora, art. 6 ust. 1 lit. f RODO.",
+            "Analityka i statystyka (w zakresie cookies analitycznych) — Twoja zgoda, art. 6 ust. 1 lit. a RODO.",
           ]}
         />
       </Sekcja>
 
       <Sekcja tytul="4. Odbiorcy danych">
-        <p>Dane mogą być powierzane zaufanym podmiotom przetwarzającym w zakresie niezbędnym do realizacji usług, m.in.:</p>
+        <p>
+          Twoje dane możemy powierzać zaufanym podmiotom przetwarzającym, wyłącznie w zakresie niezbędnym do świadczenia
+          usług i na podstawie umów powierzenia przetwarzania danych. Są to w szczególności:
+        </p>
         <Lista
           punkty={[
-            "operator płatności (np. Stripe / Przelewy24) — obsługa płatności,",
-            "firma kurierska / InPost — realizacja dostawy,",
-            "dostawca hostingu i bazy danych (np. Vercel, Supabase),",
-            "dostawca usługi e-mail (np. Resend) — wysyłka wiadomości transakcyjnych,",
-            <Placeholder key="p">[inne — np. biuro rachunkowe]</Placeholder>,
+            "operator płatności — obsługa i rozliczenie transakcji,",
+            "firmy kurierskie i operatorzy logistyczni (m.in. InPost) — dostawa zamówień,",
+            "dostawcy hostingu, infrastruktury oraz bazy danych (m.in. Vercel, Supabase) — utrzymanie Sklepu,",
+            "dostawca usługi wysyłki wiadomości e-mail (m.in. Resend) — wiadomości transakcyjne i newsletter,",
+            <Placeholder key="brk">[biuro rachunkowe — jeśli korzystasz]</Placeholder>,
+            "uprawnione organy państwowe — gdy obowiązek udostępnienia wynika z przepisów prawa.",
           ]}
         />
       </Sekcja>
 
-      <Sekcja tytul="5. Przekazywanie poza EOG">
+      <Sekcja tytul="5. Przekazywanie danych poza EOG">
         <p>
-          Niektórzy dostawcy mogą przetwarzać dane poza Europejskim Obszarem Gospodarczym. W takim przypadku odbywa się to
-          na podstawie odpowiednich zabezpieczeń, np. standardowych klauzul umownych zatwierdzonych przez Komisję Europejską.
+          Niektórzy dostawcy usług mogą przetwarzać dane poza Europejskim Obszarem Gospodarczym (EOG). W takim przypadku
+          przekazanie odbywa się wyłącznie przy zapewnieniu odpowiednich zabezpieczeń, w szczególności na podstawie
+          standardowych klauzul umownych zatwierdzonych przez Komisję Europejską lub decyzji stwierdzającej odpowiedni
+          stopień ochrony. Na życzenie udostępnimy informację o zastosowanych zabezpieczeniach.
         </p>
       </Sekcja>
 
-      <Sekcja tytul="6. Okres przechowywania">
-        <p>
-          Dane zamówień przechowujemy przez okres wymagany przepisami (m.in. podatkowymi, zwykle 5 lat) oraz przez czas
-          niezbędny do dochodzenia roszczeń. Dane przetwarzane na podstawie zgody — do czasu jej wycofania.
-        </p>
+      <Sekcja tytul="6. Okres przechowywania danych">
+        <Lista
+          punkty={[
+            "Dane związane z zamówieniami i umowami — przez okres realizacji, a następnie przez czas wymagany przepisami podatkowymi i rachunkowymi (co do zasady 5 lat licząc od końca roku, w którym wystawiono dokument).",
+            "Dane przetwarzane na podstawie zgody (newsletter, powiadomienia, cookies) — do czasu wycofania zgody.",
+            "Dane niezbędne do ustalenia lub dochodzenia roszczeń — do upływu terminów przedawnienia.",
+          ]}
+        />
       </Sekcja>
 
       <Sekcja tytul="7. Twoje prawa">
+        <p>W związku z przetwarzaniem danych przysługują Ci następujące prawa:</p>
+        <Lista
+          punkty={[
+            "prawo dostępu do danych oraz uzyskania ich kopii,",
+            "prawo do sprostowania (poprawienia) danych,",
+            "prawo do usunięcia danych („prawo do bycia zapomnianym”),",
+            "prawo do ograniczenia przetwarzania,",
+            "prawo do przenoszenia danych,",
+            "prawo do wniesienia sprzeciwu wobec przetwarzania opartego na prawnie uzasadnionym interesie,",
+            "prawo do cofnięcia zgody w dowolnym momencie — bez wpływu na zgodność z prawem przetwarzania dokonanego przed jej cofnięciem.",
+          ]}
+        />
         <p>
-          Masz prawo do: dostępu do danych, sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia danych,
-          wniesienia sprzeciwu oraz wycofania zgody w dowolnym momencie. Przysługuje Ci również prawo wniesienia skargi do
-          Prezesa Urzędu Ochrony Danych Osobowych (uodo.gov.pl).
+          Aby skorzystać z powyższych praw, skontaktuj się z nami mailowo. Masz również prawo wniesienia skargi do organu
+          nadzorczego — Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, 00-193 Warszawa, uodo.gov.pl).
         </p>
       </Sekcja>
 
-      <Sekcja tytul="8. Dobrowolność i profilowanie">
+      <Sekcja tytul="8. Dobrowolność podania danych">
         <p>
-          Podanie danych jest dobrowolne, ale niezbędne do zawarcia i realizacji umowy. Nie podejmujemy decyzji opartych
-          wyłącznie na zautomatyzowanym przetwarzaniu wywołujących skutki prawne <Placeholder>[dostosuj, jeśli używasz profilowania marketingowego]</Placeholder>.
+          Podanie danych jest dobrowolne, jednak niezbędne do zawarcia i realizacji umowy sprzedaży — bez podania danych
+          niezbędnych do wysyłki nie będzie możliwe zrealizowanie zamówienia. Podanie adresu e-mail na potrzeby newslettera
+          jest w pełni dobrowolne.
         </p>
       </Sekcja>
 
-      <Sekcja tytul="9. Pliki cookies">
+      <Sekcja tytul="9. Zautomatyzowane podejmowanie decyzji i profilowanie">
         <p>
-          Szczegóły dotyczące plików cookies znajdują się w{" "}
+          Twoje dane nie są wykorzystywane do zautomatyzowanego podejmowania decyzji, w tym profilowania, które wywoływałoby
+          wobec Ciebie skutki prawne lub w podobny sposób istotnie na Ciebie wpływało.{" "}
+          <Placeholder>[Dostosuj, jeśli w przyszłości wdrożysz profilowanie marketingowe.]</Placeholder>
+        </p>
+      </Sekcja>
+
+      <Sekcja tytul="10. Pliki cookies">
+        <p>
+          Szczegółowe informacje o wykorzystywanych plikach cookies i podobnych technologiach oraz o sposobie zarządzania
+          zgodą znajdują się w{" "}
           <a href="/cookies" className="underline underline-offset-2 hover:text-akcent">Polityce cookies</a>.
+        </p>
+      </Sekcja>
+
+      <Sekcja tytul="11. Zmiany polityki prywatności">
+        <p>
+          Polityka prywatności może być aktualizowana, m.in. w związku ze zmianą przepisów lub zakresu świadczonych usług.
+          Aktualna wersja jest zawsze dostępna na tej stronie, z podaną datą ostatniej aktualizacji.
         </p>
       </Sekcja>
     </StronaInfo>

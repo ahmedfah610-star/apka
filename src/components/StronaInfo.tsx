@@ -38,7 +38,11 @@ export function Sekcja({ tytul, children }: { tytul: string; children: React.Rea
 }
 
 export function Placeholder({ children }: { children: React.ReactNode }) {
-  return <span className="rounded-sm bg-[oklch(92%_0.09_95)] px-1.5 py-0.5 font-medium text-[oklch(40%_0.1_75)]">{children}</span>;
+  return (
+    <span className="font-medium text-ink underline decoration-dotted decoration-akcent/70 underline-offset-2">
+      {children}
+    </span>
+  );
 }
 
 export function Lista({ punkty }: { punkty: React.ReactNode[] }) {
@@ -48,5 +52,38 @@ export function Lista({ punkty }: { punkty: React.ReactNode[] }) {
         <li key={i}>{p}</li>
       ))}
     </ul>
+  );
+}
+
+// Wyróżniona ramka (np. dane sprzedawcy, wzór formularza, ważna informacja).
+export function Ramka({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-linia bg-szary/40 p-4 text-[14.5px] leading-relaxed text-ink-2 sm:p-5">
+      {children}
+    </div>
+  );
+}
+
+// Jednolity blok danych sprzedawcy — jedno miejsce do uzupełnienia danych rejestrowych.
+export function DaneSprzedawcy() {
+  return (
+    <Ramka>
+      <p className="mb-1 text-[13px] font-semibold uppercase tracking-wide text-ink-2">Sprzedawca</p>
+      <p className="text-ink">
+        Sklep internetowy <strong>Fasolka</strong> prowadzony jest przez{" "}
+        <Placeholder>[NAZWA FIRMY / Amin kids]</Placeholder>
+        <br />
+        <Placeholder>[ulica i numer]</Placeholder>, <Placeholder>[kod pocztowy, miejscowość]</Placeholder>
+        <br />
+        NIP <Placeholder>[NIP]</Placeholder> · REGON <Placeholder>[REGON]</Placeholder>
+        {" "}<Placeholder>[· KRS, jeśli spółka]</Placeholder>
+      </p>
+      <p className="mt-2 text-ink">
+        E-mail: <a href="mailto:kontakt@fasolka.pl" className="underline underline-offset-2 hover:text-akcent">kontakt@fasolka.pl</a>{" "}
+        <Placeholder>[docelowy adres e-mail]</Placeholder>
+        <br />
+        Telefon: <Placeholder>[telefon]</Placeholder> (pon.–pt. <Placeholder>[godziny]</Placeholder>)
+      </p>
+    </Ramka>
   );
 }
