@@ -11,8 +11,16 @@ export function Nawigacja({ aktywna }: { aktywna?: "home" | "produkty" }) {
         {/* Lewa kolumna — logo (równa szerokość jak prawa dla wyśrodkowania) */}
         <div className="flex flex-1 basis-0 items-center gap-1.5">
           <MenuMobilne aktywna={aktywna} />
-          <Link href="/" className="shrink-0 text-inherit no-underline">
-            <span className="text-[19px] font-bold tracking-tight sm:text-[22px]">bobas-shopping</span>
+          <Link href="/" className="flex shrink-0 items-center gap-2 text-inherit no-underline sm:gap-2.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/img/logo-mark.png"
+              alt="bobas-shopping — logo"
+              width={44}
+              height={44}
+              className="h-9 w-9 shrink-0 sm:h-11 sm:w-11"
+            />
+            <span className="text-[18px] font-bold tracking-tight sm:text-[21px]">bobas-shopping</span>
           </Link>
         </div>
 
