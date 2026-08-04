@@ -4,7 +4,7 @@ export const metadata = { title: "O nas" };
 
 export default function ONas() {
   return (
-    <StronaInfo tytul="O nas" wstep="Fasolka to sklep z ubrankami dla dzieci w wieku 0–12 lat. Wybieramy rzeczy miękkie, bezpieczne i wygodne — takie, w których dzieci mogą swobodnie się bawić, a rodzice mają pewność jakości.">
+    <StronaInfo tytul="O nas" wstep="bobas-shopping to sklep z ubrankami dla dzieci w wieku 0–12 lat. Wybieramy rzeczy miękkie, bezpieczne i wygodne — takie, w których dzieci mogą swobodnie się bawić, a rodzice mają pewność jakości.">
       <p>
         Wiemy, jak szybko rosną dzieci i jak wiele dzieje się w ciągu dnia — dlatego stawiamy na ubranka, które wytrzymują
         zabawę, pranie i codzienne przygody. Kompletujemy asortyment od wyprawki dla noworodka po ubrania dla starszaków

@@ -50,7 +50,7 @@ export default function PulpitAdmina() {
   return (
     <div>
       <h1 className="mb-1 text-[26px] font-bold tracking-tight">Pulpit</h1>
-      <p className="mb-8 text-[14px] text-ink-2">Przegląd sklepu Fasolka</p>
+      <p className="mb-8 text-[14px] text-ink-2">Przegląd sklepu bobas-shopping</p>
 
       {/* KPI */}
       <div className="mb-10 grid grid-cols-2 gap-4 md:grid-cols-4">

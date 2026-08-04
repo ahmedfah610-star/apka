@@ -5,7 +5,7 @@ export const metadata = { title: "Regulamin" };
 export default function Regulamin() {
   return (
     <StronaInfo
-      tytul="Regulamin sklepu internetowego Fasolka"
+      tytul="Regulamin sklepu internetowego bobas-shopping"
       wstep="Regulamin określa zasady korzystania ze sklepu, składania zamówień, płatności, dostawy, prawa odstąpienia od umowy oraz postępowania reklamacyjnego."
       aktualizacja="[DATA]"
     >

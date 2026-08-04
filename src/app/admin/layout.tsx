@@ -18,7 +18,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-linia px-6 py-4 md:px-10">
           <div className="flex items-center gap-8">
             <Link href="/admin" className="text-[18px] font-bold tracking-tight no-underline text-ink">
-              Fasolka <span className="text-ink-2">· admin</span>
+              bobas-shopping <span className="text-ink-2">· admin</span>
             </Link>
             <nav className="flex items-center gap-5">
               {LINKI.map((l) => (

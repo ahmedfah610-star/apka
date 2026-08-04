@@ -8,8 +8,8 @@ import { BAZA_URL, NAZWA_SKLEPU, OPIS_SKLEPU, jsonLd } from "@/lib/seo";
 export const metadata: Metadata = {
   metadataBase: new URL(BAZA_URL),
   title: {
-    default: "Fasolka — ubrania dziecięce 0-12 lat | dziewczynki, chłopcy, niemowlęta",
-    template: "%s — Fasolka",
+    default: "bobas-shopping — ubrania dziecięce 0-12 lat | dziewczynki, chłopcy, niemowlęta",
+    template: "%s — bobas-shopping",
   },
   description: OPIS_SKLEPU,
   keywords: [
@@ -32,12 +32,12 @@ export const metadata: Metadata = {
     locale: "pl_PL",
     url: BAZA_URL,
     siteName: NAZWA_SKLEPU,
-    title: "Fasolka — ubrania dziecięce 0-12 lat",
+    title: "bobas-shopping — ubrania dziecięce 0-12 lat",
     description: OPIS_SKLEPU,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fasolka — ubrania dziecięce 0-12 lat",
+    title: "bobas-shopping — ubrania dziecięce 0-12 lat",
     description: OPIS_SKLEPU,
   },
   robots: {

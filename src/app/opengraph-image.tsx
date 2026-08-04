@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Fasolka — ubrania dziecięce 0-12 lat";
+export const alt = "bobas-shopping — ubrania dziecięce 0-12 lat";
 
 export default function OpengraphImage() {
   return new ImageResponse(
@@ -21,7 +21,7 @@ export default function OpengraphImage() {
         }}
       >
         <div style={{ fontSize: 34, letterSpacing: 6, color: "#9a5a3b", fontWeight: 600 }}>SKLEP DZIECIĘCY</div>
-        <div style={{ fontSize: 150, fontWeight: 800, lineHeight: 1.05, marginTop: 8 }}>Fasolka</div>
+        <div style={{ fontSize: 104, fontWeight: 800, lineHeight: 1.05, marginTop: 8 }}>bobas-shopping</div>
         <div style={{ fontSize: 44, color: "#4a423c", marginTop: 16 }}>
           Ubranka dla dzieci 0–12 lat — miękkie i bezpieczne
         </div>

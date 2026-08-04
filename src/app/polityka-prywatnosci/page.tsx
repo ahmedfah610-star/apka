@@ -10,7 +10,7 @@ export default function PolitykaPrywatnosci() {
       aktualizacja="[DATA]"
     >
       <Sekcja tytul="1. Administrator danych">
-        <p>Administratorem Twoich danych osobowych jest Sprzedawca prowadzący sklep internetowy Fasolka:</p>
+        <p>Administratorem Twoich danych osobowych jest Sprzedawca prowadzący sklep internetowy bobas-shopping:</p>
         <DaneSprzedawcy />
         <p>
           We wszystkich sprawach dotyczących przetwarzania danych osobowych oraz korzystania z przysługujących Ci praw możesz

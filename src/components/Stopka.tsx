@@ -5,7 +5,7 @@ export function Stopka() {
     <footer className="border-t border-linia px-6 py-14 md:px-12">
       <div className="mx-auto grid max-w-content grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4">
         <div>
-          <span className="text-xl font-bold tracking-tight">Fasolka</span>
+          <span className="text-xl font-bold tracking-tight">bobas-shopping</span>
           <p className="mt-3 max-w-[220px] text-sm text-ink-2">
             Ubrania dla dzieci 0-12 lat. Miękkie, bezpieczne i gotowe do zabawy.
           </p>
@@ -39,7 +39,7 @@ export function Stopka() {
         </div>
       </div>
       <div className="mx-auto mt-10 flex max-w-content flex-col items-start justify-between gap-3 border-t border-linia pt-6 text-xs text-ink-2 sm:flex-row sm:items-center">
-        <span>© 2026 Fasolka. Wszystkie prawa zastrzeżone.</span>
+        <span>© 2026 bobas-shopping. Wszystkie prawa zastrzeżone.</span>
         <span className="flex items-center gap-4">
           <Link href="/regulamin" className="no-underline hover:text-akcent">Regulamin</Link>
           <Link href="/polityka-prywatnosci" className="no-underline hover:text-akcent">Prywatność</Link>

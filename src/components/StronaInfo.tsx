@@ -70,7 +70,7 @@ export function DaneSprzedawcy() {
     <Ramka>
       <p className="mb-1 text-[13px] font-semibold uppercase tracking-wide text-ink-2">Sprzedawca</p>
       <p className="text-ink">
-        Sklep internetowy <strong>Fasolka</strong> prowadzony jest przez{" "}
+        Sklep internetowy <strong>bobas-shopping</strong> prowadzony jest przez{" "}
         <Placeholder>[NAZWA FIRMY / Amin kids]</Placeholder>
         <br />
         <Placeholder>[ulica i numer]</Placeholder>, <Placeholder>[kod pocztowy, miejscowość]</Placeholder>
@@ -79,7 +79,7 @@ export function DaneSprzedawcy() {
         {" "}<Placeholder>[· KRS, jeśli spółka]</Placeholder>
       </p>
       <p className="mt-2 text-ink">
-        E-mail: <a href="mailto:kontakt@fasolka.pl" className="underline underline-offset-2 hover:text-akcent">kontakt@fasolka.pl</a>{" "}
+        E-mail: <a href="mailto:kontakt@bobas-shopping.pl" className="underline underline-offset-2 hover:text-akcent">kontakt@bobas-shopping.pl</a>{" "}
         <Placeholder>[docelowy adres e-mail]</Placeholder>
         <br />
         Telefon: <Placeholder>[telefon]</Placeholder> (pon.–pt. <Placeholder>[godziny]</Placeholder>)

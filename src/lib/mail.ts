@@ -5,7 +5,7 @@ const API = "https://api.resend.com/emails";
 
 function konfiguracja() {
   const key = process.env.RESEND_API_KEY;
-  const from = process.env.MAIL_FROM || "Fasolka <onboarding@resend.dev>";
+  const from = process.env.MAIL_FROM || "bobas-shopping <onboarding@resend.dev>";
   const sklep = process.env.MAIL_SKLEP; // adres właściciela (powiadomienie o zamówieniu)
   return { key, from, sklep };
 }
@@ -55,7 +55,7 @@ function szablon(d: DaneMaila, doKlienta: boolean): string {
       <tr><td style="padding:10px 0;font-weight:700;font-size:16px">Razem</td><td style="padding:10px 0;text-align:right;font-weight:700;font-size:16px">${zl(d.razem)}</td></tr>
     </table>
     <p style="font-size:14px"><strong>${k.imie || ""}</strong><br>${k.email || ""}${k.telefon ? " · " + k.telefon : ""}<br>${adres}</p>
-    <p style="color:#999;font-size:12px;margin-top:24px">Fasolka — ubrania dziecięce</p>
+    <p style="color:#999;font-size:12px;margin-top:24px">bobas-shopping — ubrania dziecięce</p>
   </div>`;
 }
 
@@ -85,8 +85,8 @@ async function wyslij(to: string, subject: string, html: string): Promise<{ ok: 
 export async function wyslijTest(to: string) {
   return wyslij(
     to,
-    "Test — Fasolka",
-    `<div style="font-family:system-ui,Arial,sans-serif"><h2>Działa ✓</h2><p>To testowy e-mail z Twojego sklepu Fasolka.</p></div>`,
+    "Test — bobas-shopping",
+    `<div style="font-family:system-ui,Arial,sans-serif"><h2>Działa ✓</h2><p>To testowy e-mail z Twojego sklepu bobas-shopping.</p></div>`,
   );
 }
 
@@ -96,11 +96,11 @@ export async function wyslijMailPowitalny(email: string) {
   const html = `
   <div style="font-family:system-ui,Arial,sans-serif;max-width:520px;margin:0 auto;color:#1c1c1c">
     <h1 style="font-size:22px">Cześć! 👋</h1>
-    <p style="font-size:15px;line-height:1.6">Dzięki za zapis do newslettera Fasolki. Damy Ci znać jako pierwszej/pierwszemu
+    <p style="font-size:15px;line-height:1.6">Dzięki za zapis do newslettera bobas-shopping. Damy Ci znać jako pierwszej/pierwszemu
     o nowych kolekcjach i wyprzedażach.</p>
-    <p style="color:#999;font-size:12px;margin-top:24px">Fasolka — ubrania dziecięce</p>
+    <p style="color:#999;font-size:12px;margin-top:24px">bobas-shopping — ubrania dziecięce</p>
   </div>`;
-  await wyslij(email, "Witaj w Fasolce 🌱", html);
+  await wyslij(email, "Witaj w bobas-shopping 🌱", html);
 }
 
 /** Mail: produkt/rozmiar znów dostępny. */
@@ -121,7 +121,7 @@ export async function wyslijMaileZamowienia(d: DaneMaila) {
   const { key, sklep } = konfiguracja();
   if (!key) return;
   const zadania: Promise<{ ok: boolean; blad?: string }>[] = [];
-  if (d.klient.email) zadania.push(wyslij(d.klient.email, `Potwierdzenie zamówienia ${d.id.slice(0, 8)} — Fasolka`, szablon(d, true)));
+  if (d.klient.email) zadania.push(wyslij(d.klient.email, `Potwierdzenie zamówienia ${d.id.slice(0, 8)} — bobas-shopping`, szablon(d, true)));
   if (sklep) zadania.push(wyslij(sklep, `Nowe zamówienie ${d.id.slice(0, 8)} — ${zl(d.razem)}`, szablon(d, false)));
   await Promise.all(zadania);
 }

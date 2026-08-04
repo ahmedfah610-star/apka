@@ -17,6 +17,6 @@ export async function GET(req: Request) {
   return Response.json({
     ...wynik,
     do: to,
-    nadawca: process.env.MAIL_FROM || "Fasolka <onboarding@resend.dev>",
+    nadawca: process.env.MAIL_FROM || "bobas-shopping <onboarding@resend.dev>",
   });
 }
