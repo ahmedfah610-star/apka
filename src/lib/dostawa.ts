@@ -14,20 +14,20 @@ export const METODY_DOSTAWY: MetodaDostawy[] = [
     id: "inpost-paczkomat",
     nazwa: "InPost Paczkomat 24/7",
     opis: "Odbiór z paczkomatu o dowolnej porze",
-    cena: 12.99,
+    cena: 11.99,
     paczkomat: true,
   },
   {
     id: "inpost-kurier",
-    nazwa: "InPost Kurier",
+    nazwa: "Kurier InPost",
     opis: "Dostawa pod wskazany adres",
-    cena: 15.99,
+    cena: 14.99,
   },
   {
-    id: "kurier",
-    nazwa: "Kurier standardowy",
-    opis: "Dostawa w 2–3 dni robocze",
-    cena: 16.99,
+    id: "kurier-dhl",
+    nazwa: "Kurier DHL",
+    opis: "Dostawa pod adres w 1–2 dni robocze",
+    cena: 19.99,
   },
 ];
 

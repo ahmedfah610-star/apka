@@ -1,4 +1,4 @@
-import { StronaInfo, Sekcja, Lista, Placeholder, Ramka } from "@/components/StronaInfo";
+import { StronaInfo, Sekcja, Lista, Ramka } from "@/components/StronaInfo";
 
 export const metadata = { title: "Dostawa i zwroty" };
 
@@ -11,16 +11,15 @@ export default function DostawaZwroty() {
       <Sekcja tytul="Sposoby i koszt dostawy">
         <Lista
           punkty={[
-            <>InPost Paczkomat 24/7 — <Placeholder>[koszt]</Placeholder> zł</>,
-            <>InPost Kurier — <Placeholder>[koszt]</Placeholder> zł</>,
-            <>Kurier standardowy — <Placeholder>[koszt]</Placeholder> zł</>,
-            <>Darmowa dostawa dla zamówień powyżej <Placeholder>[kwota]</Placeholder> zł</>,
+            <>InPost Paczkomat 24/7 — <strong>11,99 zł</strong></>,
+            <>Kurier InPost (pod adres) — <strong>14,99 zł</strong></>,
+            <>Kurier DHL (pod adres) — <strong>19,99 zł</strong></>,
+            <>Darmowa dostawa dla zamówień powyżej <strong>150 zł</strong></>,
           ]}
         />
         <p>
-          Zamówienia wysyłamy na terenie Polski <Placeholder>[oraz — jeśli dotyczy — wybrane kraje UE]</Placeholder>. Czas
-          realizacji (przygotowanie i nadanie) to zwykle <Placeholder>[X]</Placeholder> dni roboczych od zaksięgowania
-          płatności, powiększony o czas dostawy przewoźnika (najczęściej 1–2 dni robocze dla InPost).
+          Zamówienia wysyłamy na terenie Polski. Czas realizacji (przygotowanie i nadanie) to zwykle 1–2 dni robocze od
+          zaksięgowania płatności, powiększony o czas dostawy przewoźnika (najczęściej 1–2 dni robocze).
         </p>
         <p>
           Po nadaniu paczki otrzymasz e-mail z numerem przesyłki, dzięki któremu możesz śledzić jej status.
