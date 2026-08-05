@@ -177,6 +177,12 @@ export default function StronaKoszyka() {
               >
                 PRZEJDŹ DO DOSTAWY →
               </Link>
+              <p className="mt-3 text-center text-[11.5px] leading-relaxed text-ink-2">
+                Składając zamówienie akceptujesz{" "}
+                <Link href="/regulamin" className="underline underline-offset-2 hover:text-akcent">Regulamin</Link>{" "}
+                i{" "}
+                <Link href="/polityka-prywatnosci" className="underline underline-offset-2 hover:text-akcent">Politykę prywatności</Link>.
+              </p>
 
               <ul className="mt-6 flex flex-col gap-3 border-t border-linia pt-5">
                 {ZAUFANIE.map((z) => (

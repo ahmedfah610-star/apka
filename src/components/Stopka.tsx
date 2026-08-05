@@ -38,13 +38,20 @@ export function Stopka() {
           </ul>
         </div>
       </div>
-      <div className="mx-auto mt-10 flex max-w-content flex-col items-start justify-between gap-3 border-t border-linia pt-6 text-xs text-ink-2 sm:flex-row sm:items-center">
-        <span>© 2026 bobas-shopping. Wszystkie prawa zastrzeżone.</span>
-        <span className="flex items-center gap-4">
-          <Link href="/regulamin" className="no-underline hover:text-akcent">Regulamin</Link>
-          <Link href="/polityka-prywatnosci" className="no-underline hover:text-akcent">Prywatność</Link>
-          <Link href="/admin" className="no-underline hover:text-akcent">Panel</Link>
-        </span>
+      <div className="mx-auto mt-10 max-w-content border-t border-linia pt-6 text-xs text-ink-2">
+        <p className="mb-3 leading-relaxed">
+          AMIN.KIDS Sp. z o.o. · ul. Tomasza Zana 43/2.1, 20-601 Lublin · NIP 7123438950 · REGON 522694079 · KRS 0000984936
+          <br />
+          E-mail: <a href="mailto:amin.kids1@hotmail.com" className="no-underline hover:text-akcent">amin.kids1@hotmail.com</a>
+        </p>
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+          <span>© 2026 bobas-shopping. Wszystkie prawa zastrzeżone.</span>
+          <span className="flex items-center gap-4">
+            <Link href="/regulamin" className="no-underline hover:text-akcent">Regulamin</Link>
+            <Link href="/polityka-prywatnosci" className="no-underline hover:text-akcent">Prywatność</Link>
+            <Link href="/admin" className="no-underline hover:text-akcent">Panel</Link>
+          </span>
+        </div>
       </div>
     </footer>
   );

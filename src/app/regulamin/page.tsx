@@ -1,4 +1,4 @@
-import { StronaInfo, Sekcja, Lista, Placeholder, DaneSprzedawcy } from "@/components/StronaInfo";
+import { StronaInfo, Sekcja, Lista, DaneSprzedawcy } from "@/components/StronaInfo";
 
 export const metadata = { title: "Regulamin" };
 
@@ -115,9 +115,19 @@ export default function Regulamin() {
           ]}
         />
         <p>
-          Operatorem płatności elektronicznych jest zewnętrzny dostawca usług płatniczych. Zamówienie zostaje przekazane do
-          realizacji po zaksięgowaniu wpłaty. Brak wpłaty w terminie <Placeholder>[np. 3 dni]</Placeholder> może skutkować
-          anulowaniem Zamówienia.
+          Podmiotem świadczącym obsługę płatności online w zakresie płatności BLIK oraz szybkich przelewów jest{" "}
+          <strong>Przelewy24</strong> — PayPro SA, ul. Pastelowa 8, 60-198 Poznań, wpisana do Rejestru Przedsiębiorców
+          Krajowego Rejestru Sądowego prowadzonego przez Sąd Rejonowy Poznań – Nowe Miasto i Wilda w Poznaniu, VIII Wydział
+          Gospodarczy KRS pod numerem KRS 0000347935, NIP 7792369887, REGON 301345068.
+        </p>
+        <p>
+          Operatorem kart płatniczych jest PayPro SA Agent Rozliczeniowy, ul. Pastelowa 8, 60-198 Poznań, wpisany do Rejestru
+          Przedsiębiorców Krajowego Rejestru Sądowego prowadzonego przez Sąd Rejonowy Poznań – Nowe Miasto i Wilda w Poznaniu,
+          VIII Wydział Gospodarczy Krajowego Rejestru Sądowego pod numerem KRS 0000347935, NIP 7792369887, REGON 301345068.
+        </p>
+        <p>
+          Zamówienie zostaje przekazane do realizacji po zaksięgowaniu wpłaty. Brak wpłaty w terminie 3 dni od złożenia
+          Zamówienia może skutkować jego anulowaniem.
         </p>
         <p>
           Na życzenie Klienta Sprzedawca wystawia fakturę. Chęć otrzymania faktury oraz dane do jej wystawienia należy podać
@@ -127,13 +137,13 @@ export default function Regulamin() {
 
       <Sekcja tytul="§7. Dostawa">
         <p>
-          Zamówienia realizowane są na terenie Rzeczypospolitej Polskiej <Placeholder>[oraz — jeśli dotyczy — wybrane kraje UE]</Placeholder>.
-          Dostępne sposoby oraz koszty i czas dostawy wskazane są w trakcie składania Zamówienia oraz na stronie{" "}
+          Zamówienia realizowane są na terenie Rzeczypospolitej Polskiej. Dostępne sposoby oraz koszty i czas dostawy
+          wskazane są w trakcie składania Zamówienia oraz na stronie{" "}
           <a href="/dostawa-i-zwroty" className="underline underline-offset-2 hover:text-akcent">Dostawa i zwroty</a>.
         </p>
         <p>
-          Czas realizacji Zamówienia (przygotowanie i nadanie) wynosi zwykle <Placeholder>[X]</Placeholder> dni roboczych,
-          liczone od dnia zaksięgowania płatności, powiększone o czas dostawy przewoźnika.
+          Czas realizacji Zamówienia (przygotowanie i nadanie) wynosi zwykle 1–2 dni robocze, liczone od dnia zaksięgowania
+          płatności, powiększone o czas dostawy przewoźnika.
         </p>
       </Sekcja>
 

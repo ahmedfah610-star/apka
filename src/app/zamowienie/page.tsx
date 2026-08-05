@@ -52,6 +52,7 @@ export default function StronaZamowienia() {
   const [punkt, setPunkt] = useState<PunktOdbioru | null>(null);
   const [platnoscId, setPlatnoscId] = useState(PLATNOSCI[0].id);
   const [dane, setDane] = useState({ imie: "", email: "", telefon: "", adres: "", miasto: "", kod: "" });
+  const [akceptacja, setAkceptacja] = useState(false);
   const [blad, setBlad] = useState("");
   const [wysylka, setWysylka] = useState(false);
   const [platnosciOnline, setPlatnosciOnline] = useState(false);
@@ -107,6 +108,7 @@ export default function StronaZamowienia() {
     if (metoda.paczkomat && !paczkomat) return setBlad("Wybierz paczkomat InPost.");
     if (metoda.punkt && !punkt) return setBlad("Wybierz punkt ORLEN Paczka.");
     if (!metoda.paczkomat && !metoda.punkt && (!dane.adres || !dane.miasto || !dane.kod)) return setBlad("Uzupełnij adres dostawy.");
+    if (!akceptacja) return setBlad("Zaakceptuj Regulamin i Politykę prywatności.");
     setBlad("");
     setWysylka(true);
     try {
@@ -289,13 +291,28 @@ export default function StronaZamowienia() {
             <span className="text-[22px] font-bold">{formatCena(razem)} zł</span>
           </div>
 
+          <label className="mb-3 flex cursor-pointer items-start gap-2.5 text-[12.5px] leading-relaxed text-ink-2">
+            <input
+              type="checkbox"
+              checked={akceptacja}
+              onChange={(e) => setAkceptacja(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--ink)]"
+            />
+            <span>
+              Akceptuję{" "}
+              <Link href="/regulamin" target="_blank" className="underline underline-offset-2 hover:text-akcent">Regulamin</Link>{" "}
+              oraz{" "}
+              <Link href="/polityka-prywatnosci" target="_blank" className="underline underline-offset-2 hover:text-akcent">Politykę prywatności</Link>.
+            </span>
+          </label>
+
           {blad ? (
             <p className="mb-3 border border-akcent/40 bg-akcent/5 px-3 py-2 text-[13px] text-akcent">{blad}</p>
           ) : null}
 
           <button
             type="submit"
-            disabled={wysylka}
+            disabled={wysylka || !akceptacja}
             className="block w-full bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:cursor-not-allowed disabled:opacity-60"
           >
             {wysylka ? "PRZETWARZANIE…" : platnosciOnline ? "ZAMAWIAM I PŁACĘ" : "ZAMAWIAM"}
