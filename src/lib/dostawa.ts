@@ -7,6 +7,8 @@ export interface MetodaDostawy {
   cena: number;
   /** Czy wymaga wyboru paczkomatu InPost. */
   paczkomat?: boolean;
+  /** Czy wymaga wyboru punktu odbioru ORLEN Paczka. */
+  punkt?: boolean;
 }
 
 export const METODY_DOSTAWY: MetodaDostawy[] = [
@@ -16,6 +18,13 @@ export const METODY_DOSTAWY: MetodaDostawy[] = [
     opis: "Odbiór z paczkomatu o dowolnej porze",
     cena: 11.99,
     paczkomat: true,
+  },
+  {
+    id: "orlen-paczka",
+    nazwa: "ORLEN Paczka",
+    opis: "Odbiór w punkcie (Żabka, Orlen, Kolporter i in.)",
+    cena: 11.99,
+    punkt: true,
   },
   {
     id: "inpost-kurier",

@@ -21,7 +21,9 @@ export function GeowidgetInpost({ onWybierz }: { onWybierz: (p: Paczkomat) => vo
 
   useEffect(() => {
     (window as any)[CB] = (e: any) => {
-      const d = e?.detail;
+      // Geowidget v5 wywołuje callback z obiektem punktu bezpośrednio;
+      // w innych wariantach punkt bywa w e.detail — obsługujemy oba.
+      const d = e?.detail ?? e;
       if (!d?.name) return;
       cb.current({
         kod: d.name,

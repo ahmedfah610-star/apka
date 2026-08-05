@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
 import { WyborPaczkomatu, type Paczkomat } from "@/components/WyborPaczkomatu";
+import { WyborPunktu, type PunktOdbioru } from "@/components/WyborPunktu";
 import { useKoszyk } from "@/components/KoszykContext";
 import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
@@ -48,6 +49,7 @@ export default function StronaZamowienia() {
   const [katalog, setKatalog] = useState<Produkt[]>(PRODUKTY);
   const [metodaId, setMetodaId] = useState(METODY_DOSTAWY[0].id);
   const [paczkomat, setPaczkomat] = useState<Paczkomat | null>(null);
+  const [punkt, setPunkt] = useState<PunktOdbioru | null>(null);
   const [platnoscId, setPlatnoscId] = useState(PLATNOSCI[0].id);
   const [dane, setDane] = useState({ imie: "", email: "", telefon: "", adres: "", miasto: "", kod: "" });
   const [blad, setBlad] = useState("");
@@ -103,7 +105,8 @@ export default function StronaZamowienia() {
     e.preventDefault();
     if (!dane.imie || !dane.email) return setBlad("Uzupełnij imię i e-mail.");
     if (metoda.paczkomat && !paczkomat) return setBlad("Wybierz paczkomat InPost.");
-    if (!metoda.paczkomat && (!dane.adres || !dane.miasto || !dane.kod)) return setBlad("Uzupełnij adres dostawy.");
+    if (metoda.punkt && !punkt) return setBlad("Wybierz punkt ORLEN Paczka.");
+    if (!metoda.paczkomat && !metoda.punkt && (!dane.adres || !dane.miasto || !dane.kod)) return setBlad("Uzupełnij adres dostawy.");
     setBlad("");
     setWysylka(true);
     try {
@@ -126,6 +129,8 @@ export default function StronaZamowienia() {
             telefon: dane.telefon,
             ...(metoda.paczkomat
               ? { paczkomat: paczkomat?.kod, paczkomatOpis: paczkomat?.opis }
+              : metoda.punkt
+              ? { punkt: punkt?.kod, punktOpis: punkt?.opis, miasto: punkt?.miasto }
               : { adres: dane.adres, miasto: dane.miasto, kod: dane.kod }),
           },
         }),
@@ -195,6 +200,7 @@ export default function StronaZamowienia() {
                         <span>
                           <span className="flex items-center gap-2 text-[14px] font-semibold">
                             {m.paczkomat ? <span className="bg-[oklch(85%_0.16_95)] px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-ink">InPost</span> : null}
+                            {m.punkt ? <span className="bg-[oklch(70%_0.17_40)] px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-white">ORLEN</span> : null}
                             {m.nazwa}
                           </span>
                           <span className="block text-[13px] text-ink-2">{m.opis}</span>
@@ -203,12 +209,13 @@ export default function StronaZamowienia() {
                       <span className="text-[14px] font-medium">{koszt === 0 ? "gratis" : `${formatCena(koszt)} zł`}</span>
                     </button>
                     {on && m.paczkomat ? <WyborPaczkomatu wybrany={paczkomat} onWybierz={setPaczkomat} /> : null}
+                    {on && m.punkt ? <WyborPunktu wybrany={punkt} onWybierz={setPunkt} /> : null}
                   </div>
                 );
               })}
             </div>
 
-            {!metoda.paczkomat ? (
+            {!metoda.paczkomat && !metoda.punkt ? (
               <div className="mt-5 border-t border-linia pt-5">
                 <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-ink-2">Adres dostawy</h3>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

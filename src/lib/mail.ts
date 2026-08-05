@@ -26,7 +26,7 @@ interface DaneMaila {
   razem: number;
   dostawa: number;
   metoda: string;
-  klient: { imie?: string; email?: string; telefon?: string; adres?: string; miasto?: string; kod?: string; paczkomat?: string };
+  klient: { imie?: string; email?: string; telefon?: string; adres?: string; miasto?: string; kod?: string; paczkomat?: string; punkt?: string; punktOpis?: string };
 }
 
 const zl = (n: number) => `${n.toFixed(2).replace(".", ",")} zł`;
@@ -44,6 +44,8 @@ function szablon(d: DaneMaila, doKlienta: boolean): string {
   const k = d.klient;
   const adres = k.paczkomat
     ? `Paczkomat: ${k.paczkomat}`
+    : k.punkt
+    ? `ORLEN Paczka: ${k.punkt}${k.punktOpis ? ` — ${k.punktOpis}` : ""}`
     : [k.adres, [k.kod, k.miasto].filter(Boolean).join(" ")].filter(Boolean).join(", ");
   return `
   <div style="font-family:system-ui,Arial,sans-serif;max-width:560px;margin:0 auto;color:#1c1c1c">

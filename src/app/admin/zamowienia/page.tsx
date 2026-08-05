@@ -18,6 +18,8 @@ interface Klient {
   miasto?: string;
   kod?: string;
   paczkomat?: string;
+  punkt?: string;
+  punktOpis?: string;
 }
 interface Zamowienie {
   id: string;
@@ -217,6 +219,8 @@ export default function AdminZamowienia() {
                                 <br />
                                 {z.klient?.paczkomat
                                   ? `Paczkomat: ${z.klient.paczkomat}`
+                                  : z.klient?.punkt
+                                  ? `ORLEN Paczka: ${z.klient.punkt}${z.klient?.punktOpis ? ` — ${z.klient.punktOpis}` : ""}`
                                   : [z.klient?.adres, [z.klient?.kod, z.klient?.miasto].filter(Boolean).join(" ")].filter(Boolean).join(", ") || "—"}
                               </p>
                             </div>

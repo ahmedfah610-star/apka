@@ -12,6 +12,7 @@ export default function DostawaZwroty() {
         <Lista
           punkty={[
             <>InPost Paczkomat 24/7 — <strong>11,99 zł</strong></>,
+            <>ORLEN Paczka (odbiór w punkcie) — <strong>11,99 zł</strong></>,
             <>Kurier InPost (pod adres) — <strong>14,99 zł</strong></>,
             <>Kurier DHL (pod adres) — <strong>19,99 zł</strong></>,
             <>Darmowa dostawa dla zamówień powyżej <strong>150 zł</strong></>,
