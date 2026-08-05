@@ -1,4 +1,4 @@
-import { StronaInfo, Sekcja, Placeholder, DaneSprzedawcy } from "@/components/StronaInfo";
+import { StronaInfo, Sekcja, DaneSprzedawcy } from "@/components/StronaInfo";
 
 export const metadata = { title: "Kontakt" };
 
@@ -8,8 +8,6 @@ export default function Kontakt() {
       <Sekcja tytul="Napisz do nas">
         <p>
           E-mail: <a href="mailto:amin.kids1@hotmail.com" className="underline underline-offset-2 hover:text-akcent">amin.kids1@hotmail.com</a>
-          <br />
-          Telefon: <Placeholder>[telefon — opcjonalnie]</Placeholder>
         </p>
         <p className="text-[14px] text-ink-2">
           Najszybciej pomożemy, gdy w wiadomości podasz numer zamówienia oraz krótki opis sprawy.

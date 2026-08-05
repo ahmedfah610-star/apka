@@ -79,8 +79,6 @@ export function DaneSprzedawcy() {
       </p>
       <p className="mt-2 text-ink">
         E-mail: <a href="mailto:amin.kids1@hotmail.com" className="underline underline-offset-2 hover:text-akcent">amin.kids1@hotmail.com</a>
-        <br />
-        Telefon: <Placeholder>[telefon — opcjonalnie]</Placeholder>
       </p>
     </Ramka>
   );

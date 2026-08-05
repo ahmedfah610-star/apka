@@ -18,7 +18,7 @@ export default function Regulamin() {
         </p>
         <p>
           Sprzedawcą i administratorem Sklepu jest podmiot wskazany w danych sprzedawcy powyżej („Sprzedawca"). Kontakt ze
-          Sprzedawcą możliwy jest za pomocą podanego adresu e-mail oraz numeru telefonu.
+          Sprzedawcą możliwy jest za pomocą podanego adresu e-mail.
         </p>
         <p>
           Regulamin jest nieprzerwanie dostępny na stronie Sklepu w sposób umożliwiający jego pozyskanie, odtworzenie
