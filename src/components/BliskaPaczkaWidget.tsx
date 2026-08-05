@@ -5,17 +5,31 @@ import type { PunktOdbioru } from "@/components/WyborPunktu";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-// Mapa punktów odbioru (Bliska Paczka) ograniczona do sieci ORLEN Paczka.
-// Sam wybór punktu nie wymaga tokenu.
-const SRC = "https://widget.bliskapaczka.pl/prod/main.js";
+// Mapa punktów odbioru (Bliska Paczka / Alsendo). Sam wybór punktu nie wymaga tokenu.
+const BASE = "https://widget.bliskapaczka.pl/prod";
 
-export function BliskaPaczkaWidget({ onWybierz }: { onWybierz: (p: PunktOdbioru) => void }) {
+export function BliskaPaczkaWidget({
+  operator,
+  onWybierz,
+}: {
+  operator: string;
+  onWybierz: (p: PunktOdbioru) => void;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const cb = useRef(onWybierz);
   cb.current = onWybierz;
 
   useEffect(() => {
     let anulowane = false;
+
+    // Style widgetu (mapa Leaflet + interfejs) — bez tego widget jest nieostylowany.
+    if (!document.getElementById("bliska-paczka-css")) {
+      const l = document.createElement("link");
+      l.id = "bliska-paczka-css";
+      l.rel = "stylesheet";
+      l.href = `${BASE}/main.css`;
+      document.head.appendChild(l);
+    }
 
     const init = () => {
       const w = window as any;
@@ -24,7 +38,7 @@ export function BliskaPaczkaWidget({ onWybierz }: { onWybierz: (p: PunktOdbioru)
       try {
         w.BPWidget.init(ref.current, {
           language: "pl",
-          operators: [{ operator: "RUCH" }], // sieć ORLEN Paczka
+          operators: [{ operator }],
           betaRendering: true,
           callback: (pos: any) => {
             if (!pos) return;
@@ -50,7 +64,7 @@ export function BliskaPaczkaWidget({ onWybierz }: { onWybierz: (p: PunktOdbioru)
       if (!s) {
         s = document.createElement("script");
         s.id = "bliska-paczka-js";
-        s.src = SRC;
+        s.src = `${BASE}/main.js`;
         s.defer = true;
         document.body.appendChild(s);
       }
@@ -60,7 +74,7 @@ export function BliskaPaczkaWidget({ onWybierz }: { onWybierz: (p: PunktOdbioru)
     return () => {
       anulowane = true;
     };
-  }, []);
+  }, [operator]);
 
   return <div ref={ref} className="h-full w-full" />;
 }

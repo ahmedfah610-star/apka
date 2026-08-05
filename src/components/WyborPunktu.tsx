@@ -9,11 +9,15 @@ export interface PunktOdbioru {
   miasto: string;
 }
 
-/** Wybór punktu odbioru ORLEN Paczka na mapie (widget Bliska Paczka). */
+/** Wybór punktu odbioru na mapie (widget Bliska Paczka), dla wskazanego operatora. */
 export function WyborPunktu({
+  operator,
+  nazwa,
   wybrany,
   onWybierz,
 }: {
+  operator: string;
+  nazwa: string;
   wybrany: PunktOdbioru | null;
   onWybierz: (p: PunktOdbioru) => void;
 }) {
@@ -40,7 +44,7 @@ export function WyborPunktu({
           onClick={() => setOtwarte(true)}
           className="w-full border border-dashed border-ink-2 px-4 py-3 text-[14px] font-medium text-ink transition-colors hover:border-ink"
         >
-          📍 Wybierz punkt ORLEN Paczka na mapie
+          📍 Wybierz punkt {nazwa} na mapie
         </button>
       )}
 
@@ -48,13 +52,13 @@ export function WyborPunktu({
         <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
           <div className="flex h-[85vh] w-full max-w-2xl flex-col bg-tlo">
             <div className="flex items-center justify-between border-b border-linia px-5 py-4">
-              <h3 className="text-[16px] font-bold">Wybierz punkt ORLEN Paczka</h3>
+              <h3 className="text-[16px] font-bold">Wybierz punkt {nazwa}</h3>
               <button onClick={() => setOtwarte(false)} aria-label="Zamknij" className="text-ink-2 hover:text-ink">
                 ✕
               </button>
             </div>
             <div className="min-h-0 flex-1">
-              <BliskaPaczkaWidget onWybierz={wybierz} />
+              <BliskaPaczkaWidget operator={operator} onWybierz={wybierz} />
             </div>
           </div>
         </div>

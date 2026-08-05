@@ -200,18 +200,31 @@ export default function StronaZamowienia() {
                           {on ? <span className="h-2 w-2 rounded-full bg-ink" /> : null}
                         </span>
                         <span>
-                          <span className="flex items-center gap-2 text-[14px] font-semibold">
+                          <span className="flex flex-wrap items-center gap-2 text-[14px] font-semibold">
                             {m.paczkomat ? <span className="bg-[oklch(85%_0.16_95)] px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-ink">InPost</span> : null}
-                            {m.punkt ? <span className="bg-[oklch(70%_0.17_40)] px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-white">ORLEN</span> : null}
                             {m.nazwa}
                           </span>
-                          <span className="block text-[13px] text-ink-2">{m.opis}</span>
+                          <span className="block text-[13px] text-ink-2">
+                            {m.opis}
+                            {m.info ? (
+                              <span title={m.info} className="ml-1 cursor-help underline decoration-dotted underline-offset-2">
+                                co to?
+                              </span>
+                            ) : null}
+                          </span>
                         </span>
                       </span>
                       <span className="text-[14px] font-medium">{koszt === 0 ? "gratis" : `${formatCena(koszt)} zł`}</span>
                     </button>
+                    {on && m.info ? (
+                      <p className="mt-2 border-l-2 border-linia-2 bg-szary/30 px-3 py-2 text-[12.5px] leading-relaxed text-ink-2">
+                        {m.info}
+                      </p>
+                    ) : null}
                     {on && m.paczkomat ? <WyborPaczkomatu wybrany={paczkomat} onWybierz={setPaczkomat} /> : null}
-                    {on && m.punkt ? <WyborPunktu wybrany={punkt} onWybierz={setPunkt} /> : null}
+                    {on && m.punkt ? (
+                      <WyborPunktu operator={m.operator ?? "RUCH"} nazwa={m.operatorNazwa ?? m.nazwa} wybrany={punkt} onWybierz={setPunkt} />
+                    ) : null}
                   </div>
                 );
               })}

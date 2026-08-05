@@ -45,7 +45,7 @@ function szablon(d: DaneMaila, doKlienta: boolean): string {
   const adres = k.paczkomat
     ? `Paczkomat: ${k.paczkomat}`
     : k.punkt
-    ? `ORLEN Paczka: ${k.punkt}${k.punktOpis ? ` — ${k.punktOpis}` : ""}`
+    ? `Punkt odbioru: ${k.punkt}${k.punktOpis ? ` — ${k.punktOpis}` : ""}`
     : [k.adres, [k.kod, k.miasto].filter(Boolean).join(" ")].filter(Boolean).join(", ");
   return `
   <div style="font-family:system-ui,Arial,sans-serif;max-width:560px;margin:0 auto;color:#1c1c1c">
