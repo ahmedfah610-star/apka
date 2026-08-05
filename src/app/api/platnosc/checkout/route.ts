@@ -1,5 +1,6 @@
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { stripe, stripeWlaczony, bazowyUrl } from "@/lib/platnosci";
+import { p24Wlaczony, p24Rejestruj } from "@/lib/przelewy24";
 import { wyslijMaileZamowienia } from "@/lib/mail";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,36 @@ export async function POST(req: Request) {
   const suma = pozycje.reduce((s, p) => s + (Number(p.cena) || 0) * (Number(p.ilosc) || 0), 0);
   const dostawa = Number(b.dostawa) || 0;
   const razem = suma + dostawa;
+
+  // ── Płatność online (Przelewy24) — priorytet, wymaga bazy do zapisu ──
+  if (p24Wlaczony() && supabaseWlaczony()) {
+    const sb = sbService();
+    if (!sb) return Response.json({ ok: false, blad: "Błąd konfiguracji" }, { status: 500 });
+
+    // 1) Zapis zamówienia jako oczekującego (bez zdejmowania stanu).
+    const { data, error } = await sb
+      .from("zamowienia")
+      .insert({ pozycje, suma, dostawa, razem, metoda: b.metoda, klient: b.klient ?? {}, status: "oczekuje_na_platnosc" })
+      .select("id")
+      .single();
+    if (error || !data) return Response.json({ ok: false, blad: error?.message || "Zapis nieudany" }, { status: 500 });
+    const zamowienieId = data.id as string;
+
+    // 2) Rejestracja transakcji w Przelewy24 → URL do przekierowania.
+    const baza = bazowyUrl(req);
+    const rej = await p24Rejestruj({
+      sessionId: zamowienieId,
+      amount: Math.round(razem * 100),
+      email: (b.klient?.email as string) || "",
+      description: `Zamowienie ${zamowienieId.slice(0, 8)} - bobas-shopping`,
+      urlReturn: `${baza}/zamowienie/dziekujemy?zamowienie=${zamowienieId}`,
+      urlStatus: `${baza}/api/platnosc/p24/webhook`,
+    });
+    if (!rej.ok || !rej.url) return Response.json({ ok: false, blad: rej.blad || "Błąd płatności" }, { status: 500 });
+
+    await sb.from("zamowienia").update({ platnosc_id: zamowienieId }).eq("id", zamowienieId);
+    return Response.json({ ok: true, url: rej.url });
+  }
 
   // ── Płatność online (Stripe) — wymaga też bazy do zapisu zamówienia ──
   if (stripeWlaczony() && supabaseWlaczony()) {
