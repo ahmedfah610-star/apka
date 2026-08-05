@@ -1,4 +1,4 @@
-import { StronaInfo, Sekcja, Lista, Placeholder, DaneSprzedawcy } from "@/components/StronaInfo";
+import { StronaInfo, Sekcja, Lista, DaneSprzedawcy } from "@/components/StronaInfo";
 
 export const metadata = { title: "O nas" };
 
@@ -25,8 +25,10 @@ export default function ONas() {
 
       <Sekcja tytul="Nasza historia">
         <p>
-          <Placeholder>[Tu opisz krótko historię marki — kiedy powstała, dlaczego, co Was wyróżnia i kto za nią stoi.
-          Kilka zdań w naturalnym, ciepłym tonie zbuduje zaufanie klientów.]</Placeholder>
+          bobas-shopping tworzymy z myślą o rodzicach, którzy — jak my — szukają dla dzieci ubranek wygodnych, bezpiecznych
+          i w rozsądnej cenie. Zaczynaliśmy od sprzedaży online, poznając na co dzień, co naprawdę sprawdza się w praniu,
+          zabawie i codziennym noszeniu. Dziś prowadzimy własny sklep, w którym stawiamy na sprawdzone tkaniny, solidne
+          wykonanie i szybką wysyłkę — tak, aby zakupy dla dziecka były po prostu proste i przyjemne.
         </p>
       </Sekcja>
 

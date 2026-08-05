@@ -1,4 +1,4 @@
-import { StronaInfo, Sekcja, Lista, Placeholder, DaneSprzedawcy } from "@/components/StronaInfo";
+import { StronaInfo, Sekcja, Lista, DaneSprzedawcy } from "@/components/StronaInfo";
 
 export const metadata = { title: "Polityka prywatności" };
 
@@ -14,8 +14,7 @@ export default function PolitykaPrywatnosci() {
         <DaneSprzedawcy />
         <p>
           We wszystkich sprawach dotyczących przetwarzania danych osobowych oraz korzystania z przysługujących Ci praw możesz
-          kontaktować się z nami za pomocą podanego wyżej adresu e-mail. <Placeholder>[Jeśli powołano Inspektora Ochrony
-          Danych — podaj jego dane kontaktowe.]</Placeholder>
+          kontaktować się z nami za pomocą podanego wyżej adresu e-mail.
         </p>
       </Sekcja>
 
@@ -56,7 +55,7 @@ export default function PolitykaPrywatnosci() {
             "firmy kurierskie i operatorzy logistyczni (m.in. InPost) — dostawa zamówień,",
             "dostawcy hostingu, infrastruktury oraz bazy danych (m.in. Vercel, Supabase) — utrzymanie Sklepu,",
             "dostawca usługi wysyłki wiadomości e-mail (m.in. Resend) — wiadomości transakcyjne i newsletter,",
-            <Placeholder key="brk">[biuro rachunkowe — jeśli korzystasz]</Placeholder>,
+            "biuro rachunkowe — obsługa księgowa i podatkowa,",
             "uprawnione organy państwowe — gdy obowiązek udostępnienia wynika z przepisów prawa.",
           ]}
         />
@@ -111,8 +110,7 @@ export default function PolitykaPrywatnosci() {
       <Sekcja tytul="9. Zautomatyzowane podejmowanie decyzji i profilowanie">
         <p>
           Twoje dane nie są wykorzystywane do zautomatyzowanego podejmowania decyzji, w tym profilowania, które wywoływałoby
-          wobec Ciebie skutki prawne lub w podobny sposób istotnie na Ciebie wpływało.{" "}
-          <Placeholder>[Dostosuj, jeśli w przyszłości wdrożysz profilowanie marketingowe.]</Placeholder>
+          wobec Ciebie skutki prawne lub w podobny sposób istotnie na Ciebie wpływało.
         </p>
       </Sekcja>
 
