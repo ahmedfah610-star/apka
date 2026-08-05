@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 /**
@@ -11,13 +12,15 @@ export function HeroTlo() {
   if (!ok) return null;
   return (
     <>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src="/img/hero.jpg"
         alt=""
         aria-hidden
+        fill
+        priority
+        sizes="100vw"
         onError={() => setOk(false)}
-        className="absolute inset-0 h-full w-full object-cover object-center"
+        className="object-cover object-center"
       />
       {/* Zasłona dla czytelności tekstu — mocniejsza po lewej (pod tekstem), dodatkowo lekko od dołu */}
       <div

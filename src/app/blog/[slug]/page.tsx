@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Nawigacja } from "@/components/Nawigacja";
@@ -87,12 +88,9 @@ export default function Artykul({ params }: { params: { slug: string } }) {
         </p>
 
         {a.zdjecie ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={a.zdjecie}
-            alt={a.tytul}
-            className="mb-8 aspect-[16/9] w-full rounded-xl object-cover"
-          />
+          <div className="relative mb-8 aspect-[16/9] w-full overflow-hidden rounded-xl">
+            <Image src={a.zdjecie} alt={a.tytul} fill priority sizes="(max-width: 768px) 100vw, 720px" className="object-cover" />
+          </div>
         ) : null}
 
         <div className="flex flex-col gap-4">
@@ -120,12 +118,12 @@ export default function Artykul({ params }: { params: { slug: string } }) {
                     style={{ background: `linear-gradient(135deg, oklch(94% 0.04 ${x.hue}) 0%, oklch(88% 0.07 ${x.hue}) 100%)` }}
                   >
                     {x.zdjecie ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={x.zdjecie}
                         alt={x.tytul}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 640px) 100vw, 33vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : null}
                   </div>

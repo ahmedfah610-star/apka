@@ -9,7 +9,8 @@ import { BAZA_URL, NAZWA_SKLEPU, jsonLd } from "@/lib/seo";
 
 // Strona produktu czytana z bazy przy żądaniu (świeże ceny/stany, także dla
 // pozycji dodanych w panelu). Bez bazy — fallback do katalogu z kodu.
-export const dynamic = "force-dynamic";
+// ISR: karta produktu cache'owana i odświeżana co 5 minut.
+export const revalidate = 300;
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const p = await znajdzProduktDb(params.id);

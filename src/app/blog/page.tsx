@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
@@ -28,12 +29,12 @@ export default function Blog() {
                 style={{ background: `linear-gradient(135deg, oklch(94% 0.04 ${a.hue}) 0%, oklch(88% 0.07 ${a.hue}) 100%)` }}
               >
                 {a.zdjecie ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={a.zdjecie}
                     alt={a.tytul}
-                    loading="lazy"
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : null}
                 <span className="relative z-10 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-ink shadow-sm backdrop-blur">

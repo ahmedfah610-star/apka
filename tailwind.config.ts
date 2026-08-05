@@ -15,7 +15,7 @@ const config: Config = {
         szary: "var(--szary)",
       },
       fontFamily: {
-        sans: ['"DM Sans"', "system-ui", "sans-serif"],
+        sans: ["var(--font-dm-sans)", '"DM Sans"', "system-ui", "sans-serif"],
       },
       maxWidth: {
         content: "1400px",

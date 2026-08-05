@@ -9,7 +9,9 @@ import { Stopka } from "@/components/Stopka";
 import { type Kategoria, type Produkt } from "@/data/produkty";
 import { katalogWidoczny } from "@/lib/produktyDb";
 
-export const dynamic = "force-dynamic";
+// ISR: strona buduje się i odświeża co 5 minut zamiast przy każdym żądaniu
+// (szybszy TTFB, mniejsze obciążenie bazy, lepsze Core Web Vitals).
+export const revalidate = 300;
 
 const KATEGORIE: { key: Kategoria; label: string; hue: number }[] = [
   { key: "dziewczynki", label: "Dziewczynki", hue: 30 },

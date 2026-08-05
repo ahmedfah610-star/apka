@@ -1,9 +1,19 @@
 import type { Metadata } from "next";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import { KoszykProvider } from "@/components/KoszykContext";
 import { UlubioneProvider } from "@/components/UlubioneContext";
 import { BannerCookies } from "@/components/BannerCookies";
 import { BAZA_URL, NAZWA_SKLEPU, OPIS_SKLEPU, jsonLd } from "@/lib/seo";
+
+// Self-hosting fontu przez next/font — bez blokującego zapytania do Google
+// i bez przesunięć układu (CLS). latin-ext obejmuje polskie znaki.
+const dmSans = DM_Sans({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-dm-sans",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(BAZA_URL),
@@ -78,15 +88,7 @@ const daneStrukturalne = [
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pl">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="pl" className={dmSans.variable}>
       <body className="min-h-screen bg-tlo font-sans text-ink antialiased">
         <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(daneStrukturalne)} />
         <UlubioneProvider>
