@@ -4,6 +4,7 @@ import { KartaProduktu } from "@/components/KartaProduktu";
 import { DodajDoKoszyka } from "@/components/DodajDoKoszyka";
 import { Galeria } from "@/components/Galeria";
 import { OstatnioOgladane } from "@/components/OstatnioOgladane";
+import { Opinie } from "@/components/Opinie";
 import { Stopka } from "@/components/Stopka";
 import { KATEGORIE_LABEL, opisProduktu, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
@@ -69,6 +70,8 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
           </ul>
         </div>
       </div>
+
+      <Opinie produktId={p.id} />
 
       {podobne.length > 0 ? (
         <section className="px-6 pb-20 md:px-12">

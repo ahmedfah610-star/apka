@@ -5,6 +5,7 @@ import { Stopka } from "@/components/Stopka";
 import { WidokProduktu } from "@/components/WidokProduktu";
 import { KATEGORIE_LABEL, opisProduktu, type Produkt } from "@/data/produkty";
 import { katalogWidoczny, znajdzProduktDb } from "@/lib/produktyDb";
+import { pobierzOpinie, agregat, type Opinia } from "@/lib/opinieDb";
 import { METODY_DOSTAWY } from "@/lib/dostawa";
 import { BAZA_URL, NAZWA_SKLEPU, jsonLd } from "@/lib/seo";
 
@@ -57,9 +58,31 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
-function daneProduktu(p: Produkt) {
+function daneProduktu(p: Produkt, opinie: Opinia[]) {
   const zdjecia = p.zdjecia?.length ? p.zdjecia : p.zdjecie ? [p.zdjecie] : [];
   const dostepny = p.stan === undefined || p.stan === null || p.stan > 0;
+  const ag = agregat(opinie);
+  // aggregateRating + review dodajemy WYŁĄCZNIE, gdy są prawdziwe opinie
+  // (wymóg wytycznych Google — bez zmyślonych ocen).
+  const oceny =
+    ag.liczba > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: ag.srednia,
+            reviewCount: ag.liczba,
+            bestRating: 5,
+            worstRating: 1,
+          },
+          review: opinie.slice(0, 5).map((o) => ({
+            "@type": "Review",
+            author: { "@type": "Person", name: o.imie },
+            datePublished: o.utworzono,
+            reviewRating: { "@type": "Rating", ratingValue: o.ocena, bestRating: 5, worstRating: 1 },
+            ...(o.tresc ? { reviewBody: o.tresc } : {}),
+          })),
+        }
+      : {};
   return [
     {
       "@context": "https://schema.org",
@@ -69,6 +92,7 @@ function daneProduktu(p: Produkt) {
       description: opisProduktu(p),
       brand: { "@type": "Brand", name: NAZWA_SKLEPU },
       category: KATEGORIE_LABEL[p.kategoria],
+      ...oceny,
       offers: {
         "@type": "Offer",
         priceCurrency: "PLN",
@@ -112,9 +136,11 @@ export default async function StronaProduktu({ params }: { params: { id: string 
     );
   }
 
+  const opinie = await pobierzOpinie(p.id);
+
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(daneProduktu(p))} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(daneProduktu(p, opinie))} />
       <WidokProduktu produkt={p} wszystkie={wszystkie} />
     </>
   );
