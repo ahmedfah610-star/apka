@@ -24,6 +24,28 @@ export function Stopka() {
           <p className="mt-3 max-w-[220px] text-sm text-ink-2">
             Ubrania dla dzieci 0-12 lat. Miękkie, bezpieczne i gotowe do zabawy.
           </p>
+          <div className="mt-4 flex items-center gap-2.5">
+            <a
+              href="https://www.facebook.com/BobasShopping/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook — bobas-shopping"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-linia-2 text-ink transition-colors hover:border-ink hover:text-akcent"
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <path d="M13.5 21v-8h2.7l.4-3.1h-3.1V7.9c0-.9.25-1.5 1.55-1.5H17V3.6c-.3-.04-1.3-.13-2.46-.13-2.44 0-4.11 1.49-4.11 4.22V9.9H7.7V13h2.73v8h3.07z" />
+              </svg>
+            </a>
+            <a
+              href="https://allegro.pl/uzytkownik/bobas-shopping"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Allegro — bobas-shopping"
+              className="flex h-9 items-center rounded-full border border-linia-2 px-3.5 text-[13px] font-extrabold lowercase tracking-tight text-[#ff5a00] transition-colors hover:border-ink"
+            >
+              allegro
+            </a>
+          </div>
         </div>
         <div>
           <h4 className="mb-3 text-[13px] font-semibold tracking-wide text-ink-2">SKLEP</h4>
