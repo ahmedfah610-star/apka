@@ -7,7 +7,24 @@ import { Newsletter } from "@/components/Newsletter";
 import { Reveal } from "@/components/Reveal";
 import { Stopka } from "@/components/Stopka";
 import { type Kategoria, type Produkt } from "@/data/produkty";
+import { KOLEKCJE } from "@/data/kolekcje";
 import { katalogWidoczny } from "@/lib/produktyDb";
+
+// Wybrane typy do sekcji „Kupuj według typu" na stronie głównej.
+const TYPY_SEO = [
+  "spodnie-dla-chlopca",
+  "spodnie-dla-dziewczynki",
+  "bluzy-dla-chlopca",
+  "bluzy-dla-dziewczynki",
+  "sukienki-dla-dziewczynki",
+  "komplety-dzieciece",
+  "body-niemowlece",
+  "pajacyki-i-spiochy-niemowlece",
+  "dresy-dzieciece",
+  "czapki-dzieciece",
+]
+  .map((s) => KOLEKCJE.find((k) => k.slug === s))
+  .filter((k): k is (typeof KOLEKCJE)[number] => !!k);
 
 // ISR: strona buduje się i odświeża co 5 minut zamiast przy każdym żądaniu
 // (szybszy TTFB, mniejsze obciążenie bazy, lepsze Core Web Vitals).
@@ -47,6 +64,20 @@ export default async function StronaGlowna() {
               <Reveal key={k.key} delay={i * 120}>
                 <KafelKategorii kluczKat={k.key} label={k.label} fallbackSrc={reprKategorii(katalog, k.key)?.zdjecie ?? null} />
               </Reveal>
+            ))}
+          </div>
+
+          {/* Kupuj według typu — linki do stron docelowych (SEO) */}
+          <h3 className="mb-4 mt-14 text-[18px] font-bold tracking-tight">Kupuj według typu</h3>
+          <div className="flex flex-wrap gap-2.5">
+            {TYPY_SEO.map((k) => (
+              <Link
+                key={k.slug}
+                href={`/kolekcje/${k.slug}`}
+                className="rounded-full border border-linia-2 px-4 py-2 text-[13.5px] font-medium text-ink no-underline transition-colors hover:border-ink hover:bg-szary"
+              >
+                {k.h1}
+              </Link>
             ))}
           </div>
         </Reveal>

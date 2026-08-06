@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { BAZA_URL } from "@/lib/seo";
 import { katalogWidoczny } from "@/lib/produktyDb";
 import { ARTYKULY } from "@/data/blog";
+import { KOLEKCJE } from "@/data/kolekcje";
 
 export const dynamic = "force-dynamic";
 
@@ -44,5 +45,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...statyczne, ...produkty, ...blog];
+  // Strony docelowe pod frazy (landing pages) — wysoki priorytet SEO.
+  const kolekcje: MetadataRoute.Sitemap = KOLEKCJE.map((k) => ({
+    url: `${BAZA_URL}/kolekcje/${k.slug}`,
+    lastModified: teraz,
+    changeFrequency: "weekly",
+    priority: 0.85,
+  }));
+
+  return [...statyczne, ...kolekcje, ...produkty, ...blog];
 }

@@ -1,4 +1,19 @@
 import Link from "next/link";
+import { KOLEKCJE } from "@/data/kolekcje";
+
+// Wybrane kolekcje do linkowania wewnętrznego w stopce (SEO — na każdej stronie).
+const POPULARNE = [
+  "spodnie-dla-chlopca",
+  "spodnie-dla-dziewczynki",
+  "bluzy-dla-chlopca",
+  "sukienki-dla-dziewczynki",
+  "body-niemowlece",
+  "komplety-dzieciece",
+  "dresy-dzieciece",
+  "czapki-dzieciece",
+]
+  .map((s) => KOLEKCJE.find((k) => k.slug === s))
+  .filter((k): k is (typeof KOLEKCJE)[number] => !!k);
 
 export function Stopka() {
   return (
@@ -38,7 +53,19 @@ export function Stopka() {
           </ul>
         </div>
       </div>
-      <div className="mx-auto mt-10 max-w-content border-t border-linia pt-6 text-xs text-ink-2">
+
+      <div className="mx-auto mt-10 max-w-content border-t border-linia pt-6">
+        <h4 className="mb-3 text-[13px] font-semibold tracking-wide text-ink-2">POPULARNE KATEGORIE</h4>
+        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-ink-2">
+          {POPULARNE.map((k) => (
+            <Link key={k.slug} href={`/kolekcje/${k.slug}`} className="no-underline hover:text-akcent">
+              {k.h1}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="mx-auto mt-8 max-w-content border-t border-linia pt-6 text-xs text-ink-2">
         <p className="mb-3 leading-relaxed">
           AMIN.KIDS Sp. z o.o. · ul. Tomasza Zana 43/2.1, 20-601 Lublin · NIP 7123438950 · REGON 522694079 · KRS 0000984936
           <br />
