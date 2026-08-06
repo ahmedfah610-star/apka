@@ -5,7 +5,32 @@ import { Stopka } from "@/components/Stopka";
 import { WidokProduktu } from "@/components/WidokProduktu";
 import { KATEGORIE_LABEL, opisProduktu, type Produkt } from "@/data/produkty";
 import { katalogWidoczny, znajdzProduktDb } from "@/lib/produktyDb";
+import { METODY_DOSTAWY } from "@/lib/dostawa";
 import { BAZA_URL, NAZWA_SKLEPU, jsonLd } from "@/lib/seo";
+
+// Najtańsza dostawa — do danych strukturalnych (Merchant listings).
+const NAJTANSZA_DOSTAWA = Math.min(...METODY_DOSTAWY.map((m) => m.cena));
+
+// Zasady dostawy i zwrotu wg schema.org (wymagane przez Google Merchant listings).
+const SHIPPING_DETAILS = {
+  "@type": "OfferShippingDetails",
+  shippingRate: { "@type": "MonetaryAmount", value: NAJTANSZA_DOSTAWA.toFixed(2), currency: "PLN" },
+  shippingDestination: { "@type": "DefinedRegion", addressCountry: "PL" },
+  deliveryTime: {
+    "@type": "ShippingDeliveryTime",
+    handlingTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 2, unitCode: "DAY" },
+    transitTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 2, unitCode: "DAY" },
+  },
+};
+
+const RETURN_POLICY = {
+  "@type": "MerchantReturnPolicy",
+  applicableCountry: "PL",
+  returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+  merchantReturnDays: 14,
+  returnMethod: "https://schema.org/ReturnByMail",
+  returnFees: "https://schema.org/ReturnShippingFees",
+};
 
 // Strona produktu czytana z bazy przy żądaniu (świeże ceny/stany, także dla
 // pozycji dodanych w panelu). Bez bazy — fallback do katalogu z kodu.
@@ -49,8 +74,11 @@ function daneProduktu(p: Produkt) {
         priceCurrency: "PLN",
         price: p.cena.toFixed(2),
         availability: dostepny ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        itemCondition: "https://schema.org/NewCondition",
         url: `${BAZA_URL}/produkty/${p.id}`,
         seller: { "@type": "Organization", name: NAZWA_SKLEPU },
+        shippingDetails: SHIPPING_DETAILS,
+        hasMerchantReturnPolicy: RETURN_POLICY,
       },
     },
     {
