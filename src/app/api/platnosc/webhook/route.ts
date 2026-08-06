@@ -2,6 +2,7 @@ import type Stripe from "stripe";
 import { sbService } from "@/lib/supabase";
 import { stripe } from "@/lib/platnosci";
 import { wyslijMaileZamowienia } from "@/lib/mail";
+import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ export async function POST(req: Request) {
     if (zamowienieId && sb) {
       // Oznacz opłacone + zdejmij stan (idempotentnie).
       await sb.rpc("oplac_zamowienie", { p_id: zamowienieId });
+      odswiezPoZmianieStanu();
       // Pobierz zamówienie do maili.
       const { data } = await sb.from("zamowienia").select("*").eq("id", zamowienieId).single();
       if (data) {

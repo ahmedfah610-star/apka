@@ -4,6 +4,7 @@ import { doRzedu, katalogWszystko } from "@/lib/produktyDb";
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { bazowyUrl } from "@/lib/platnosci";
 import { powiadomOOdblokowaniu } from "@/lib/restock";
+import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,7 @@ export async function POST(req: Request) {
   const p = (await req.json()) as Produkt;
   const { error } = await sb.from("produkty").insert(doRzedu(p));
   if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
+  odswiezPoZmianieStanu();
   return Response.json({ ok: true });
 }
 
@@ -76,6 +78,7 @@ export async function PATCH(req: Request) {
 
   const { error } = await sb.from("produkty").update(map).eq("id", id);
   if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
+  odswiezPoZmianieStanu();
 
   // Powiadomienia o dostępności (nie blokują odpowiedzi przy błędzie).
   if (zmianaStanu && stary) {
@@ -106,5 +109,6 @@ export async function DELETE(req: Request) {
   const { id } = (await req.json()) as { id: string };
   const { error } = await sb.from("produkty").delete().eq("id", id);
   if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
+  odswiezPoZmianieStanu();
   return Response.json({ ok: true });
 }

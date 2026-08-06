@@ -2,6 +2,7 @@ import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { stripe, stripeWlaczony, bazowyUrl } from "@/lib/platnosci";
 import { p24Wlaczony, p24Rejestruj } from "@/lib/przelewy24";
 import { wyslijMaileZamowienia } from "@/lib/mail";
+import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 
 export const dynamic = "force-dynamic";
 
@@ -121,6 +122,7 @@ export async function POST(req: Request) {
         p_klient: b.klient ?? {},
       });
       if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
+      odswiezPoZmianieStanu();
       await wyslijMaileZamowienia({
         id: String(data),
         pozycje,

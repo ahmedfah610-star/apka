@@ -1,6 +1,7 @@
 import { sbService } from "@/lib/supabase";
 import { p24PodpisNotyfikacjiOk, p24Weryfikuj, type P24Notyfikacja } from "@/lib/przelewy24";
 import { wyslijMaileZamowienia } from "@/lib/mail";
+import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ export async function POST(req: Request) {
 
   // Oznacz opłacone + zdejmij stan (idempotentnie).
   await sb.rpc("oplac_zamowienie", { p_id: zamowienieId });
+  odswiezPoZmianieStanu();
 
   const { data } = await sb.from("zamowienia").select("*").eq("id", zamowienieId).single();
   if (data) {
