@@ -59,6 +59,7 @@ export function Stopka() {
         <div>
           <h4 className="mb-3 text-[13px] font-semibold tracking-wide text-ink-2">OBSŁUGA</h4>
           <ul className="flex flex-col gap-2 text-sm text-ink-2">
+            <li><Link href="/status-zamowienia" className="no-underline hover:text-akcent">Status zamówienia</Link></li>
             <li><Link href="/dostawa-i-zwroty" className="no-underline hover:text-akcent">Dostawa i zwroty</Link></li>
             <li><Link href="/faq" className="no-underline hover:text-akcent">FAQ</Link></li>
             <li><Link href="/blog" className="no-underline hover:text-akcent">Blog</Link></li>

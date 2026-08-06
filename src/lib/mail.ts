@@ -61,14 +61,14 @@ function szablon(d: DaneMaila, doKlienta: boolean): string {
   </div>`;
 }
 
-async function wyslij(to: string, subject: string, html: string): Promise<{ ok: boolean; blad?: string }> {
+async function wyslij(to: string, subject: string, html: string, replyTo?: string): Promise<{ ok: boolean; blad?: string }> {
   const { key, from } = konfiguracja();
   if (!key) return { ok: false, blad: "Brak RESEND_API_KEY" };
   try {
     const res = await fetch(API, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, subject, html }),
+      body: JSON.stringify({ from, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
     });
     if (!res.ok) {
       const tekst = await res.text().catch(() => "");
@@ -81,6 +81,21 @@ async function wyslij(to: string, subject: string, html: string): Promise<{ ok: 
     console.error(`[mail] wyjątek → ${to}: ${blad}`);
     return { ok: false, blad };
   }
+}
+
+/** Wiadomość z formularza kontaktowego → na skrzynkę sklepu (odpowiedź trafia do klienta). */
+export async function wyslijMailKontakt(od: { imie: string; email: string; wiadomosc: string }): Promise<{ ok: boolean; blad?: string }> {
+  const { sklep } = konfiguracja();
+  const to = sklep || "amin.kids1@hotmail.com";
+  const esc = (s: string) => s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const html = `
+  <div style="font-family:system-ui,Arial,sans-serif;max-width:560px;margin:0 auto;color:#1c1c1c">
+    <h2 style="font-size:18px">Nowa wiadomość ze sklepu</h2>
+    <p style="font-size:14px"><strong>Od:</strong> ${esc(od.imie)} &lt;${esc(od.email)}&gt;</p>
+    <p style="font-size:14px;white-space:pre-wrap;border-left:3px solid #eee;padding-left:12px">${esc(od.wiadomosc)}</p>
+    <p style="color:#999;font-size:12px;margin-top:20px">Odpowiedz na ten e-mail, aby napisać bezpośrednio do klienta.</p>
+  </div>`;
+  return wyslij(to, `Wiadomość ze sklepu — ${od.imie}`, html, od.email);
 }
 
 /** Wysyłka testowa (panel) — zwraca faktyczną odpowiedź Resend do diagnozy. */

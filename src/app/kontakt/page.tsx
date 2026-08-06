@@ -1,4 +1,5 @@
 import { StronaInfo, Sekcja, DaneSprzedawcy } from "@/components/StronaInfo";
+import { FormularzKontaktowy } from "@/components/FormularzKontaktowy";
 
 export const metadata = { title: "Kontakt" };
 
@@ -6,11 +7,19 @@ export default function Kontakt() {
   return (
     <StronaInfo tytul="Kontakt" wstep="Masz pytanie o produkt, zamówienie lub zwrot? Chętnie pomożemy — odpowiadamy zwykle w ciągu jednego dnia roboczego.">
       <Sekcja tytul="Napisz do nas">
-        <p>
-          E-mail: <a href="mailto:amin.kids1@hotmail.com" className="underline underline-offset-2 hover:text-akcent">amin.kids1@hotmail.com</a>
+        <FormularzKontaktowy />
+        <p className="mt-3 text-[14px] text-ink-2">
+          Możesz też napisać bezpośrednio na{" "}
+          <a href="mailto:amin.kids1@hotmail.com" className="underline underline-offset-2 hover:text-akcent">amin.kids1@hotmail.com</a>.
+          Najszybciej pomożemy, gdy podasz numer zamówienia i krótki opis sprawy.
         </p>
-        <p className="text-[14px] text-ink-2">
-          Najszybciej pomożemy, gdy w wiadomości podasz numer zamówienia oraz krótki opis sprawy.
+      </Sekcja>
+
+      <Sekcja tytul="Sprawdź status zamówienia">
+        <p>
+          Chcesz wiedzieć, gdzie jest Twoja paczka? Sprawdź to na stronie{" "}
+          <a href="/status-zamowienia" className="underline underline-offset-2 hover:text-akcent">Status zamówienia</a>{" "}
+          — wystarczy numer zamówienia i e-mail.
         </p>
       </Sekcja>
 
