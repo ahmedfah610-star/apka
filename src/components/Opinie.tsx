@@ -30,6 +30,7 @@ export function Opinie({ produktId }: { produktId: string }) {
   const [formOtwarty, setFormOtwarty] = useState(false);
 
   const [imie, setImie] = useState("");
+  const [email, setEmail] = useState("");
   const [ocena, setOcena] = useState(0);
   const [hover, setHover] = useState(0);
   const [tresc, setTresc] = useState("");
@@ -61,13 +62,14 @@ export function Opinie({ produktId }: { produktId: string }) {
     e.preventDefault();
     setBlad("");
     if (!imie.trim()) return setBlad("Podaj imię.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setBlad("Podaj e-mail użyty przy zamówieniu.");
     if (!(ocena >= 1 && ocena <= 5)) return setBlad("Wybierz ocenę (gwiazdki).");
     setWysylka(true);
     try {
       const r = await fetch("/api/opinie", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ produktId, imie, ocena, tresc, hp }),
+        body: JSON.stringify({ produktId, imie, email, ocena, tresc, hp }),
       });
       const d = (await r.json().catch(() => ({}))) as { ok?: boolean; blad?: string };
       if (!r.ok || d.ok === false) {
@@ -76,6 +78,7 @@ export function Opinie({ produktId }: { produktId: string }) {
       }
       setSukces(true);
       setImie("");
+      setEmail("");
       setOcena(0);
       setTresc("");
       setFormOtwarty(false);
@@ -121,6 +124,10 @@ export function Opinie({ produktId }: { produktId: string }) {
 
         {formOtwarty ? (
           <form onSubmit={wyslij} className="mb-8 border border-linia bg-white p-5 md:p-6">
+            <p className="mb-4 border-l-2 border-akcent/50 bg-szary/40 px-3 py-2 text-[12.5px] leading-relaxed text-ink-2">
+              Opinię mogą wystawić klienci, którzy kupili ten produkt. Podaj <strong>e-mail użyty przy zamówieniu</strong> —
+              posłuży tylko do weryfikacji zakupu i nie będzie publikowany.
+            </p>
             <div className="mb-4">
               <span className="mb-2 block text-[13px] font-semibold text-ink-2">Twoja ocena</span>
               <div className="flex gap-1" onMouseLeave={() => setHover(0)}>
@@ -140,13 +147,22 @@ export function Opinie({ produktId }: { produktId: string }) {
                 ))}
               </div>
             </div>
-            <input
-              value={imie}
-              onChange={(e) => setImie(e.target.value)}
-              placeholder="Imię"
-              maxLength={40}
-              className="mb-3 w-full border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-ink"
-            />
+            <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <input
+                value={imie}
+                onChange={(e) => setImie(e.target.value)}
+                placeholder="Imię"
+                maxLength={40}
+                className="w-full border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-ink"
+              />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="E-mail z zamówienia"
+                className="w-full border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-ink"
+              />
+            </div>
             <textarea
               value={tresc}
               onChange={(e) => setTresc(e.target.value)}
