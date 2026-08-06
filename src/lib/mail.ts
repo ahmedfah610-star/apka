@@ -137,8 +137,9 @@ export async function wyslijMailDostepnosci(email: string, nazwa: string, rozmia
 export async function wyslijMaileZamowienia(d: DaneMaila) {
   const { key, sklep } = konfiguracja();
   if (!key) return;
+  const odbiorcaSklep = sklep || "amin.kids1@hotmail.com";
   const zadania: Promise<{ ok: boolean; blad?: string }>[] = [];
   if (d.klient.email) zadania.push(wyslij(d.klient.email, `Potwierdzenie zamówienia ${d.id.slice(0, 8)} — bobas-shopping`, szablon(d, true)));
-  if (sklep) zadania.push(wyslij(sklep, `Nowe zamówienie ${d.id.slice(0, 8)} — ${zl(d.razem)}`, szablon(d, false)));
+  zadania.push(wyslij(odbiorcaSklep, `Nowe zamówienie ${d.id.slice(0, 8)} — ${zl(d.razem)}`, szablon(d, false)));
   await Promise.all(zadania);
 }
