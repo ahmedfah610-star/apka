@@ -1,7 +1,9 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { znajdzProdukt } from "@/data/produkty";
+import { useAuth } from "@/components/AuthContext";
+import { sbBrowser } from "@/lib/supabaseBrowser";
 
 export interface PozycjaKoszyka {
   id: string;
@@ -25,9 +27,24 @@ const KLUCZ = "fasolka-koszyk";
 const tenSam = (a: PozycjaKoszyka, id: string, rozmiar?: string) =>
   a.id === id && (a.rozmiar ?? "") === (rozmiar ?? "");
 
+// Scalenie koszyka gościa z zapisanym w koncie (unia po id+rozmiar, większa ilość).
+function scalKoszyk(a: PozycjaKoszyka[], b: PozycjaKoszyka[]): PozycjaKoszyka[] {
+  const mapa = new Map<string, PozycjaKoszyka>();
+  for (const p of [...a, ...b]) {
+    if (!p?.id) continue;
+    const klucz = `${p.id}|${p.rozmiar ?? ""}`;
+    const ist = mapa.get(klucz);
+    if (ist) ist.ilosc = Math.max(ist.ilosc, p.ilosc || 1);
+    else mapa.set(klucz, { id: p.id, rozmiar: p.rozmiar, ilosc: p.ilosc || 1 });
+  }
+  return [...mapa.values()];
+}
+
 export function KoszykProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [pozycje, setPozycje] = useState<PozycjaKoszyka[]>([]);
   const [gotowe, setGotowe] = useState(false);
+  const zaladowanyUser = useRef<string | null>(null);
 
   // Wczytanie z localStorage po zamontowaniu (unikamy niezgodności SSR).
   useEffect(() => {
@@ -43,6 +60,39 @@ export function KoszykProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (gotowe) localStorage.setItem(KLUCZ, JSON.stringify(pozycje));
   }, [pozycje, gotowe]);
+
+  // Po zalogowaniu: wczytaj koszyk konta i scal z bieżącym (gościa).
+  useEffect(() => {
+    if (!gotowe) return;
+    const sb = sbBrowser();
+    if (!user) {
+      zaladowanyUser.current = null;
+      return;
+    }
+    if (zaladowanyUser.current === user.id || !sb) return;
+    zaladowanyUser.current = user.id;
+    sb.from("konto_dane")
+      .select("koszyk")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        const zBazy = Array.isArray(data?.koszyk) ? (data!.koszyk as PozycjaKoszyka[]) : [];
+        if (zBazy.length) setPozycje((biezace) => scalKoszyk(biezace, zBazy));
+      });
+  }, [user, gotowe]);
+
+  // Zalogowany: zapis koszyka do konta (debounce) — synchronizacja między urządzeniami.
+  useEffect(() => {
+    if (!gotowe || !user) return;
+    const sb = sbBrowser();
+    if (!sb) return;
+    const t = setTimeout(() => {
+      void sb
+        .from("konto_dane")
+        .upsert({ user_id: user.id, koszyk: pozycje, zaktualizowano: new Date().toISOString() }, { onConflict: "user_id" });
+    }, 800);
+    return () => clearTimeout(t);
+  }, [pozycje, user, gotowe]);
 
   const dodaj = useCallback((id: string, rozmiar?: string, ilosc = 1) => {
     setPozycje((prev) => {

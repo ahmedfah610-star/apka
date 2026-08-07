@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useAuth } from "@/components/AuthContext";
 
 const LINKI = [
   { href: "/", label: "Strona główna", klucz: "home" },
@@ -14,6 +15,7 @@ const LINKI = [
 
 export function MenuMobilne({ aktywna }: { aktywna?: "home" | "produkty" }) {
   const [otwarte, setOtwarte] = useState(false);
+  const { user, wlaczone } = useAuth();
 
   return (
     <div className="sm:hidden">
@@ -54,6 +56,15 @@ export function MenuMobilne({ aktywna }: { aktywna?: "home" | "produkty" }) {
                   </Link>
                 );
               })}
+              {wlaczone ? (
+                <Link
+                  href={user ? "/konto" : "/konto/logowanie"}
+                  onClick={() => setOtwarte(false)}
+                  className="border-b border-linia py-3.5 text-[15px] text-ink no-underline last:border-b-0"
+                >
+                  {user ? "Moje konto" : "Zaloguj / Załóż konto"}
+                </Link>
+              ) : null}
             </div>
           </nav>
         </>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/components/AuthContext";
 import { KoszykProvider } from "@/components/KoszykContext";
 import { UlubioneProvider } from "@/components/UlubioneContext";
 import { BannerCookies } from "@/components/BannerCookies";
@@ -91,9 +92,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pl" className={dmSans.variable}>
       <body className="min-h-screen bg-tlo font-sans text-ink antialiased">
         <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(daneStrukturalne)} />
-        <UlubioneProvider>
-          <KoszykProvider>{children}</KoszykProvider>
-        </UlubioneProvider>
+        <AuthProvider>
+          <UlubioneProvider>
+            <KoszykProvider>{children}</KoszykProvider>
+          </UlubioneProvider>
+        </AuthProvider>
         <BannerCookies />
       </body>
     </html>

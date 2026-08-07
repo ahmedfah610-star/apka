@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { IkonaKoszyka } from "@/components/IkonaKoszyka";
 import { IkonaUlubione } from "@/components/IkonaUlubione";
+import { IkonaKonta } from "@/components/IkonaKonta";
 import { Szukajka } from "@/components/Szukajka";
 import { MenuMobilne } from "@/components/MenuMobilne";
 
@@ -54,6 +55,7 @@ export function Nawigacja({ aktywna }: { aktywna?: "home" | "produkty" }) {
             </Link>
           </nav>
           <div className="flex items-center gap-4 sm:gap-5">
+            <IkonaKonta />
             <IkonaUlubione />
             <IkonaKoszyka />
           </div>

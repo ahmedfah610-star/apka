@@ -8,6 +8,7 @@ import { Stopka } from "@/components/Stopka";
 import { WyborPaczkomatu, type Paczkomat } from "@/components/WyborPaczkomatu";
 import { WyborPunktu, type PunktOdbioru } from "@/components/WyborPunktu";
 import { useKoszyk } from "@/components/KoszykContext";
+import { useAuth } from "@/components/AuthContext";
 import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { METODY_DOSTAWY, kosztDostawy } from "@/lib/dostawa";
@@ -45,6 +46,7 @@ function Kroki() {
 export default function StronaZamowienia() {
   const router = useRouter();
   const { pozycje, wyczysc } = useKoszyk();
+  const { user } = useAuth();
 
   const [katalog, setKatalog] = useState<Produkt[]>(PRODUKTY);
   const [metodaId, setMetodaId] = useState(METODY_DOSTAWY[0].id);
@@ -69,6 +71,17 @@ export default function StronaZamowienia() {
       .then((d) => setPlatnosciOnline(!!d.platnosci))
       .catch(() => {});
   }, []);
+
+  // Zalogowany klient — wstępnie wypełnij e-mail oraz imię (jeśli pola puste).
+  useEffect(() => {
+    if (!user) return;
+    const imie = (user.user_metadata?.imie as string | undefined)?.trim();
+    setDane((d) => ({
+      ...d,
+      email: d.email || user.email || "",
+      imie: d.imie || imie || "",
+    }));
+  }, [user]);
 
   // Katalog z bazy (lub kodu) — wyszukiwanie po id pozycji koszyka.
   const znajdz = useMemo(() => {
