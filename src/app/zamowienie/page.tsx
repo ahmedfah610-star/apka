@@ -9,6 +9,7 @@ import { WyborPaczkomatu, type Paczkomat } from "@/components/WyborPaczkomatu";
 import { WyborPunktu, type PunktOdbioru } from "@/components/WyborPunktu";
 import { useKoszyk } from "@/components/KoszykContext";
 import { useAuth } from "@/components/AuthContext";
+import { KrokiZamowienia } from "@/components/KrokiZamowienia";
 import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { METODY_DOSTAWY, kosztDostawy } from "@/lib/dostawa";
@@ -18,30 +19,6 @@ const PLATNOSCI = [
   { id: "karta", nazwa: "Karta", opis: "Visa / Mastercard" },
   { id: "przelewy24", nazwa: "Przelewy24", opis: "Szybki przelew" },
 ];
-
-function Kroki() {
-  const kroki = ["Koszyk", "Dane i dostawa", "Gotowe"];
-  const aktywny = 1;
-  return (
-    <ol className="mb-8 flex items-center gap-2 text-[12.5px] sm:gap-3 sm:text-[13px]">
-      {kroki.map((k, i) => (
-        <li key={k} className="flex flex-1 items-center gap-2 sm:gap-3">
-          <span className={`flex items-center gap-2 whitespace-nowrap ${i === aktywny ? "font-semibold text-ink" : "text-ink-2"}`}>
-            <span
-              className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold ${
-                i < aktywny ? "bg-[oklch(66%_0.13_150)] text-tlo" : i === aktywny ? "bg-ink text-tlo" : "bg-szary text-ink-2"
-              }`}
-            >
-              {i < aktywny ? "✓" : i + 1}
-            </span>
-            <span className={i === 0 ? "hidden sm:inline" : ""}>{k}</span>
-          </span>
-          {i < kroki.length - 1 ? <span className="h-px flex-1 bg-linia" /> : null}
-        </li>
-      ))}
-    </ol>
-  );
-}
 
 export default function StronaZamowienia() {
   const router = useRouter();
@@ -177,7 +154,7 @@ export default function StronaZamowienia() {
 
       <form onSubmit={zloz} className="mx-auto grid max-w-content grid-cols-1 gap-6 px-4 py-8 sm:px-6 md:px-12 md:py-12 lg:grid-cols-[1fr_380px] lg:gap-10">
         <div>
-          <Kroki />
+          <KrokiZamowienia aktywny={2} />
           <h1 className="mb-7 text-[26px] font-bold tracking-tight md:text-[32px]">Dostawa i płatność</h1>
 
           {/* Dane kontaktowe */}

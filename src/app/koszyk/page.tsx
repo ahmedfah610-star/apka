@@ -172,10 +172,10 @@ export default function StronaKoszyka() {
               </div>
 
               <Link
-                href="/zamowienie"
+                href="/zamowienie/konto"
                 className="mt-5 block bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
               >
-                PRZEJDŹ DO DOSTAWY →
+                PRZEJDŹ DO ZAMÓWIENIA →
               </Link>
               <p className="mt-3 text-center text-[11.5px] leading-relaxed text-ink-2">
                 Składając zamówienie akceptujesz{" "}
