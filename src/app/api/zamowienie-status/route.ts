@@ -1,9 +1,13 @@
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
+import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export async function POST(req: Request) {
+  // Ochrona przed enumeracją numerów zamówień — 10 prób / min na IP.
+  if (!wLimicie(`status:${ipZadania(req)}`, 10, 60 * 1000)) return limitOdpowiedz();
+
   const b = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const numer = String(b.numer ?? "").trim().replace(/^#/, "").toLowerCase();
   const email = String(b.email ?? "").trim().toLowerCase();

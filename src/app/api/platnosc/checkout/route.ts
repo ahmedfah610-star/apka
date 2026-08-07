@@ -3,6 +3,8 @@ import { stripe, stripeWlaczony, bazowyUrl } from "@/lib/platnosci";
 import { p24Wlaczony, p24Rejestruj } from "@/lib/przelewy24";
 import { wyslijMaileZamowienia } from "@/lib/mail";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
+import { katalogWidoczny } from "@/lib/produktyDb";
+import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -21,13 +23,35 @@ interface Body {
 }
 
 export async function POST(req: Request) {
-  const b = (await req.json()) as Body;
-  const pozycje = Array.isArray(b.pozycje) ? b.pozycje : [];
-  if (pozycje.length === 0) return Response.json({ ok: false, blad: "Pusty koszyk" }, { status: 400 });
+  // Limit składania zamówień z jednego IP (ochrona przed zalewem/nadużyciem).
+  if (!wLimicie(`checkout:${ipZadania(req)}`, 15, 60 * 1000)) return limitOdpowiedz();
 
-  // Kwoty liczone po stronie serwera (nie ufamy klientowi).
-  const suma = pozycje.reduce((s, p) => s + (Number(p.cena) || 0) * (Number(p.ilosc) || 0), 0);
-  const dostawa = Number(b.dostawa) || 0;
+  const b = (await req.json().catch(() => ({}))) as Body;
+  const wejscie = Array.isArray(b.pozycje) ? b.pozycje : [];
+  if (wejscie.length === 0) return Response.json({ ok: false, blad: "Pusty koszyk" }, { status: 400 });
+
+  // ── Ceny i nazwy pobierane z KATALOGU SERWERA, nie z danych klienta ──
+  // Uniemożliwia manipulację ceną w żądaniu (np. "cena: 0.01").
+  const katalog = await katalogWidoczny();
+  const cennik = new Map(katalog.map((p) => [p.id, p]));
+  const pozycje: Pozycja[] = [];
+  for (const w of wejscie) {
+    const prod = cennik.get(String(w.id));
+    if (!prod) continue; // nieznany lub ukryty produkt — pomijamy
+    const ilosc = Math.max(1, Math.min(99, Math.floor(Number(w.ilosc) || 1)));
+    pozycje.push({
+      id: prod.id,
+      nazwa: prod.nazwa,
+      cena: prod.cena, // ← cena z serwera
+      ilosc,
+      rozmiar: typeof w.rozmiar === "string" ? w.rozmiar.slice(0, 20) : undefined,
+    });
+  }
+  if (pozycje.length === 0) return Response.json({ ok: false, blad: "Produkty są niedostępne." }, { status: 400 });
+
+  // Kwoty liczone po stronie serwera. Dostawa ograniczona do rozsądnego zakresu.
+  const suma = pozycje.reduce((s, p) => s + p.cena * p.ilosc, 0);
+  const dostawa = Math.max(0, Math.min(100, Number(b.dostawa) || 0));
   const razem = suma + dostawa;
 
   // ── Płatność online (Przelewy24) — priorytet, wymaga bazy do zapisu ──

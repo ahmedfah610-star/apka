@@ -1,10 +1,13 @@
 import { wyslijMailKontakt, mailWlaczony } from "@/lib/mail";
+import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: Request) {
+  if (!wLimicie(`kontakt:${ipZadania(req)}`, 5, 60 * 1000)) return limitOdpowiedz();
+
   const b = (await req.json().catch(() => ({}))) as Record<string, unknown>;
 
   // Honeypot na boty.

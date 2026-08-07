@@ -1,4 +1,5 @@
 import { pobierzOpinie, dodajOpinie, czyKupil } from "@/lib/opinieDb";
+import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  if (!wLimicie(`opinie:${ipZadania(req)}`, 5, 60 * 1000)) return limitOdpowiedz();
+
   const b = (await req.json().catch(() => ({}))) as Record<string, unknown>;
 
   // Honeypot — ukryte pole wypełniają zwykle boty.
