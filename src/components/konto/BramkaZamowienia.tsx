@@ -16,7 +16,7 @@ type Tryb = "login" | "rejestr";
 export function BramkaZamowienia() {
   const router = useRouter();
   const { user, zaladowano, wlaczone, zaloguj, zarejestruj, zalogujGoogle } = useAuth();
-  const { pozycje } = useKoszyk();
+  const { pozycje, gotowy } = useKoszyk();
 
   const [katalog, setKatalog] = useState<Produkt[]>(PRODUKTY);
   const [pokazFormularz, setPokazFormularz] = useState(false);
@@ -45,10 +45,11 @@ export function BramkaZamowienia() {
   const [info, setInfo] = useState("");
   const [wysylka, setWysylka] = useState(false);
 
-  // Pusty koszyk → z powrotem do koszyka.
+  // Pusty koszyk → z powrotem do koszyka (dopiero PO wczytaniu z localStorage,
+  // inaczej odbijałoby użytkownika z pełnym koszykiem tuż po wejściu).
   useEffect(() => {
-    if (pozycje.length === 0) router.replace("/koszyk");
-  }, [pozycje.length, router]);
+    if (gotowy && pozycje.length === 0) router.replace("/koszyk");
+  }, [gotowy, pozycje.length, router]);
 
   // Zalogowany klient pomija bramkę i idzie prosto do dostawy (koszyk zachowany).
   useEffect(() => {

@@ -13,6 +13,7 @@ export interface PozycjaKoszyka {
 
 interface KoszykCtx {
   pozycje: PozycjaKoszyka[];
+  gotowy: boolean; // true, gdy koszyk wczytano z localStorage (hydracja)
   dodaj: (id: string, rozmiar?: string, ilosc?: number) => void;
   usun: (id: string, rozmiar?: string) => void;
   ustawIlosc: (id: string, rozmiar: string | undefined, ilosc: number) => void;
@@ -129,7 +130,7 @@ export function KoszykProvider({ children }: { children: React.ReactNode }) {
     return { liczbaSztuk: szt, suma: s };
   }, [pozycje]);
 
-  const wartosc: KoszykCtx = { pozycje, dodaj, usun, ustawIlosc, wyczysc, liczbaSztuk, suma };
+  const wartosc: KoszykCtx = { pozycje, gotowy: gotowe, dodaj, usun, ustawIlosc, wyczysc, liczbaSztuk, suma };
   return <Kontekst.Provider value={wartosc}>{children}</Kontekst.Provider>;
 }
 
