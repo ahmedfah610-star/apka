@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
@@ -8,6 +8,8 @@ import { Stopka } from "@/components/Stopka";
 import { KrokiZamowienia } from "@/components/KrokiZamowienia";
 import { useAuth } from "@/components/AuthContext";
 import { useKoszyk } from "@/components/KoszykContext";
+import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
+import { formatCena } from "@/lib/filtrowanie";
 
 type Tryb = "login" | "rejestr";
 
@@ -16,8 +18,26 @@ export function BramkaZamowienia() {
   const { user, zaladowano, wlaczone, zaloguj, zarejestruj, zalogujGoogle } = useAuth();
   const { pozycje } = useKoszyk();
 
+  const [katalog, setKatalog] = useState<Produkt[]>(PRODUKTY);
   const [pokazFormularz, setPokazFormularz] = useState(false);
   const [tryb, setTryb] = useState<Tryb>("login");
+
+  // Katalog z bazy (ceny/nazwy/zdjęcia) do podsumowania koszyka.
+  useEffect(() => {
+    fetch("/api/katalog")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d.items) && d.items.length) setKatalog(d.items); })
+      .catch(() => {});
+  }, []);
+
+  const { pozycjeZDanymi, suma } = useMemo(() => {
+    const mapa = new Map(katalog.map((p) => [p.id, p]));
+    const zd = pozycje
+      .map((poz) => ({ poz, produkt: mapa.get(poz.id) ?? znajdzProdukt(poz.id) ?? null }))
+      .filter((x): x is { poz: typeof x.poz; produkt: Produkt } => !!x.produkt);
+    const s = zd.reduce((acc, { poz, produkt }) => acc + produkt.cena * poz.ilosc, 0);
+    return { pozycjeZDanymi: zd, suma: s };
+  }, [katalog, pozycje]);
   const [imie, setImie] = useState("");
   const [email, setEmail] = useState("");
   const [haslo, setHaslo] = useState("");
@@ -65,9 +85,44 @@ export function BramkaZamowienia() {
       <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-8 sm:px-6 md:py-12">
         <KrokiZamowienia aktywny={1} />
         <h1 className="mb-2 text-[26px] font-bold tracking-tight md:text-[31px]">Jak chcesz złożyć zamówienie?</h1>
-        <p className="mb-7 text-[14.5px] leading-relaxed text-ink-2">
+        <p className="mb-6 text-[14.5px] leading-relaxed text-ink-2">
           Twój koszyk jest zapisany i zostanie zachowany niezależnie od wyboru. Możesz zamówić bez konta albo się zalogować.
         </p>
+
+        {/* Podsumowanie koszyka */}
+        {pozycjeZDanymi.length > 0 ? (
+          <div className="mb-6 rounded-xl border border-linia bg-white p-4 sm:p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-[13px] font-semibold uppercase tracking-wide text-ink-2">Twój koszyk</span>
+              <Link href="/koszyk" className="text-[13px] text-ink-2 underline underline-offset-2 hover:text-akcent">Edytuj</Link>
+            </div>
+            <div className="flex flex-col gap-3">
+              {pozycjeZDanymi.map(({ poz, produkt }) => (
+                <div key={`${poz.id}-${poz.rozmiar ?? ""}`} className="flex items-center gap-3 text-[13.5px]">
+                  <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-linia bg-szary/40">
+                    {produkt.zdjecie ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={produkt.zdjecie} alt="" className="h-full w-full object-contain p-0.5" />
+                    ) : null}
+                    <span className="absolute -right-1.5 -top-1.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-ink px-1 text-[10.5px] font-semibold text-tlo">
+                      {poz.ilosc}
+                    </span>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium text-ink">{produkt.nazwa}</span>
+                    {poz.rozmiar ? <span className="block text-[12px] text-ink-2">rozmiar {poz.rozmiar}</span> : null}
+                  </span>
+                  <span className="whitespace-nowrap font-semibold">{formatCena(produkt.cena * poz.ilosc)} zł</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex items-center justify-between border-t border-linia pt-3">
+              <span className="text-[14px] text-ink-2">Produkty</span>
+              <span className="text-[16px] font-bold">{formatCena(suma)} zł</span>
+            </div>
+            <p className="mt-1 text-right text-[11.5px] text-ink-2">Koszt dostawy w następnym kroku.</p>
+          </div>
+        ) : null}
 
         {/* Opcja: gość */}
         <button

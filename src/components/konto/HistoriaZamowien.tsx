@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
+import { useKoszyk } from "@/components/KoszykContext";
 import { sbBrowser } from "@/lib/supabaseBrowser";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -37,7 +38,16 @@ const DATA_PL = (iso: string) => new Date(iso).toLocaleDateString("pl-PL", { day
 export function HistoriaZamowien() {
   const router = useRouter();
   const { user, zaladowano, wlaczone } = useAuth();
+  const { dodaj } = useKoszyk();
   const [lista, setLista] = useState<Zamowienie[] | null>(null);
+
+  // „Zamów ponownie" — dokłada pozycje z zamówienia do koszyka i przenosi do niego.
+  function zamowPonownie(z: Zamowienie) {
+    for (const p of z.pozycje ?? []) {
+      if (p?.id) dodaj(String(p.id), p.rozmiar || undefined, Math.max(1, Number(p.ilosc) || 1));
+    }
+    router.push("/koszyk");
+  }
 
   useEffect(() => {
     if (zaladowano && wlaczone && !user) router.replace("/konto/logowanie");
@@ -85,9 +95,17 @@ export function HistoriaZamowien() {
               </li>
             ))}
           </ul>
-          <div className="flex items-center justify-between border-t border-linia pt-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-linia pt-3">
             <span className="text-[13px] text-ink-2">{z.metoda || ""}</span>
-            <span className="text-[15px] font-bold">{zl(z.razem)}</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => zamowPonownie(z)}
+                className="rounded-lg border border-linia-2 px-3.5 py-2 text-[12.5px] font-semibold text-ink transition-colors hover:border-ink hover:bg-szary/30"
+              >
+                Zamów ponownie
+              </button>
+              <span className="text-[15px] font-bold">{zl(z.razem)}</span>
+            </div>
           </div>
         </div>
       ))}

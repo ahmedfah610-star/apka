@@ -10,6 +10,7 @@ import { WyborPunktu, type PunktOdbioru } from "@/components/WyborPunktu";
 import { useKoszyk } from "@/components/KoszykContext";
 import { useAuth } from "@/components/AuthContext";
 import { KrokiZamowienia } from "@/components/KrokiZamowienia";
+import { sbBrowser } from "@/lib/supabaseBrowser";
 import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { METODY_DOSTAWY, kosztDostawy } from "@/lib/dostawa";
@@ -53,11 +54,36 @@ export default function StronaZamowienia() {
   useEffect(() => {
     if (!user) return;
     const imie = (user.user_metadata?.imie as string | undefined)?.trim();
+    const telefon = (user.user_metadata?.telefon as string | undefined)?.trim();
     setDane((d) => ({
       ...d,
       email: d.email || user.email || "",
       imie: d.imie || imie || "",
+      telefon: d.telefon || telefon || "",
     }));
+  }, [user]);
+
+  // Zalogowany klient — dane dostawy z ostatniego zamówienia (tylko puste pola).
+  useEffect(() => {
+    const sb = sbBrowser();
+    if (!user || !sb) return;
+    sb.from("zamowienia")
+      .select("klient, created_at")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        const k = (data?.klient ?? {}) as Record<string, string | undefined>;
+        if (!k) return;
+        setDane((d) => ({
+          imie: d.imie || (k.imie ?? ""),
+          email: d.email || (k.email ?? ""),
+          telefon: d.telefon || (k.telefon ?? ""),
+          adres: d.adres || (k.adres ?? ""),
+          miasto: d.miasto || (k.miasto ?? ""),
+          kod: d.kod || (k.kod ?? ""),
+        }));
+      });
   }, [user]);
 
   // Katalog z bazy (lub kodu) — wyszukiwanie po id pozycji koszyka.

@@ -16,6 +16,7 @@ interface AuthCtx {
   wyloguj: () => Promise<void>;
   resetHasla: (email: string) => Promise<Wynik>;
   ustawHaslo: (haslo: string) => Promise<Wynik>;
+  zapiszProfil: (dane: { imie?: string; telefon?: string }) => Promise<Wynik>;
 }
 
 const Kontekst = createContext<AuthCtx | null>(null);
@@ -96,6 +97,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { ok: true };
   }, [sb]);
 
+  const zapiszProfil = useCallback<AuthCtx["zapiszProfil"]>(async (dane) => {
+    if (!sb) return { ok: false, blad: "Zapis chwilowo niedostępny." };
+    const { data, error } = await sb.auth.updateUser({
+      data: {
+        imie: (dane.imie ?? "").trim().slice(0, 60),
+        telefon: (dane.telefon ?? "").trim().slice(0, 30),
+      },
+    });
+    if (error) return { ok: false, blad: komunikat(error.message) };
+    if (data.user) setUser(data.user);
+    return { ok: true };
+  }, [sb]);
+
   const wartosc: AuthCtx = {
     user,
     zaladowano,
@@ -106,6 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     wyloguj,
     resetHasla,
     ustawHaslo,
+    zapiszProfil,
   };
   return <Kontekst.Provider value={wartosc}>{children}</Kontekst.Provider>;
 }

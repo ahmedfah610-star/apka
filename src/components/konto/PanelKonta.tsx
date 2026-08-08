@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
@@ -14,17 +14,41 @@ const KATEGORIE = [
 
 export function PanelKonta() {
   const router = useRouter();
-  const { user, zaladowano, wlaczone, wyloguj } = useAuth();
+  const { user, zaladowano, wlaczone, wyloguj, zapiszProfil } = useAuth();
+
+  const [edycja, setEdycja] = useState(false);
+  const [imie, setImie] = useState("");
+  const [telefon, setTelefon] = useState("");
+  const [zapis, setZapis] = useState(false);
+  const [info, setInfo] = useState("");
 
   useEffect(() => {
     if (zaladowano && wlaczone && !user) router.replace("/konto/logowanie");
   }, [zaladowano, wlaczone, user, router]);
 
+  useEffect(() => {
+    if (user) {
+      setImie((user.user_metadata?.imie as string) || "");
+      setTelefon((user.user_metadata?.telefon as string) || "");
+    }
+  }, [user]);
+
   if (!wlaczone) return <p className="text-center text-[15px] text-ink-2">Konto jest chwilowo niedostępne.</p>;
   if (!zaladowano || !user) return <p className="text-center text-[15px] text-ink-2">Ładowanie…</p>;
 
-  const imie = (user.user_metadata?.imie as string | undefined)?.trim();
+  const imieMeta = (user.user_metadata?.imie as string | undefined)?.trim();
   const kafel = "group flex items-start gap-4 rounded-xl border border-linia bg-white p-5 text-inherit no-underline transition-all hover:border-ink hover:shadow-[0_4px_20px_-14px_rgba(0,0,0,0.4)]";
+  const input = "w-full rounded-lg border border-linia-2 bg-white px-4 py-3 text-[15px] outline-none transition-colors focus:border-ink";
+
+  async function zapiszDane(e: React.FormEvent) {
+    e.preventDefault();
+    setZapis(true);
+    setInfo("");
+    const r = await zapiszProfil({ imie, telefon });
+    setZapis(false);
+    if (r.ok) { setInfo("Zapisano ✓"); setEdycja(false); }
+    else setInfo(r.blad || "Nie udało się zapisać.");
+  }
 
   return (
     <div className="w-full">
@@ -32,7 +56,7 @@ export function PanelKonta() {
       <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-[26px] font-bold tracking-tight md:text-[31px]">
-            Cześć{imie ? `, ${imie}` : ""}! 👋
+            Cześć{imieMeta ? `, ${imieMeta}` : ""}! 👋
           </h1>
           <p className="mt-1 text-[14px] text-ink-2">
             Zalogowano jako <strong className="font-semibold text-ink">{user.email}</strong>
@@ -47,6 +71,39 @@ export function PanelKonta() {
         >
           Wyloguj się
         </button>
+      </div>
+
+      {/* Twoje dane */}
+      <div className="mb-3 rounded-xl border border-linia bg-white p-5">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold">Twoje dane</h2>
+          {!edycja ? (
+            <button onClick={() => { setEdycja(true); setInfo(""); }} className="text-[13px] text-ink-2 underline underline-offset-2 hover:text-akcent">
+              Edytuj
+            </button>
+          ) : null}
+        </div>
+        {!edycja ? (
+          <div className="mt-2 text-[14px] text-ink-2">
+            <p>Imię: <span className="text-ink">{imieMeta || "—"}</span></p>
+            <p className="mt-0.5">Telefon: <span className="text-ink">{(user.user_metadata?.telefon as string) || "—"}</span></p>
+            {info ? <p className="mt-2 text-[13px] text-[oklch(45%_0.12_150)]">{info}</p> : null}
+          </div>
+        ) : (
+          <form onSubmit={zapiszDane} className="mt-3 flex flex-col gap-3">
+            <input className={input} placeholder="Imię" maxLength={60} value={imie} onChange={(e) => setImie(e.target.value)} />
+            <input className={input} placeholder="Telefon" maxLength={30} value={telefon} onChange={(e) => setTelefon(e.target.value)} />
+            {info ? <p className="text-[13px] text-akcent">{info}</p> : null}
+            <div className="flex gap-2">
+              <button type="submit" disabled={zapis} className="rounded-lg bg-ink px-5 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
+                {zapis ? "ZAPISYWANIE…" : "ZAPISZ"}
+              </button>
+              <button type="button" onClick={() => { setEdycja(false); setInfo(""); }} className="rounded-lg border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink-2 hover:border-ink hover:text-ink">
+                Anuluj
+              </button>
+            </div>
+          </form>
+        )}
       </div>
 
       {/* Skróty konta */}
