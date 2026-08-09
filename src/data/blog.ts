@@ -27,6 +27,7 @@ export const ARTYKULY: Artykul[] = [
     czasCzytania: 6,
     kategoria: "Poradnik",
     hue: 20,
+    zdjecie: "/img/blog/7-bledow-przy-kupowaniu-ubranek-dla-dzieci.jpg",
     tresc: [
       { typ: "p", tekst: "Ubranka dla dzieci kupujemy często i zwykle w pośpiechu — a przez to łatwo o pomyłki, które kończą się zwrotem, wyrzuconymi pieniędzmi albo ubrankiem, które ląduje na dnie szafy. Dobra wiadomość: wszystkich tych błędów da się uniknąć. Oto siedem, które widzimy najczęściej, i prosty sposób na każdy z nich." },
       { typ: "h2", tekst: "1. Kupowanie rozmiaru „na wiek”, a nie na wzrost" },
@@ -54,6 +55,7 @@ export const ARTYKULY: Artykul[] = [
     czasCzytania: 7,
     kategoria: "Prezenty",
     hue: 190,
+    zdjecie: "/img/blog/prezent-dla-noworodka-pomysly.jpg",
     tresc: [
       { typ: "p", tekst: "Prezent dla noworodka wydaje się prosty, dopóki nie staniesz przed półką. Chcesz dać coś ładnego, ale też przydatnego — a nie kolejną pamiątkę, która wyląduje w szafie z metką. Ten poradnik zbiera pomysły, które rodzice realnie wykorzystują, i podpowiada, jak trafić w punkt nawet bez znajomości rozmiaru dziecka." },
       { typ: "h2", tekst: "Złota zasada: kupuj większy rozmiar" },
@@ -97,6 +99,7 @@ export const ARTYKULY: Artykul[] = [
     czasCzytania: 6,
     kategoria: "Sezon",
     hue: 90,
+    zdjecie: "/img/blog/ubranka-na-jesien-dla-dziecka.jpg",
     tresc: [
       { typ: "p", tekst: "Jesień to dla rodziców najtrudniejsza pogoda do ubierania dziecka. Rano zimno, w południe słońce i 18 stopni, po drodze wiatr, a w przedszkolnej sali ciepło jak latem. Sekret nie tkwi w jednym idealnym ubranku, tylko w mądrze dobranych warstwach, które łatwo zdjąć i dołożyć. Zobacz, co warto mieć w jesiennej szafie malucha." },
       { typ: "h2", tekst: "Zasada warstw sprawdza się też jesienią" },
@@ -127,6 +130,7 @@ export const ARTYKULY: Artykul[] = [
     czasCzytania: 6,
     kategoria: "Poradnik",
     hue: 270,
+    zdjecie: "/img/blog/jak-zaoszczedzic-na-ubrankach-dzieciecych.jpg",
     tresc: [
       { typ: "p", tekst: "Ubranka dziecięce potrafią być zaskakująco dużym wydatkiem — nie dlatego, że są drogie, ale dlatego, że dziecko wyrasta z nich co kilka miesięcy. Oszczędzanie nie musi jednak oznaczać kupowania byle czego. Chodzi o to, by wydawać mądrzej: kupować mniej, lepiej i tak, żeby rzeczy służyły jak najdłużej. Oto sprawdzone sposoby." },
       { typ: "h2", tekst: "Kupuj mniej, ale lepiej" },
@@ -162,6 +166,7 @@ export const ARTYKULY: Artykul[] = [
     czasCzytania: 5,
     kategoria: "Poradnik",
     hue: 110,
+    zdjecie: "/img/blog/co-znacza-metki-ubranek-dzieciecych.jpg",
     tresc: [
       { typ: "p", tekst: "Metka ubranka wygląda niepozornie, a kryje mnóstwo informacji, które pomagają wybrać dobrze: skład materiału, certyfikaty bezpieczeństwa i zasady pielęgnacji. Gdy nauczysz się ją czytać, łatwiej odróżnisz ubranko, które posłuży sezonami, od takiego, które rozczaruje po pierwszym praniu. Oto krótki przewodnik." },
       { typ: "h2", tekst: "OEKO-TEX Standard 100 — co gwarantuje" },
