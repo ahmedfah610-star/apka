@@ -67,11 +67,34 @@ export const metadata: Metadata = {
 const daneStrukturalne = [
   {
     "@context": "https://schema.org",
-    "@type": "Organization",
+    "@type": "OnlineStore",
     name: NAZWA_SKLEPU,
     url: BAZA_URL,
     description: OPIS_SKLEPU,
     logo: `${BAZA_URL}/opengraph-image`,
+    image: `${BAZA_URL}/opengraph-image`,
+    email: "amin.kids1@hotmail.com",
+    priceRange: "20–120 zł",
+    currenciesAccepted: "PLN",
+    paymentAccepted: "BLIK, Przelewy24, karta płatnicza",
+    areaServed: { "@type": "Country", name: "Polska" },
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "ul. Tomasza Zana 43/2.1",
+      postalCode: "20-601",
+      addressLocality: "Lublin",
+      addressCountry: "PL",
+    },
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      email: "amin.kids1@hotmail.com",
+      availableLanguage: ["Polish"],
+    },
+    sameAs: [
+      "https://www.facebook.com/BobasShopping/",
+      "https://allegro.pl/uzytkownik/bobas-shopping",
+    ],
   },
   {
     "@context": "https://schema.org",
