@@ -54,13 +54,13 @@ export function Hero() {
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               href="/produkty"
-              className="inline-block bg-ink px-9 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo no-underline shadow-lg transition-colors hover:bg-akcent"
+              className="inline-block rounded-xl bg-ink px-9 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo no-underline shadow-lg transition-all hover:-translate-y-0.5 hover:bg-akcent hover:shadow-xl"
             >
               ZOBACZ KOLEKCJĘ
             </Link>
             <Link
               href="/produkty?kategoria=niemowleta"
-              className="inline-block border-[1.5px] border-ink bg-tlo/85 px-9 py-4 text-center text-[13px] font-semibold tracking-wide text-ink no-underline backdrop-blur-sm transition-colors hover:bg-ink hover:text-tlo"
+              className="inline-block rounded-xl border-[1.5px] border-ink bg-tlo/85 px-9 py-4 text-center text-[13px] font-semibold tracking-wide text-ink no-underline backdrop-blur-sm transition-colors hover:bg-ink hover:text-tlo"
             >
               DLA NIEMOWLĄT
             </Link>

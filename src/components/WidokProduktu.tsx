@@ -47,7 +47,7 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
             {KATEGORIE_LABEL[p.kategoria]} · {p.wiekLabel}
           </p>
           <h1 className="mb-3 text-[30px] font-bold leading-tight tracking-tight md:text-[36px]">{p.nazwa}</h1>
-          <p className="mb-2 text-[24px] text-ink">{formatCena(p.cena)} zł</p>
+          <p className="mb-2 text-[26px] font-bold text-ink">{formatCena(p.cena)} zł</p>
           {typeof p.stan === "number" ? (
             <p className={`mb-6 text-[13px] font-medium ${p.stan === 0 ? "text-ink-2" : "text-[oklch(55%_0.12_150)]"}`}>
               {p.stan === 0 ? "Produkt niedostępny" : `Na stanie: ${p.stan} szt.`}

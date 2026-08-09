@@ -172,7 +172,7 @@ export default function StronaZamowienia() {
     router.push("/zamowienie/dziekujemy");
   }
 
-  const input = "w-full border border-linia-2 bg-white px-3.5 py-2.5 text-[16px] outline-none transition-colors focus:border-ink md:text-[14px]";
+  const input = "w-full rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[16px] outline-none transition-colors focus:border-ink md:text-[14px]";
 
   return (
     <div className="overflow-x-hidden bg-szary/30">
@@ -184,7 +184,7 @@ export default function StronaZamowienia() {
           <h1 className="mb-7 text-[26px] font-bold tracking-tight md:text-[32px]">Dostawa i płatność</h1>
 
           {/* Dane kontaktowe */}
-          <section className="mb-5 border border-linia bg-white p-5 md:p-6">
+          <section className="mb-5 rounded-2xl border border-linia bg-white p-5 md:p-6">
             <h2 className="mb-4 flex items-center gap-2.5 text-[15px] font-bold">
               <span className={numer}>1</span> Dane kontaktowe
             </h2>
@@ -196,7 +196,7 @@ export default function StronaZamowienia() {
           </section>
 
           {/* Dostawa */}
-          <section className="mb-5 border border-linia bg-white p-5 md:p-6">
+          <section className="mb-5 rounded-2xl border border-linia bg-white p-5 md:p-6">
             <h2 className="mb-4 flex items-center gap-2.5 text-[15px] font-bold">
               <span className={numer}>2</span> Sposób dostawy
             </h2>
@@ -209,7 +209,7 @@ export default function StronaZamowienia() {
                     <button
                       type="button"
                       onClick={() => setMetodaId(m.id)}
-                      className={`flex w-full items-center justify-between border px-4 py-3.5 text-left transition-colors ${on ? "border-ink bg-szary/40" : "border-linia-2 hover:border-ink-2"}`}
+                      className={`flex w-full items-center justify-between rounded-lg border px-4 py-3.5 text-left transition-colors ${on ? "border-ink bg-szary/40" : "border-linia-2 hover:border-ink-2"}`}
                     >
                       <span className="flex items-center gap-3">
                         <span className={`flex h-4 w-4 items-center justify-center rounded-full border-[1.5px] ${on ? "border-ink" : "border-linia-2"}`}>
@@ -259,7 +259,7 @@ export default function StronaZamowienia() {
           </section>
 
           {/* Płatność */}
-          <section className="border border-linia bg-white p-5 md:p-6">
+          <section className="rounded-2xl border border-linia bg-white p-5 md:p-6">
             <h2 className="mb-4 flex items-center gap-2.5 text-[15px] font-bold">
               <span className={numer}>3</span> Płatność
             </h2>
@@ -271,7 +271,7 @@ export default function StronaZamowienia() {
                     key={p.id}
                     type="button"
                     onClick={() => setPlatnoscId(p.id)}
-                    className={`flex flex-col items-start border px-4 py-3 text-left transition-colors ${
+                    className={`flex flex-col items-start rounded-lg border px-4 py-3 text-left transition-colors ${
                       on ? "border-ink bg-ink/[0.03] ring-1 ring-ink" : "border-linia-2 hover:border-ink-2"
                     }`}
                   >
@@ -285,7 +285,7 @@ export default function StronaZamowienia() {
         </div>
 
         {/* Podsumowanie */}
-        <aside className="h-fit border border-linia bg-white p-6 lg:sticky lg:top-24">
+        <aside className="h-fit rounded-2xl border border-linia bg-white p-6 shadow-[0_2px_24px_-18px_rgba(0,0,0,0.35)] lg:sticky lg:top-24">
           <h2 className="mb-4 text-[17px] font-bold">Twoje zamówienie</h2>
           <div className="-mr-2 flex max-h-72 flex-col gap-3 overflow-y-auto border-b border-linia pb-4 pr-2">
             {pozycjeZDanymi.map(({ poz, produkt }) => (
@@ -342,7 +342,7 @@ export default function StronaZamowienia() {
           <button
             type="submit"
             disabled={wysylka || !akceptacja}
-            className="block w-full bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:cursor-not-allowed disabled:opacity-60"
+            className="block w-full rounded-lg bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:cursor-not-allowed disabled:opacity-60"
           >
             {wysylka ? "PRZETWARZANIE…" : platnosciOnline ? "ZAMAWIAM I PŁACĘ" : "ZAMAWIAM"}
           </button>

@@ -84,15 +84,15 @@ export default function StronaKoszyka() {
                     ✓ Masz darmową dostawę!
                   </p>
                 )}
-                <div className="h-2 w-full overflow-hidden bg-szary">
-                  <div className="h-full bg-akcent transition-all duration-500" style={{ width: `${procent}%` }} />
+                <div className="h-2 w-full overflow-hidden rounded-full bg-szary">
+                  <div className="h-full rounded-full bg-akcent transition-all duration-500" style={{ width: `${procent}%` }} />
                 </div>
               </div>
 
-              <div className="divide-y divide-linia border border-linia bg-white">
+              <div className="divide-y divide-linia overflow-hidden rounded-2xl border border-linia bg-white">
                 {pozycjeZDanymi.map(({ poz, produkt }) => (
                   <div key={`${poz.id}-${poz.rozmiar ?? ""}`} className="flex gap-4 p-4 sm:p-5">
-                    <Link href={`/produkty/${produkt!.id}`} className="flex h-28 w-24 shrink-0 items-center justify-center border border-linia bg-szary/40">
+                    <Link href={`/produkty/${produkt!.id}`} className="flex h-28 w-24 shrink-0 items-center justify-center rounded-lg border border-linia bg-szary/40">
                       {produkt!.zdjecie ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={produkt!.zdjecie} alt={produkt!.nazwa} className="h-full w-full object-contain p-1.5" />
@@ -106,7 +106,7 @@ export default function StronaKoszyka() {
                             {produkt!.nazwa}
                           </Link>
                           {poz.rozmiar ? (
-                            <span className="mt-1.5 inline-block border border-linia-2 px-2 py-0.5 text-[12px] text-ink-2">rozmiar {poz.rozmiar}</span>
+                            <span className="mt-1.5 inline-block rounded-md border border-linia-2 px-2 py-0.5 text-[12px] text-ink-2">rozmiar {poz.rozmiar}</span>
                           ) : null}
                           <p className="mt-1.5 text-[13px] text-ink-2">{formatCena(produkt!.cena)} zł / szt.</p>
                         </div>
@@ -114,7 +114,7 @@ export default function StronaKoszyka() {
                       </div>
 
                       <div className="mt-auto flex items-center justify-between pt-4">
-                        <div className="flex items-center border border-linia-2">
+                        <div className="flex items-center overflow-hidden rounded-lg border border-linia-2">
                           <button
                             onClick={() => ustawIlosc(poz.id, poz.rozmiar, poz.ilosc - 1)}
                             className="px-3 py-2 text-[15px] text-ink-2 transition-colors hover:bg-szary hover:text-ink"
@@ -153,7 +153,7 @@ export default function StronaKoszyka() {
             </div>
 
             {/* Podsumowanie */}
-            <aside className="h-fit border border-linia bg-white p-6 lg:sticky lg:top-24">
+            <aside className="h-fit rounded-2xl border border-linia bg-white p-6 shadow-[0_2px_24px_-18px_rgba(0,0,0,0.35)] lg:sticky lg:top-24">
               <h2 className="mb-5 text-[17px] font-bold">Podsumowanie</h2>
 
               <div className="flex items-center justify-between text-[14.5px]">
@@ -173,7 +173,7 @@ export default function StronaKoszyka() {
 
               <Link
                 href="/zamowienie/konto"
-                className="mt-5 block bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
+                className="mt-5 block rounded-lg bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
               >
                 PRZEJDŹ DO ZAMÓWIENIA →
               </Link>

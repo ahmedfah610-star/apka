@@ -31,7 +31,7 @@ export function KafelKategorii({
   return (
     <Link href={`/produkty?kategoria=${kluczKat}`} className="group block text-inherit no-underline">
       <div
-        className="relative flex h-[380px] items-center justify-center overflow-hidden md:h-[460px]"
+        className="relative flex h-[380px] items-center justify-center overflow-hidden rounded-2xl transition-all duration-300 group-hover:shadow-[0_20px_44px_-22px_rgba(0,0,0,0.5)] md:h-[460px]"
         style={{ background: "linear-gradient(165deg, oklch(97% 0.008 60), oklch(94% 0.02 45))" }}
       >
         {src ? (

@@ -48,7 +48,7 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
   if (niedostepny) {
     return (
       <div>
-        <button disabled className="mb-4 w-full cursor-not-allowed bg-szary px-8 py-4 text-[13px] font-semibold tracking-wide text-ink-2 sm:w-auto sm:min-w-[280px]">
+        <button disabled className="mb-4 w-full cursor-not-allowed rounded-xl bg-szary px-8 py-4 text-[13px] font-semibold tracking-wide text-ink-2 sm:w-auto sm:min-w-[280px]">
           PRODUKT NIEDOSTĘPNY
         </button>
         <PowiadomODostepnosci produktId={produkt.id} rozmiar={null} />
@@ -88,7 +88,7 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
                     setRozmiar(s);
                     setBlad(false);
                   }}
-                  className={`relative border px-3.5 py-2 text-[13px] font-medium transition-colors ${
+                  className={`relative min-w-[52px] rounded-lg border px-3.5 py-2.5 text-center text-[13px] font-semibold transition-colors ${
                     brak
                       ? on
                         ? "border-ink bg-szary text-ink-2 line-through"
@@ -117,7 +117,7 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
         <div className="mb-3 flex flex-col gap-2.5 sm:flex-row">
           <button
             onClick={handleDodaj}
-            className="w-full bg-ink px-8 py-4 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent sm:w-auto sm:min-w-[280px]"
+            className="w-full rounded-xl bg-ink px-8 py-4 text-[13px] font-semibold tracking-wide text-tlo shadow-sm transition-all hover:-translate-y-0.5 hover:bg-akcent hover:shadow-lg sm:w-auto sm:min-w-[280px]"
           >
             DODAJ DO KOSZYKA
           </button>

@@ -120,7 +120,7 @@ function Listing() {
       <div className="mx-auto mb-4 flex max-w-content items-center gap-3 px-6 md:hidden">
         <button
           onClick={() => setFiltryOtwarte((o) => !o)}
-          className="flex items-center gap-2 border border-ink px-4 py-2.5 text-[13px] font-semibold text-ink"
+          className="flex items-center gap-2 rounded-lg border border-ink px-4 py-2.5 text-[13px] font-semibold text-ink"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M4 6h16M7 12h10M10 18h4" />
@@ -131,7 +131,7 @@ function Listing() {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as Sortowanie)}
-          className="flex-1 border border-linia-2 bg-white px-3 py-2.5 text-[13px] text-ink"
+          className="flex-1 rounded-lg border border-linia-2 bg-white px-3 py-2.5 text-[13px] text-ink"
         >
           <option value="domyslnie">Polecane</option>
           <option value="cena-rosnaco">Cena: od najniższej</option>
@@ -227,7 +227,7 @@ function Listing() {
                   <button
                     key={s}
                     onClick={() => toggleRozmiar(s)}
-                    className={`border px-[11px] py-1.5 text-[12.5px] font-medium transition-colors ${
+                    className={`rounded-lg border px-[11px] py-1.5 text-[12.5px] font-medium transition-colors ${
                       on ? "border-ink bg-ink text-tlo" : "border-linia-2 text-ink hover:border-ink"
                     }`}
                   >
@@ -247,7 +247,7 @@ function Listing() {
           {/* Zamknięcie filtrów na mobile */}
           <button
             onClick={() => setFiltryOtwarte(false)}
-            className="mt-2 w-full bg-ink px-6 py-3.5 text-[13px] font-semibold tracking-wide text-tlo md:hidden"
+            className="mt-2 w-full rounded-lg bg-ink px-6 py-3.5 text-[13px] font-semibold tracking-wide text-tlo md:hidden"
           >
             POKAŻ {produkty.length} {produkty.length === 1 ? "PRODUKT" : "PRODUKTÓW"}
           </button>
@@ -259,7 +259,7 @@ function Listing() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as Sortowanie)}
-              className="border border-linia-2 bg-white px-3.5 py-2.5 text-[13.5px] text-ink"
+              className="rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[13.5px] text-ink"
             >
               <option value="domyslnie">Sortuj: polecane</option>
               <option value="cena-rosnaco">Cena: od najniższej</option>
