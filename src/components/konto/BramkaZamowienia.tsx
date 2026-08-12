@@ -180,7 +180,7 @@ export function BramkaZamowienia() {
                 </div>
                 <form onSubmit={wyslij} className="flex flex-col gap-3">
                   {tryb === "rejestr" ? (
-                    <input className={input} placeholder="Imię" maxLength={40} value={imie} onChange={(e) => setImie(e.target.value)} />
+                    <input className={input} placeholder="Imię i nazwisko" maxLength={80} value={imie} onChange={(e) => setImie(e.target.value)} />
                   ) : null}
                   <input className={input} type="email" placeholder="E-mail" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                   <input className={input} type="password" placeholder="Hasło" autoComplete={tryb === "rejestr" ? "new-password" : "current-password"} value={haslo} onChange={(e) => setHaslo(e.target.value)} />

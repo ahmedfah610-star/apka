@@ -12,13 +12,14 @@ const KATEGORIE = [
   { href: "/produkty?kategoria=niemowleta", label: "Niemowlęta" },
 ];
 
+type Meta = { imie?: string; telefon?: string; adres?: string; kod?: string; miasto?: string };
+
 export function PanelKonta() {
   const router = useRouter();
   const { user, zaladowano, wlaczone, wyloguj, zapiszProfil } = useAuth();
 
   const [edycja, setEdycja] = useState(false);
-  const [imie, setImie] = useState("");
-  const [telefon, setTelefon] = useState("");
+  const [dane, setDane] = useState<Meta>({ imie: "", telefon: "", adres: "", kod: "", miasto: "" });
   const [zapis, setZapis] = useState(false);
   const [info, setInfo] = useState("");
 
@@ -27,24 +28,27 @@ export function PanelKonta() {
   }, [zaladowano, wlaczone, user, router]);
 
   useEffect(() => {
-    if (user) {
-      setImie((user.user_metadata?.imie as string) || "");
-      setTelefon((user.user_metadata?.telefon as string) || "");
-    }
+    if (!user) return;
+    const m = (user.user_metadata ?? {}) as Meta;
+    setDane({ imie: m.imie || "", telefon: m.telefon || "", adres: m.adres || "", kod: m.kod || "", miasto: m.miasto || "" });
   }, [user]);
 
   if (!wlaczone) return <p className="text-center text-[15px] text-ink-2">Konto jest chwilowo niedostępne.</p>;
   if (!zaladowano || !user) return <p className="text-center text-[15px] text-ink-2">Ładowanie…</p>;
 
-  const imieMeta = (user.user_metadata?.imie as string | undefined)?.trim();
+  const m = (user.user_metadata ?? {}) as Meta;
+  const imieMeta = (m.imie || "").trim();
   const kafel = "group flex items-start gap-4 rounded-xl border border-linia bg-white p-5 text-inherit no-underline transition-all hover:border-ink hover:shadow-[0_4px_20px_-14px_rgba(0,0,0,0.4)]";
   const input = "w-full rounded-lg border border-linia-2 bg-white px-4 py-3 text-[15px] outline-none transition-colors focus:border-ink";
+  const linia = (etykieta: string, wartosc?: string) => (
+    <p className="text-[14px] text-ink-2">{etykieta}: <span className="text-ink">{wartosc?.trim() || "—"}</span></p>
+  );
 
   async function zapiszDane(e: React.FormEvent) {
     e.preventDefault();
     setZapis(true);
     setInfo("");
-    const r = await zapiszProfil({ imie, telefon });
+    const r = await zapiszProfil(dane);
     setZapis(false);
     if (r.ok) { setInfo("Zapisano ✓"); setEdycja(false); }
     else setInfo(r.blad || "Nie udało się zapisać.");
@@ -53,24 +57,9 @@ export function PanelKonta() {
   return (
     <div className="w-full">
       {/* Nagłówek */}
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-[26px] font-bold tracking-tight md:text-[31px]">
-            Cześć{imieMeta ? `, ${imieMeta}` : ""}! 👋
-          </h1>
-          <p className="mt-1 text-[14px] text-ink-2">
-            Zalogowano jako <strong className="font-semibold text-ink">{user.email}</strong>
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            void wyloguj();
-            router.replace("/");
-          }}
-          className="rounded-lg border border-linia-2 px-4 py-2 text-[13px] font-medium text-ink-2 transition-colors hover:border-ink hover:text-ink"
-        >
-          Wyloguj się
-        </button>
+      <div className="mb-8">
+        <h1 className="text-[26px] font-bold tracking-tight md:text-[31px]">Cześć{imieMeta ? `, ${imieMeta.split(" ")[0]}` : ""}! 👋</h1>
+        <p className="mt-1 text-[14px] text-ink-2">Zalogowano jako <strong className="font-semibold text-ink">{user.email}</strong></p>
       </div>
 
       {/* Twoje dane */}
@@ -83,18 +72,26 @@ export function PanelKonta() {
             </button>
           ) : null}
         </div>
+
         {!edycja ? (
-          <div className="mt-2 text-[14px] text-ink-2">
-            <p>Imię: <span className="text-ink">{imieMeta || "—"}</span></p>
-            <p className="mt-0.5">Telefon: <span className="text-ink">{(user.user_metadata?.telefon as string) || "—"}</span></p>
+          <div className="mt-2 flex flex-col gap-0.5">
+            {linia("Imię i nazwisko", m.imie)}
+            {linia("Telefon", m.telefon)}
+            {linia("Adres", m.adres)}
+            {linia("Kod i miejscowość", [m.kod, m.miasto].filter(Boolean).join(" "))}
             {info ? <p className="mt-2 text-[13px] text-[oklch(45%_0.12_150)]">{info}</p> : null}
+            <p className="mt-2 text-[12.5px] text-ink-3">Te dane podpowiedzą się automatycznie przy składaniu zamówienia.</p>
           </div>
         ) : (
-          <form onSubmit={zapiszDane} className="mt-3 flex flex-col gap-3">
-            <input className={input} placeholder="Imię" maxLength={60} value={imie} onChange={(e) => setImie(e.target.value)} />
-            <input className={input} placeholder="Telefon" maxLength={30} value={telefon} onChange={(e) => setTelefon(e.target.value)} />
-            {info ? <p className="text-[13px] text-akcent">{info}</p> : null}
-            <div className="flex gap-2">
+          <form onSubmit={zapiszDane} className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <input className={`${input} sm:col-span-2`} placeholder="Imię i nazwisko" maxLength={80} value={dane.imie} onChange={(e) => setDane({ ...dane, imie: e.target.value })} />
+            <input className={`${input} sm:col-span-2`} placeholder="Telefon" maxLength={30} value={dane.telefon} onChange={(e) => setDane({ ...dane, telefon: e.target.value })} />
+            <input className={`${input} sm:col-span-2`} placeholder="Ulica i numer" maxLength={120} value={dane.adres} onChange={(e) => setDane({ ...dane, adres: e.target.value })} />
+            <input className={input} placeholder="Kod pocztowy" maxLength={12} value={dane.kod} onChange={(e) => setDane({ ...dane, kod: e.target.value })} />
+            <input className={input} placeholder="Miejscowość" maxLength={80} value={dane.miasto} onChange={(e) => setDane({ ...dane, miasto: e.target.value })} />
+            <p className="text-[12.5px] text-ink-3 sm:col-span-2">Wolisz paczkomat? Wybierzesz go w koszyku — adres tutaj jest do dostawy kurierem.</p>
+            {info ? <p className="text-[13px] text-akcent sm:col-span-2">{info}</p> : null}
+            <div className="flex gap-2 sm:col-span-2">
               <button type="submit" disabled={zapis} className="rounded-lg bg-ink px-5 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
                 {zapis ? "ZAPISYWANIE…" : "ZAPISZ"}
               </button>
@@ -137,24 +134,20 @@ export function PanelKonta() {
       <h2 className="mb-3 mt-10 text-[13px] font-semibold uppercase tracking-wide text-ink-2">Przeglądaj sklep</h2>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {KATEGORIE.map((k) => (
-          <Link
-            key={k.href}
-            href={k.href}
-            className="rounded-xl border border-linia bg-white px-4 py-4 text-center text-[14px] font-semibold text-ink no-underline transition-all hover:border-ink hover:bg-szary/30"
-          >
+          <Link key={k.href} href={k.href} className="rounded-xl border border-linia bg-white px-4 py-4 text-center text-[14px] font-semibold text-ink no-underline transition-all hover:border-ink hover:bg-szary/30">
             {k.label}
           </Link>
         ))}
       </div>
 
-      <div className="mt-8 rounded-xl border border-dashed border-linia-2 bg-white/60 p-5 text-center">
-        <p className="text-[14px] text-ink-2">Gotowy na zakupy?</p>
-        <Link
-          href="/produkty"
-          className="mt-3 inline-block rounded-lg bg-ink px-7 py-3 text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
+      {/* Wyloguj — dyskretnie na dole */}
+      <div className="mt-10 border-t border-linia pt-5 text-center">
+        <button
+          onClick={() => { void wyloguj(); router.replace("/"); }}
+          className="text-[13px] text-ink-2 underline underline-offset-2 transition-colors hover:text-akcent"
         >
-          PRZEGLĄDAJ PRODUKTY
-        </Link>
+          Wyloguj się
+        </button>
       </div>
     </div>
   );

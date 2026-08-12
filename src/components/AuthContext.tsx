@@ -16,7 +16,7 @@ interface AuthCtx {
   wyloguj: () => Promise<void>;
   resetHasla: (email: string) => Promise<Wynik>;
   ustawHaslo: (haslo: string) => Promise<Wynik>;
-  zapiszProfil: (dane: { imie?: string; telefon?: string }) => Promise<Wynik>;
+  zapiszProfil: (dane: { imie?: string; telefon?: string; adres?: string; kod?: string; miasto?: string }) => Promise<Wynik>;
 }
 
 const Kontekst = createContext<AuthCtx | null>(null);
@@ -105,10 +105,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const zapiszProfil = useCallback<AuthCtx["zapiszProfil"]>(async (dane) => {
     if (!sb) return { ok: false, blad: "Zapis chwilowo niedostępny." };
+    const przytnij = (v: string | undefined, n: number) => (v ?? "").trim().slice(0, n);
     const { data, error } = await sb.auth.updateUser({
       data: {
-        imie: (dane.imie ?? "").trim().slice(0, 60),
-        telefon: (dane.telefon ?? "").trim().slice(0, 30),
+        imie: przytnij(dane.imie, 80),
+        telefon: przytnij(dane.telefon, 30),
+        adres: przytnij(dane.adres, 120),
+        kod: przytnij(dane.kod, 12),
+        miasto: przytnij(dane.miasto, 80),
       },
     });
     if (error) return { ok: false, blad: komunikat(error.message) };

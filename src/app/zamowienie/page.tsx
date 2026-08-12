@@ -50,16 +50,17 @@ export default function StronaZamowienia() {
       .catch(() => {});
   }, []);
 
-  // Zalogowany klient — wstępnie wypełnij e-mail oraz imię (jeśli pola puste).
+  // Zalogowany klient — wstępnie wypełnij dane z profilu (tylko puste pola).
   useEffect(() => {
     if (!user) return;
-    const imie = (user.user_metadata?.imie as string | undefined)?.trim();
-    const telefon = (user.user_metadata?.telefon as string | undefined)?.trim();
+    const meta = (user.user_metadata ?? {}) as { imie?: string; telefon?: string; adres?: string; kod?: string; miasto?: string };
     setDane((d) => ({
-      ...d,
+      imie: d.imie || (meta.imie ?? "").trim() || "",
       email: d.email || user.email || "",
-      imie: d.imie || imie || "",
-      telefon: d.telefon || telefon || "",
+      telefon: d.telefon || (meta.telefon ?? "").trim() || "",
+      adres: d.adres || (meta.adres ?? "").trim() || "",
+      kod: d.kod || (meta.kod ?? "").trim() || "",
+      miasto: d.miasto || (meta.miasto ?? "").trim() || "",
     }));
   }, [user]);
 
