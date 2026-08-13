@@ -45,8 +45,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data.session?.user ?? null);
       setZaladowano(true);
     });
-    const { data: sub } = sb.auth.onAuthStateChange((_e, sesja) => {
-      setUser(sesja?.user ?? null);
+    const { data: sub } = sb.auth.onAuthStateChange((event, sesja) => {
+      const u = sesja?.user ?? null;
+      setUser(u);
+      // Powitanie dla NOWYCH kont Google (Google weryfikuje e-mail sam, więc
+      // nie przechodzą przez /auth/confirm). Wysyłamy raz, tylko dla świeżego konta.
+      if (event === "SIGNED_IN" && u && u.app_metadata?.provider === "google") {
+        try {
+          const swieze = Date.now() - new Date(u.created_at).getTime() < 5 * 60 * 1000;
+          const klucz = `powitano:${u.id}`;
+          if (swieze && !localStorage.getItem(klucz)) {
+            localStorage.setItem(klucz, "1");
+            const imie = (u.user_metadata?.full_name || u.user_metadata?.name || u.user_metadata?.imie) as string | undefined;
+            fetch("/api/konto/powitanie", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: u.email, imie }),
+            }).catch(() => {});
+          }
+        } catch {
+          /* ignoruj */
+        }
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, [sb]);
