@@ -183,8 +183,10 @@ export async function wyslijMailRejestracja(email: string, imie?: string, potwie
           )
           .join("")}
       </table>
-      ${potwierdzenie ? `<p style="margin:14px 0 0;padding:12px 16px;background:${M.akcentTlo};border-radius:10px;font-size:13.5px;line-height:1.6;color:${M.ink}">Jeszcze jeden krok: potwierdź adres e-mail linkiem, który wysłaliśmy w osobnej wiadomości, aby aktywować logowanie.</p>` : ""}`,
-    cta: { tekst: "PRZEJDŹ DO KONTA", url: `${BAZA}/konto` },
+      ${potwierdzenie ? `<p style="margin:14px 0 0;padding:14px 16px;background:${M.akcentTlo};border-radius:10px;font-size:14px;line-height:1.6;color:${M.ink}"><strong>Jeszcze jeden krok:</strong> otwórz osobną wiadomość <strong>„Potwierdź swój adres"</strong> i kliknij w niej przycisk aktywacyjny. Dopiero wtedy zalogujesz się na konto.</p>` : ""}`,
+    cta: potwierdzenie
+      ? { tekst: "PRZEGLĄDAJ SKLEP", url: `${BAZA}/produkty` }
+      : { tekst: "PRZEJDŹ DO KONTA", url: `${BAZA}/konto` },
   });
   await wyslij(email, "Dziękujemy za założenie konta — bobas-shopping 🎉", html);
 }
