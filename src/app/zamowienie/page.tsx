@@ -11,6 +11,8 @@ import { useKoszyk } from "@/components/KoszykContext";
 import { useAuth } from "@/components/AuthContext";
 import { KrokiZamowienia } from "@/components/KrokiZamowienia";
 import { sbBrowser } from "@/lib/supabaseBrowser";
+import { ZAMOWIENIA_WYLACZONE, KOMUNIKAT_PRZERWY } from "@/lib/sklep";
+import { PrzerwaTechniczna } from "@/components/PrzerwaTechniczna";
 import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { METODY_DOSTAWY, kosztDostawy } from "@/lib/dostawa";
@@ -121,6 +123,7 @@ export default function StronaZamowienia() {
 
   async function zloz(e: React.FormEvent) {
     e.preventDefault();
+    if (ZAMOWIENIA_WYLACZONE) return setBlad(KOMUNIKAT_PRZERWY);
     if (!dane.imie || !dane.email) return setBlad("Uzupełnij imię i e-mail.");
     if (metoda.paczkomat && !paczkomat) return setBlad("Wybierz paczkomat InPost.");
     if (metoda.punkt && !punkt) return setBlad("Wybierz punkt ORLEN Paczka.");
@@ -183,6 +186,7 @@ export default function StronaZamowienia() {
         <div>
           <KrokiZamowienia aktywny={2} />
           <h1 className="mb-7 text-[26px] font-bold tracking-tight md:text-[32px]">Dostawa i płatność</h1>
+          {ZAMOWIENIA_WYLACZONE ? <PrzerwaTechniczna className="mb-6" /> : null}
 
           {/* Dane kontaktowe */}
           <section className="mb-5 rounded-2xl border border-linia bg-white p-5 md:p-6">
@@ -342,10 +346,10 @@ export default function StronaZamowienia() {
 
           <button
             type="submit"
-            disabled={wysylka || !akceptacja}
+            disabled={wysylka || !akceptacja || ZAMOWIENIA_WYLACZONE}
             className="block w-full rounded-lg bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {wysylka ? "PRZETWARZANIE…" : platnosciOnline ? "ZAMAWIAM I PŁACĘ" : "ZAMAWIAM"}
+            {ZAMOWIENIA_WYLACZONE ? "ZAMÓWIENIA WYŁĄCZONE" : wysylka ? "PRZETWARZANIE…" : platnosciOnline ? "ZAMAWIAM I PŁACĘ" : "ZAMAWIAM"}
           </button>
           <p className="mt-3 flex items-center justify-center gap-1.5 text-[12px] text-ink-2">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">

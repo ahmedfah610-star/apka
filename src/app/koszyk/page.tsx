@@ -8,6 +8,8 @@ import { useKoszyk } from "@/components/KoszykContext";
 import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { DARMOWA_DOSTAWA_OD } from "@/lib/dostawa";
+import { ZAMOWIENIA_WYLACZONE } from "@/lib/sklep";
+import { PrzerwaTechniczna } from "@/components/PrzerwaTechniczna";
 
 const ZAUFANIE = [
   { t: "Wysyłka InPost", o: "Paczkomaty i kurier" },
@@ -171,12 +173,24 @@ export default function StronaKoszyka() {
                 <span className="text-[22px] font-bold">{formatCena(suma)} zł</span>
               </div>
 
-              <Link
-                href="/zamowienie/konto"
-                className="mt-5 block rounded-lg bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
-              >
-                PRZEJDŹ DO ZAMÓWIENIA →
-              </Link>
+              {ZAMOWIENIA_WYLACZONE ? (
+                <>
+                  <PrzerwaTechniczna className="mt-5" />
+                  <button
+                    disabled
+                    className="mt-3 block w-full cursor-not-allowed rounded-lg bg-szary px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-ink-2"
+                  >
+                    ZAMÓWIENIA CHWILOWO WYŁĄCZONE
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/zamowienie/konto"
+                  className="mt-5 block rounded-lg bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
+                >
+                  PRZEJDŹ DO ZAMÓWIENIA →
+                </Link>
+              )}
               <p className="mt-3 text-center text-[11.5px] leading-relaxed text-ink-2">
                 Składając zamówienie akceptujesz{" "}
                 <Link href="/regulamin" className="underline underline-offset-2 hover:text-akcent">Regulamin</Link>{" "}

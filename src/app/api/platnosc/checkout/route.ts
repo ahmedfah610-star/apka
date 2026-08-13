@@ -5,6 +5,7 @@ import { wyslijMaileZamowienia } from "@/lib/mail";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 import { katalogWidoczny } from "@/lib/produktyDb";
 import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
+import { ZAMOWIENIA_WYLACZONE, KOMUNIKAT_PRZERWY } from "@/lib/sklep";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,8 @@ interface Body {
 }
 
 export async function POST(req: Request) {
+  // Przerwa techniczna — zamówienia wstrzymane.
+  if (ZAMOWIENIA_WYLACZONE) return Response.json({ ok: false, blad: KOMUNIKAT_PRZERWY }, { status: 503 });
   // Limit składania zamówień z jednego IP (ochrona przed zalewem/nadużyciem).
   if (!wLimicie(`checkout:${ipZadania(req)}`, 15, 60 * 1000)) return limitOdpowiedz();
 
