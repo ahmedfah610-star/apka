@@ -5,14 +5,14 @@ export const dynamic = "force-dynamic";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Wysyła mail „dziękujemy za założenie konta" po rejestracji (fire-and-forget z klienta).
+// Wysyła mail powitalny po AKTYWACJI konta (wołany ze strony /auth/confirm).
 export async function POST(req: Request) {
   if (!wLimicie(`powitanie:${ipZadania(req)}`, 4, 60 * 1000)) return limitOdpowiedz();
 
-  const b = (await req.json().catch(() => ({}))) as { email?: string; imie?: string; potwierdzenie?: boolean };
+  const b = (await req.json().catch(() => ({}))) as { email?: string; imie?: string };
   const email = String(b.email ?? "").trim().toLowerCase();
   if (!EMAIL.test(email)) return Response.json({ ok: false }, { status: 400 });
 
-  await wyslijMailRejestracja(email, b.imie, !!b.potwierdzenie);
+  await wyslijMailRejestracja(email, b.imie);
   return Response.json({ ok: true });
 }

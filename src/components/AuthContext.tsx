@@ -59,13 +59,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       options: { data: imie ? { imie } : undefined, emailRedirectTo: `${window.location.origin}/konto` },
     });
     if (error) return { ok: false, blad: komunikat(error.message) };
-    // Mail „dziękujemy za rejestrację" (nie blokuje — wysyłka w tle).
-    fetch("/api/konto/powitanie", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.trim(), imie, potwierdzenie: !data.session }),
-    }).catch(() => {});
-    // Gdy wymagane potwierdzenie e-maila — sesji jeszcze nie ma.
+    // Konto od razu aktywne (potwierdzanie wyłączone) → powitanie teraz.
+    // Gdy wymagane potwierdzenie — powitanie wyśle się po kliknięciu linku
+    // aktywacyjnego (ze strony /auth/confirm), więc tu nic nie wysyłamy.
+    if (data.session) {
+      fetch("/api/konto/powitanie", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), imie }),
+      }).catch(() => {});
+    }
     return { ok: true, potwierdzenie: !data.session };
   }, [sb]);
 

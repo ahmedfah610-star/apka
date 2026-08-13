@@ -166,15 +166,16 @@ export async function wyslijMailPowitalny(email: string) {
   await wyslij(email, "Witaj w bobas-shopping 🌱", html);
 }
 
-/** Podziękowanie za założenie konta. */
-export async function wyslijMailRejestracja(email: string, imie?: string, potwierdzenie?: boolean) {
+/** Powitanie po AKTYWACJI konta — wysyłane dopiero po potwierdzeniu e-maila. */
+export async function wyslijMailRejestracja(email: string, imie?: string) {
   if (!mailWlaczony()) return;
-  const czesc = imie && imie.trim() ? `Cześć ${esc(imie.trim())}!` : "Cześć!";
+  const imieOk = esc((imie ?? "").trim().split(" ")[0]);
   const html = powloka({
     emoji: "🎉",
-    naglowek: `${czesc} Konto założone`,
-    preheader: "Dziękujemy za dołączenie do bobas-shopping.",
-    intro: "Dziękujemy za założenie konta w <strong>bobas-shopping</strong>. Od teraz zakupy są prostsze i wygodniejsze.",
+    naglowek: imieOk ? `Witaj, ${imieOk}!` : "Witaj w bobas-shopping!",
+    preheader: "Twoje konto jest aktywne — miło Cię gościć!",
+    intro:
+      "Twój adres e-mail został potwierdzony, a konto w <strong>bobas-shopping</strong> jest już aktywne. Od teraz zakupy są prostsze i wygodniejsze.",
     tresc: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0">
         ${["Historia i podgląd wszystkich zamówień", "Koszyk i ulubione zapisane na każdym urządzeniu", "Szybsze zamawianie — dane uzupełniają się same"]
           .map(
@@ -182,13 +183,10 @@ export async function wyslijMailRejestracja(email: string, imie?: string, potwie
               <span style="color:${M.akcent};font-weight:800">✓</span>&nbsp; ${t}</td></tr>`,
           )
           .join("")}
-      </table>
-      ${potwierdzenie ? `<p style="margin:14px 0 0;padding:14px 16px;background:${M.akcentTlo};border-radius:10px;font-size:14px;line-height:1.6;color:${M.ink}"><strong>Jeszcze jeden krok:</strong> otwórz osobną wiadomość <strong>„Potwierdź swój adres"</strong> i kliknij w niej przycisk aktywacyjny. Dopiero wtedy zalogujesz się na konto.</p>` : ""}`,
-    cta: potwierdzenie
-      ? { tekst: "PRZEGLĄDAJ SKLEP", url: `${BAZA}/produkty` }
-      : { tekst: "PRZEJDŹ DO KONTA", url: `${BAZA}/konto` },
+      </table>`,
+    cta: { tekst: "PRZEJDŹ DO KONTA", url: `${BAZA}/konto` },
   });
-  await wyslij(email, "Dziękujemy za założenie konta — bobas-shopping 🎉", html);
+  await wyslij(email, "Twoje konto jest aktywne — bobas-shopping 🎉", html);
 }
 
 /** Produkt/rozmiar znów dostępny. */

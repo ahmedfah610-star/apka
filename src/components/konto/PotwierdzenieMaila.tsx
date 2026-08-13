@@ -25,12 +25,21 @@ function Rdzen() {
     let anulowane = false;
     // verifyOtp z token_hash — potwierdza adres i ustawia sesję (bez zależności
     // od hasha w URL, odporne na skanery linków w poczcie).
-    sb.auth.verifyOtp({ type: type as never, token_hash }).then(({ error }) => {
+    sb.auth.verifyOtp({ type: type as never, token_hash }).then(({ data, error }) => {
       if (anulowane) return;
       if (error) {
         setStan("blad");
       } else {
         setStan("ok");
+        // Konto właśnie aktywowane → wyślij mail powitalny (w tle).
+        const u = data.user;
+        if (u?.email) {
+          fetch("/api/konto/powitanie", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: u.email, imie: u.user_metadata?.imie }),
+          }).catch(() => {});
+        }
         setTimeout(() => router.replace(next), 900);
       }
     });
