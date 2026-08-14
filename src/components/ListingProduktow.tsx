@@ -34,6 +34,18 @@ const WYROZNIENIA: { key: FiltrWyroznienie; label: string }[] = [
   { key: "promocja", label: "Promocje" },
 ];
 
+// Opisy kategorii (SEO) — widoczne pod nagłówkiem strony kategorii.
+const OPISY_KATEGORII: Record<string, string> = {
+  wszystkie:
+    "Pełna oferta ubranek dla dzieci 0–12 lat — od body i pajacyków dla niemowląt, po dresy, bluzy i sukienki dla starszaków. Miękkie, bezpieczne materiały i wygodne kroje na co dzień. Wysyłka InPost, 14 dni na zwrot.",
+  dziewczynki:
+    "Ubranka dla dziewczynek 0–12 lat: sukienki, legginsy, bluzy, komplety i body. Miękkie tkaniny i wygodne fasony — na przedszkole, spacer i wyjątkowe okazje.",
+  chlopcy:
+    "Ubranka dla chłopców 0–12 lat: dresy, spodnie, bluzy, komplety i koszulki. Wytrzymałe i wygodne, gotowe na przedszkole, plac zabaw i każdą przygodę.",
+  niemowleta:
+    "Ubranka dla niemowląt i noworodków: body, pajacyki, śpiochy, komplety i czapeczki. Delikatna bawełna, zatrzaski ułatwiające przewijanie i płaskie szwy przyjazne skórze malucha.",
+};
+
 function Listing() {
   const params = useSearchParams();
 
@@ -111,9 +123,12 @@ function Listing() {
         <h1 className="mb-1.5 text-[32px] font-bold tracking-tight">
           {fraza ? <>Wyniki: „{fraza}"</> : KATEGORIE_LABEL[kategoria]}
         </h1>
-        <p className="mb-7 text-[15px] text-ink-2">
+        <p className={`text-[15px] text-ink-2 ${!fraza && OPISY_KATEGORII[kategoria] ? "mb-3" : "mb-7"}`}>
           {produkty.length} {produkty.length === 1 ? "produkt" : "produktów"}
         </p>
+        {!fraza && OPISY_KATEGORII[kategoria] ? (
+          <p className="mb-7 max-w-3xl text-[14.5px] leading-relaxed text-ink-2">{OPISY_KATEGORII[kategoria]}</p>
+        ) : null}
       </div>
 
       {/* Pasek filtrów na mobile */}

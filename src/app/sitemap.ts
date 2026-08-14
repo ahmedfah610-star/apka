@@ -16,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BAZA_URL}/produkty?kategoria=chlopcy`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${BAZA_URL}/produkty?kategoria=niemowleta`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${BAZA_URL}/blog`, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${BAZA_URL}/rozmiary`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BAZA_URL}/o-nas`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${BAZA_URL}/kontakt`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${BAZA_URL}/faq`, changeFrequency: "monthly", priority: 0.4 },
