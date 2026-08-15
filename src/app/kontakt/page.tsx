@@ -6,11 +6,23 @@ export const metadata = { title: "Kontakt" };
 export default function Kontakt() {
   return (
     <StronaInfo tytul="Kontakt" wstep="Masz pytanie o produkt, zamówienie lub zwrot? Chętnie pomożemy — odpowiadamy zwykle w ciągu jednego dnia roboczego.">
+      <Sekcja tytul="Kontakt bezpośredni">
+        <div className="rounded-xl border border-linia bg-szary/30 p-4 sm:p-5">
+          <p className="text-[15px] text-ink">
+            <strong>Telefon:</strong>{" "}
+            <a href="tel:+48793878222" className="font-semibold underline underline-offset-2 hover:text-akcent">+48 793 878 222</a>
+          </p>
+          <p className="mt-1.5 text-[15px] text-ink">
+            <strong>E-mail:</strong>{" "}
+            <a href="mailto:amin.kids1@hotmail.com" className="underline underline-offset-2 hover:text-akcent">amin.kids1@hotmail.com</a>
+          </p>
+          <p className="mt-2 text-[13px] text-ink-2">Odpowiadamy zwykle w ciągu jednego dnia roboczego (pon.–pt.).</p>
+        </div>
+      </Sekcja>
+
       <Sekcja tytul="Napisz do nas">
         <FormularzKontaktowy />
         <p className="mt-3 text-[14px] text-ink-2">
-          Możesz też napisać bezpośrednio na{" "}
-          <a href="mailto:amin.kids1@hotmail.com" className="underline underline-offset-2 hover:text-akcent">amin.kids1@hotmail.com</a>.
           Najszybciej pomożemy, gdy podasz numer zamówienia i krótki opis sprawy.
         </p>
       </Sekcja>

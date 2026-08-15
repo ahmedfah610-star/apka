@@ -88,9 +88,11 @@ const daneStrukturalne = [
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer support",
+      telephone: "+48793878222",
       email: "amin.kids1@hotmail.com",
       availableLanguage: ["Polish"],
     },
+    telephone: "+48793878222",
     sameAs: [
       "https://www.facebook.com/BobasShopping/",
       "https://allegro.pl/uzytkownik/bobas-shopping",

@@ -78,6 +78,8 @@ export function DaneSprzedawcy() {
         NIP 7123438950 · REGON 522694079 · KRS 0000984936
       </p>
       <p className="mt-2 text-ink">
+        Telefon: <a href="tel:+48793878222" className="underline underline-offset-2 hover:text-akcent">+48 793 878 222</a>
+        <br />
         E-mail: <a href="mailto:amin.kids1@hotmail.com" className="underline underline-offset-2 hover:text-akcent">amin.kids1@hotmail.com</a>
       </p>
     </Ramka>
