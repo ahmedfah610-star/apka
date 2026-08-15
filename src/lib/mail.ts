@@ -236,6 +236,41 @@ export async function wyslijMaileZamowienia(d: DaneMaila) {
   await Promise.all(zadania);
 }
 
+/** Prośba o opinię po zakupie (wysyłana kilka dni po zamówieniu). */
+export async function wyslijMailProsbaOOpinie(order: {
+  id: string;
+  email: string;
+  imie?: string;
+  produkty: { id: string; nazwa: string }[];
+}) {
+  if (!mailWlaczony() || !order.email || order.produkty.length === 0) return;
+  const e = encodeURIComponent(order.email);
+  const link = (id: string) => `${BAZA}/produkty/${id}?opinia=1&email=${e}#opinie`;
+  const lista = order.produkty
+    .map(
+      (p) => `<tr>
+        <td style="padding:10px 0;border-bottom:1px solid ${M.linia};font-size:14.5px">
+          <a href="${link(p.id)}" style="color:${M.ink};text-decoration:none;font-weight:600">${esc(p.nazwa)}</a>
+        </td>
+        <td style="padding:10px 0;border-bottom:1px solid ${M.linia};text-align:right;white-space:nowrap">
+          <a href="${link(p.id)}" style="color:${M.akcent};text-decoration:none;font-weight:700;font-size:13px">Oceń ⭐ →</a>
+        </td>
+      </tr>`,
+    )
+    .join("");
+  const imie = esc((order.imie ?? "").trim().split(" ")[0]);
+  const html = powloka({
+    emoji: "⭐",
+    naglowek: imie ? `${imie}, jak oceniasz zakupy?` : "Jak oceniasz swoje zakupy?",
+    preheader: "Twoja opinia zajmie chwilę, a pomoże innym rodzicom.",
+    intro:
+      "Minęło kilka dni od Twojego zamówienia — mamy nadzieję, że wszystko pasuje i podoba się maluchowi! Będziemy wdzięczni za krótką opinię. Zajmie chwilę, a bardzo pomaga innym rodzicom przy wyborze.",
+    tresc: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0">${lista}</table>
+      <p style="margin:16px 0 0;font-size:12.5px;color:${M.ink3}">Opinię możesz dodać tylko jako osoba, która kupiła produkt — dlatego przy dodawaniu podaj ten sam e-mail (jest już wpisany w linku).</p>`,
+  });
+  await wyslij(order.email, "Jak oceniasz swoje zakupy? — bobas-shopping ⭐", html);
+}
+
 // ── Cotygodniowy newsletter ─────────────────────────────────────────────
 
 export interface ProduktMail { nazwa: string; cena: number; zdjecie?: string | null; url: string }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
+import { UdostepnijWpis } from "@/components/UdostepnijWpis";
 import { ARTYKULY, znajdzArtykul, type Blok } from "@/data/blog";
 import { BAZA_URL, NAZWA_SKLEPU, jsonLd } from "@/lib/seo";
 
@@ -99,8 +100,10 @@ export default function Artykul({ params }: { params: { slug: string } }) {
           ))}
         </div>
 
-        <div className="mt-12 border-t border-linia pt-8">
-          <Link href="/produkty" className="inline-block bg-ink px-8 py-3.5 text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent">
+        <UdostepnijWpis url={`${BAZA_URL}/blog/${a.slug}`} tytul={a.tytul} />
+
+        <div className="mt-8 border-t border-linia pt-8">
+          <Link href="/produkty" className="inline-block rounded-lg bg-ink px-8 py-3.5 text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent">
             PRZEGLĄDAJ UBRANKA
           </Link>
         </div>

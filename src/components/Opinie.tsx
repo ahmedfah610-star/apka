@@ -55,6 +55,22 @@ export function Opinie({ produktId }: { produktId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [produktId]);
 
+  // Otwórz formularz i wypełnij e-mail, gdy przyjście z maila „oceń zakup”
+  // (?opinia=1&email=...). Czytamy z URL bez useSearchParams (bez Suspense).
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search);
+      if (q.get("opinia")) {
+        const e = q.get("email");
+        if (e) setEmail(e);
+        setFormOtwarty(true);
+        setTimeout(() => document.getElementById("opinie")?.scrollIntoView({ behavior: "smooth" }), 300);
+      }
+    } catch {
+      /* ignoruj */
+    }
+  }, []);
+
   const liczba = opinie.length;
   const srednia = liczba ? Math.round((opinie.reduce((s, o) => s + o.ocena, 0) / liczba) * 10) / 10 : 0;
 
@@ -90,7 +106,7 @@ export function Opinie({ produktId }: { produktId: string }) {
   }
 
   return (
-    <section className="px-6 pb-20 md:px-12">
+    <section id="opinie" className="scroll-mt-24 px-6 pb-20 md:px-12">
       <div className="mx-auto max-w-content border-t border-linia pt-12">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
