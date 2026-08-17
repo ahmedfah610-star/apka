@@ -12,7 +12,7 @@ interface AuthCtx {
   wlaczone: boolean;
   zarejestruj: (email: string, haslo: string, imie?: string) => Promise<Wynik>;
   zaloguj: (email: string, haslo: string) => Promise<Wynik>;
-  zalogujGoogle: () => Promise<void>;
+  zalogujGoogle: (przekierowanie?: string) => Promise<void>;
   wyloguj: () => Promise<void>;
   resetHasla: (email: string) => Promise<Wynik>;
   ustawHaslo: (haslo: string) => Promise<Wynik>;
@@ -99,9 +99,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { ok: true };
   }, [sb]);
 
-  const zalogujGoogle = useCallback(async () => {
+  const zalogujGoogle = useCallback<AuthCtx["zalogujGoogle"]>(async (przekierowanie = "/konto") => {
     if (!sb) return;
-    await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/konto` } });
+    const cel = przekierowanie.startsWith("/") ? przekierowanie : "/konto";
+    await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}${cel}` } });
   }, [sb]);
 
   const wyloguj = useCallback(async () => {

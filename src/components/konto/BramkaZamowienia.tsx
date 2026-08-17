@@ -134,7 +134,7 @@ export function BramkaZamowienia() {
               <span className="h-px flex-1 bg-linia" /> lub <span className="h-px flex-1 bg-linia" />
             </div>
             <button
-              onClick={() => zalogujGoogle()}
+              onClick={() => zalogujGoogle("/zamowienie")}
               className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-linia-2 px-4 py-3 text-[14px] font-medium text-ink transition-colors hover:border-ink hover:bg-szary/30"
             >
               <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
