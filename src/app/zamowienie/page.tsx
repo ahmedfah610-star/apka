@@ -36,6 +36,12 @@ export default function StronaZamowienia() {
   const [wysylka, setWysylka] = useState(false);
   const [platnosciOnline, setPlatnosciOnline] = useState(false);
 
+  // Kod rabatowy (nazwa pola „kod" w danych to kod pocztowy — tu inne).
+  const [kodRabatu, setKodRabatu] = useState("");
+  const [kodPrzyjety, setKodPrzyjety] = useState<{ kod: string; rabat: number } | null>(null);
+  const [kodBlad, setKodBlad] = useState("");
+  const [kodSprawdzanie, setKodSprawdzanie] = useState(false);
+
   useEffect(() => {
     fetch("/api/katalog")
       .then((r) => r.json())
@@ -98,7 +104,8 @@ export default function StronaZamowienia() {
   const metoda = METODY_DOSTAWY.find((m) => m.id === metodaId)!;
   const platnosc = PLATNOSCI[0];
   const dostawa = kosztDostawy(metoda, suma);
-  const razem = suma + dostawa;
+  const rabat = kodPrzyjety ? Math.min(kodPrzyjety.rabat, suma) : 0;
+  const razem = Math.max(0, suma - rabat) + dostawa;
 
   if (pozycjeZDanymi.length === 0) {
     return (
@@ -117,6 +124,38 @@ export default function StronaZamowienia() {
   }
 
   const numer = "flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-tlo";
+
+  async function sprawdzKod() {
+    const kod = kodRabatu.trim();
+    if (!kod) return;
+    setKodSprawdzanie(true);
+    setKodBlad("");
+    try {
+      const r = await fetch("/api/kod", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kod, suma }),
+      });
+      const d = (await r.json().catch(() => ({}))) as { ok?: boolean; kod?: string; rabat?: number; blad?: string };
+      if (d.ok && d.kod && typeof d.rabat === "number") {
+        setKodPrzyjety({ kod: d.kod, rabat: d.rabat });
+        setKodBlad("");
+      } else {
+        setKodPrzyjety(null);
+        setKodBlad(d.blad || "Nieprawidłowy kod.");
+      }
+    } catch {
+      setKodBlad("Błąd połączenia.");
+    } finally {
+      setKodSprawdzanie(false);
+    }
+  }
+
+  function usunKod() {
+    setKodPrzyjety(null);
+    setKodRabatu("");
+    setKodBlad("");
+  }
 
   async function zloz(e: React.FormEvent) {
     e.preventDefault();
@@ -142,6 +181,7 @@ export default function StronaZamowienia() {
           })),
           dostawa,
           metoda: `${metoda.nazwa} · ${platnosc.nazwa}`,
+          kod: kodPrzyjety?.kod,
           klient: {
             imie: dane.imie,
             email: dane.email,
@@ -315,11 +355,44 @@ export default function StronaZamowienia() {
             <span className="text-ink-2">Produkty</span>
             <span>{formatCena(suma)} zł</span>
           </div>
-          <div className="flex justify-between border-b border-linia pb-3 text-[14px]">
+          <div className="flex justify-between pb-3 text-[14px]">
             <span className="text-ink-2">Dostawa{metoda ? ` · ${metoda.nazwa}` : ""}</span>
             <span className={dostawa === 0 ? "font-medium text-[oklch(52%_0.13_150)]" : ""}>{dostawa === 0 ? "gratis" : `${formatCena(dostawa)} zł`}</span>
           </div>
-          <div className="flex items-baseline justify-between py-4">
+
+          {/* Kod rabatowy */}
+          {kodPrzyjety ? (
+            <div className="flex items-center justify-between border-t border-linia pt-3 text-[14px]">
+              <span className="flex items-center gap-2 text-[oklch(45%_0.13_150)]">
+                Rabat <span className="rounded bg-[oklch(94%_0.05_150)] px-1.5 py-0.5 font-mono text-[12px] font-semibold">{kodPrzyjety.kod}</span>
+                <button type="button" onClick={usunKod} className="text-[12px] text-ink-2 underline underline-offset-2 hover:text-akcent">usuń</button>
+              </span>
+              <span className="font-medium text-[oklch(45%_0.13_150)]">−{formatCena(rabat)} zł</span>
+            </div>
+          ) : (
+            <div className="border-t border-linia pt-3">
+              <div className="flex gap-2">
+                <input
+                  value={kodRabatu}
+                  onChange={(e) => setKodRabatu(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void sprawdzKod(); } }}
+                  placeholder="Kod rabatowy"
+                  className="min-w-0 flex-1 rounded-lg border border-linia-2 bg-white px-3 py-2 text-[13px] uppercase outline-none focus:border-ink"
+                />
+                <button
+                  type="button"
+                  onClick={() => void sprawdzKod()}
+                  disabled={kodSprawdzanie || !kodRabatu.trim()}
+                  className="shrink-0 rounded-lg border border-ink px-4 py-2 text-[12.5px] font-semibold text-ink transition-colors hover:bg-ink hover:text-tlo disabled:opacity-50"
+                >
+                  {kodSprawdzanie ? "…" : "Użyj"}
+                </button>
+              </div>
+              {kodBlad ? <p className="mt-1.5 text-[12px] text-akcent">{kodBlad}</p> : null}
+            </div>
+          )}
+
+          <div className="mt-3 flex items-baseline justify-between border-t border-linia py-4">
             <span className="text-[15px] font-semibold">Razem</span>
             <span className="text-[22px] font-bold">{formatCena(razem)} zł</span>
           </div>

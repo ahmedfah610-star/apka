@@ -2,6 +2,7 @@ import { sbService } from "@/lib/supabase";
 import { p24PodpisNotyfikacjiOk, p24Weryfikuj, type P24Notyfikacja } from "@/lib/przelewy24";
 import { wyslijMaileZamowienia } from "@/lib/mail";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
+import { zuzyjKod } from "@/lib/kodyDb";
 
 export const dynamic = "force-dynamic";
 
@@ -36,9 +37,15 @@ export async function POST(req: Request) {
     return new Response("Weryfikacja nieudana", { status: 400 });
   }
 
+  // Czy to pierwsze potwierdzenie (idempotencja licznika kodu).
+  const pierwszePotwierdzenie = zam.status !== "oplacone";
+
   // Oznacz opłacone + zdejmij stan (idempotentnie).
   await sb.rpc("oplac_zamowienie", { p_id: zamowienieId });
   odswiezPoZmianieStanu();
+
+  // Policz użycie kodu rabatowego tylko przy pierwszym opłaceniu.
+  if (pierwszePotwierdzenie && zam.kod_rabatowy) await zuzyjKod(String(zam.kod_rabatowy));
 
   const { data } = await sb.from("zamowienia").select("*").eq("id", zamowienieId).single();
   if (data) {
@@ -47,6 +54,8 @@ export async function POST(req: Request) {
       pozycje: data.pozycje,
       razem: Number(data.razem),
       dostawa: Number(data.dostawa),
+      rabat: Number(data.rabat ?? 0),
+      kod: data.kod_rabatowy ?? null,
       metoda: data.metoda ?? "",
       klient: data.klient ?? {},
     });

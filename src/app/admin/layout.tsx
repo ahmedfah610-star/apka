@@ -8,6 +8,9 @@ const LINKI = [
   { href: "/admin", label: "Pulpit" },
   { href: "/admin/produkty", label: "Produkty" },
   { href: "/admin/zamowienia", label: "Zamówienia" },
+  { href: "/admin/statystyki", label: "Statystyki" },
+  { href: "/admin/opinie", label: "Opinie" },
+  { href: "/admin/kody", label: "Kody rabatowe" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

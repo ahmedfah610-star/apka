@@ -31,6 +31,8 @@ interface DaneMaila {
   pozycje: PozycjaMail[];
   razem: number;
   dostawa: number;
+  rabat?: number;
+  kod?: string | null;
   metoda: string;
   klient: { imie?: string; email?: string; telefon?: string; adres?: string; miasto?: string; kod?: string; paczkomat?: string; punkt?: string; punktOpis?: string };
 }
@@ -101,6 +103,10 @@ function tabelaPozycji(d: DaneMaila): string {
       <td style="padding:11px 0;font-size:14px;color:${M.ink2}">Dostawa${d.metoda ? ` · ${esc(d.metoda)}` : ""}</td>
       <td style="padding:11px 0;font-size:14px;text-align:right;color:${M.ink}">${d.dostawa === 0 ? "gratis" : zl(d.dostawa)}</td>
     </tr>
+    ${d.rabat && d.rabat > 0 ? `<tr>
+      <td style="padding:11px 0;font-size:14px;color:${M.ink2}">Rabat${d.kod ? ` · ${esc(d.kod)}` : ""}</td>
+      <td style="padding:11px 0;font-size:14px;text-align:right;color:${M.ink}">−${zl(d.rabat)}</td>
+    </tr>` : ""}
     <tr>
       <td style="padding:14px 0 0;font-size:17px;font-weight:800;color:${M.ink}">Razem</td>
       <td style="padding:14px 0 0;font-size:17px;font-weight:800;text-align:right;color:${M.ink}">${zl(d.razem)}</td>

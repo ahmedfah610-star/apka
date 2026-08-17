@@ -6,6 +6,7 @@ import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 import { katalogWidoczny } from "@/lib/produktyDb";
 import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
 import { ZAMOWIENIA_WYLACZONE, KOMUNIKAT_PRZERWY } from "@/lib/sklep";
+import { sprawdzKod, zuzyjKod } from "@/lib/kodyDb";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ interface Body {
   dostawa: number;
   metoda: string;
   klient?: Record<string, unknown>;
+  kod?: string;
 }
 
 export async function POST(req: Request) {
@@ -55,7 +57,18 @@ export async function POST(req: Request) {
   // Kwoty liczone po stronie serwera. Dostawa ograniczona do rozsądnego zakresu.
   const suma = pozycje.reduce((s, p) => s + p.cena * p.ilosc, 0);
   const dostawa = Math.max(0, Math.min(100, Number(b.dostawa) || 0));
-  const razem = suma + dostawa;
+
+  // Kod rabatowy — walidacja i naliczenie rabatu po stronie serwera.
+  let rabat = 0;
+  let kodRabatowy: string | null = null;
+  if (b.kod && b.kod.trim()) {
+    const w = await sprawdzKod(b.kod, suma);
+    if (w.ok && w.rabat) {
+      rabat = w.rabat;
+      kodRabatowy = w.kod!.kod;
+    }
+  }
+  const razem = Math.max(0, suma - rabat) + dostawa;
 
   // ── Płatność online (Przelewy24) — priorytet, wymaga bazy do zapisu ──
   if (p24Wlaczony() && supabaseWlaczony()) {
@@ -65,7 +78,7 @@ export async function POST(req: Request) {
     // 1) Zapis zamówienia jako oczekującego (bez zdejmowania stanu).
     const { data, error } = await sb
       .from("zamowienia")
-      .insert({ pozycje, suma, dostawa, razem, metoda: b.metoda, klient: b.klient ?? {}, status: "oczekuje_na_platnosc" })
+      .insert({ pozycje, suma, dostawa, razem, metoda: b.metoda, klient: b.klient ?? {}, status: "oczekuje_na_platnosc", kod_rabatowy: kodRabatowy, rabat })
       .select("id")
       .single();
     if (error || !data) return Response.json({ ok: false, blad: error?.message || "Zapis nieudany" }, { status: 500 });
@@ -96,7 +109,7 @@ export async function POST(req: Request) {
     // 1) Zapis zamówienia jako oczekującego (bez zdejmowania stanu).
     const { data, error } = await sb
       .from("zamowienia")
-      .insert({ pozycje, suma, dostawa, razem, metoda: b.metoda, klient: b.klient ?? {}, status: "oczekuje_na_platnosc" })
+      .insert({ pozycje, suma, dostawa, razem, metoda: b.metoda, klient: b.klient ?? {}, status: "oczekuje_na_platnosc", kod_rabatowy: kodRabatowy, rabat })
       .select("id")
       .single();
     if (error || !data) return Response.json({ ok: false, blad: error?.message || "Zapis nieudany" }, { status: 500 });
@@ -119,11 +132,19 @@ export async function POST(req: Request) {
       });
     }
 
+    // Rabat jako jednorazowy kupon Stripe (nie wolno dodać ujemnej pozycji).
+    let discounts: { coupon: string }[] | undefined;
+    if (rabat > 0) {
+      const kupon = await sk.coupons.create({ amount_off: Math.round(rabat * 100), currency: "pln", duration: "once", name: kodRabatowy || "Rabat" });
+      discounts = [{ coupon: kupon.id }];
+    }
+
     try {
       const sesja = await sk.checkout.sessions.create({
         mode: "payment",
         payment_method_types: ["card", "blik", "p24"],
         line_items,
+        ...(discounts ? { discounts } : {}),
         customer_email: (b.klient?.email as string) || undefined,
         metadata: { zamowienie_id: zamowienieId },
         success_url: `${baza}/zamowienie/dziekujemy?zamowienie=${zamowienieId}`,
@@ -149,12 +170,19 @@ export async function POST(req: Request) {
         p_klient: b.klient ?? {},
       });
       if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
+      // Zapamiętaj kod + rabat na zamówieniu i policz użycie (płatność od razu).
+      if (kodRabatowy) {
+        await sb.from("zamowienia").update({ kod_rabatowy: kodRabatowy, rabat }).eq("id", String(data));
+        await zuzyjKod(kodRabatowy);
+      }
       odswiezPoZmianieStanu();
       await wyslijMaileZamowienia({
         id: String(data),
         pozycje,
         razem,
         dostawa,
+        rabat,
+        kod: kodRabatowy,
         metoda: b.metoda,
         klient: (b.klient ?? {}) as never,
       });

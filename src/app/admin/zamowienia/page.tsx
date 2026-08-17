@@ -34,6 +34,8 @@ interface Zamowienie {
   status: string;
   numerPrzesylki?: string | null;
   przewoznik?: string | null;
+  rabat?: number;
+  kodRabatowy?: string | null;
 }
 
 const STATUSY: { key: string; label: string; klasa: string }[] = [
@@ -236,6 +238,12 @@ export default function AdminZamowienia() {
                                   <span>Dostawa: {z.metoda}</span>
                                   <span>{z.dostawa === 0 ? "gratis" : `${formatCena(z.dostawa)} zł`}</span>
                                 </div>
+                                {z.rabat && z.rabat > 0 ? (
+                                  <div className="flex justify-between text-[13px] text-[oklch(45%_0.13_150)]">
+                                    <span>Rabat{z.kodRabatowy ? ` · ${z.kodRabatowy}` : ""}</span>
+                                    <span>−{formatCena(z.rabat)} zł</span>
+                                  </div>
+                                ) : null}
                                 <div className="flex justify-between text-[14px] font-bold">
                                   <span>Razem</span>
                                   <span>{formatCena(z.razem)} zł</span>

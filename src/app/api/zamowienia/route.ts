@@ -24,6 +24,8 @@ export async function GET() {
     status: r.status ?? "nowe",
     numerPrzesylki: r.numer_przesylki ?? null,
     przewoznik: r.przewoznik ?? null,
+    rabat: Number(r.rabat ?? 0),
+    kodRabatowy: r.kod_rabatowy ?? null,
   }));
   return Response.json({ items });
 }
