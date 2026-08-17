@@ -16,6 +16,7 @@ interface AuthCtx {
   wyloguj: () => Promise<void>;
   resetHasla: (email: string) => Promise<Wynik>;
   ustawHaslo: (haslo: string) => Promise<Wynik>;
+  zmienEmail: (email: string) => Promise<Wynik>;
   zapiszProfil: (dane: { imie?: string; telefon?: string; adres?: string; kod?: string; miasto?: string }) => Promise<Wynik>;
 }
 
@@ -127,6 +128,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { ok: true };
   }, [sb]);
 
+  const zmienEmail = useCallback<AuthCtx["zmienEmail"]>(async (email) => {
+    if (!sb) return { ok: false, blad: "Zmiana chwilowo niedostępna." };
+    const nowy = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nowy)) return { ok: false, blad: "Podaj poprawny adres e-mail." };
+    const { error } = await sb.auth.updateUser({ email: nowy }, { emailRedirectTo: `${window.location.origin}/konto` });
+    if (error) return { ok: false, blad: komunikat(error.message) };
+    return { ok: true };
+  }, [sb]);
+
   const zapiszProfil = useCallback<AuthCtx["zapiszProfil"]>(async (dane) => {
     if (!sb) return { ok: false, blad: "Zapis chwilowo niedostępny." };
     const przytnij = (v: string | undefined, n: number) => (v ?? "").trim().slice(0, n);
@@ -154,6 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     wyloguj,
     resetHasla,
     ustawHaslo,
+    zmienEmail,
     zapiszProfil,
   };
   return <Kontekst.Provider value={wartosc}>{children}</Kontekst.Provider>;
