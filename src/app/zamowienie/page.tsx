@@ -17,11 +17,9 @@ import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { METODY_DOSTAWY, kosztDostawy } from "@/lib/dostawa";
 
-const PLATNOSCI = [
-  { id: "blik", nazwa: "BLIK", opis: "Kod z aplikacji banku" },
-  { id: "karta", nazwa: "Karta", opis: "Visa / Mastercard" },
-  { id: "przelewy24", nazwa: "Przelewy24", opis: "Szybki przelew" },
-];
+// Płatności obsługuje w całości Przelewy24 — to na jego bezpiecznej stronie
+// klient wybiera BLIK / przelew / kartę. Nie dublujemy tu tego wyboru.
+const PLATNOSCI = [{ id: "przelewy24", nazwa: "Przelewy24", opis: "BLIK, szybki przelew, karta" }];
 
 export default function StronaZamowienia() {
   const router = useRouter();
@@ -32,7 +30,6 @@ export default function StronaZamowienia() {
   const [metodaId, setMetodaId] = useState(METODY_DOSTAWY[0].id);
   const [paczkomat, setPaczkomat] = useState<Paczkomat | null>(null);
   const [punkt, setPunkt] = useState<PunktOdbioru | null>(null);
-  const [platnoscId, setPlatnoscId] = useState(PLATNOSCI[0].id);
   const [dane, setDane] = useState({ imie: "", email: "", telefon: "", adres: "", miasto: "", kod: "" });
   const [akceptacja, setAkceptacja] = useState(false);
   const [blad, setBlad] = useState("");
@@ -99,7 +96,7 @@ export default function StronaZamowienia() {
   const suma = pozycjeZDanymi.reduce((s, { poz, produkt }) => s + produkt!.cena * poz.ilosc, 0);
 
   const metoda = METODY_DOSTAWY.find((m) => m.id === metodaId)!;
-  const platnosc = PLATNOSCI.find((p) => p.id === platnoscId)!;
+  const platnosc = PLATNOSCI[0];
   const dostawa = kosztDostawy(metoda, suma);
   const razem = suma + dostawa;
 
@@ -268,24 +265,26 @@ export default function StronaZamowienia() {
             <h2 className="mb-4 flex items-center gap-2.5 text-[15px] font-bold">
               <span className={numer}>3</span> Płatność
             </h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {PLATNOSCI.map((p) => {
-                const on = platnoscId === p.id;
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setPlatnoscId(p.id)}
-                    className={`flex flex-col items-start rounded-lg border px-4 py-3 text-left transition-colors ${
-                      on ? "border-ink bg-ink/[0.03] ring-1 ring-ink" : "border-linia-2 hover:border-ink-2"
-                    }`}
-                  >
-                    <span className="text-[14px] font-semibold">{p.nazwa}</span>
-                    <span className="text-[12px] text-ink-2">{p.opis}</span>
-                  </button>
-                );
-              })}
-            </div>
+            {platnosciOnline ? (
+              <div className="flex items-start gap-4 rounded-lg border border-linia-2 bg-szary/20 px-4 py-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink text-tlo">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                    <rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" />
+                  </svg>
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[14.5px] font-semibold">Przelewy24 — bezpieczna płatność online</span>
+                  <span className="mt-0.5 block text-[13px] leading-relaxed text-ink-2">
+                    Po kliknięciu „Zamawiam i płacę" przejdziesz na bezpieczną stronę Przelewy24,
+                    gdzie wybierzesz sposób zapłaty: <strong>BLIK</strong>, szybki przelew z banku lub kartę.
+                  </span>
+                </span>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-linia-2 bg-szary/20 px-4 py-4 text-[13px] leading-relaxed text-ink-2">
+                Płatności online są chwilowo niedostępne — złóż zamówienie, a skontaktujemy się z Tobą w sprawie zapłaty.
+              </div>
+            )}
           </section>
         </div>
 
