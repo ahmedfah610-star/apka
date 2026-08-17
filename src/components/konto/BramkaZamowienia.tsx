@@ -80,6 +80,85 @@ export function BramkaZamowienia() {
 
   const input = "w-full rounded-lg border border-linia-2 bg-white px-4 py-3 text-[15px] outline-none transition-colors focus:border-ink";
 
+  // Widok skupiony: logowanie / zakładanie konta (osobna „karta").
+  if (pokazFormularz && wlaczone) {
+    return (
+      <div className="flex min-h-screen flex-col overflow-x-hidden bg-szary/25">
+        <Nawigacja />
+        <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-5 py-10 sm:px-6 md:py-14">
+          <button
+            onClick={() => { setPokazFormularz(false); setBlad(""); setInfo(""); }}
+            className="mb-4 inline-flex items-center gap-1.5 self-start text-[13px] text-ink-2 transition-colors hover:text-akcent"
+          >
+            <span className="text-[16px] leading-none">←</span> Wróć do wyboru
+          </button>
+
+          <div className="rounded-2xl border border-linia bg-white p-6 shadow-[0_10px_40px_-24px_rgba(0,0,0,0.35)] sm:p-8">
+            <div className="mb-5 text-center">
+              <h1 className="text-[23px] font-bold tracking-tight">
+                {tryb === "login" ? "Zaloguj się" : "Załóż konto"}
+              </h1>
+              <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-2">
+                {tryb === "login" ? "Wróć do swoich zamówień i zapisanego koszyka." : "Historia zamówień, szybsze zakupy, zapisany koszyk."}
+              </p>
+            </div>
+
+            <div className="mx-auto mb-5 grid max-w-xs grid-cols-2 rounded-lg bg-szary/60 p-1">
+              {(["login", "rejestr"] as Tryb[]).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => { setTryb(t); setBlad(""); setInfo(""); }}
+                  className={`rounded-md py-2 text-[13.5px] font-semibold transition-colors ${tryb === t ? "bg-white text-ink shadow-sm" : "text-ink-2 hover:text-ink"}`}
+                >
+                  {t === "login" ? "Zaloguj się" : "Załóż konto"}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={wyslij} className="flex flex-col gap-3">
+              {tryb === "rejestr" ? (
+                <input className={input} placeholder="Imię i nazwisko" maxLength={80} value={imie} onChange={(e) => setImie(e.target.value)} />
+              ) : null}
+              <input className={input} type="email" placeholder="E-mail" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input className={input} type="password" placeholder="Hasło" autoComplete={tryb === "rejestr" ? "new-password" : "current-password"} value={haslo} onChange={(e) => setHaslo(e.target.value)} />
+
+              {blad ? <p className="rounded-lg bg-akcent/5 px-3 py-2 text-[13px] text-akcent">{blad}</p> : null}
+              {info ? <p className="rounded-lg bg-[oklch(95%_0.05_150)] px-3 py-2 text-[13px] text-[oklch(40%_0.12_150)]">{info}</p> : null}
+
+              <button type="submit" disabled={wysylka} className="mt-1 rounded-lg bg-ink px-6 py-3.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
+                {wysylka ? "CHWILA…" : tryb === "login" ? "ZALOGUJ SIĘ I PRZEJDŹ DALEJ" : "ZAŁÓŻ KONTO I PRZEJDŹ DALEJ"}
+              </button>
+            </form>
+
+            <div className="my-4 flex items-center gap-3 text-[12px] text-ink-2">
+              <span className="h-px flex-1 bg-linia" /> lub <span className="h-px flex-1 bg-linia" />
+            </div>
+            <button
+              onClick={() => zalogujGoogle()}
+              className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-linia-2 px-4 py-3 text-[14px] font-medium text-ink transition-colors hover:border-ink hover:bg-szary/30"
+            >
+              <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
+                <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.2 17.7 9.5 24 9.5z" />
+                <path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-2.8-.4-4.1H24v7.4h12.4c-.3 2-1.6 5-4.6 7l7.1 5.5c4.2-3.9 6.7-9.6 6.7-15.8z" />
+                <path fill="#FBBC05" d="M10.5 28.3c-.5-1.5-.8-3.1-.8-4.8s.3-3.3.8-4.8l-7.9-6.1C1 15.7 0 19.7 0 23.5s1 7.8 2.6 10.9l7.9-6.1z" />
+                <path fill="#34A853" d="M24 47c6.3 0 11.6-2.1 15.4-5.7l-7.1-5.5c-2 1.3-4.6 2.2-8.3 2.2-6.3 0-11.6-3.7-13.5-9.1l-7.9 6.1C6.5 42.6 14.6 47 24 47z" />
+              </svg>
+              Zaloguj przez Google
+            </button>
+          </div>
+
+          <button
+            onClick={() => router.push("/zamowienie")}
+            className="mx-auto mt-5 flex items-center gap-1.5 text-[13.5px] text-ink-2 underline underline-offset-2 transition-colors hover:text-akcent"
+          >
+            …albo pomiń i kontynuuj jako gość →
+          </button>
+        </main>
+        <Stopka />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-szary/25">
       <Nawigacja />
@@ -146,77 +225,23 @@ export function BramkaZamowienia() {
 
         {/* Opcja: konto */}
         {wlaczone ? (
-          <div className="mt-3 rounded-xl border border-linia bg-white">
-            {!pokazFormularz ? (
-              <button
-                onClick={() => setPokazFormularz(true)}
-                className="group flex w-full items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-szary/20"
-              >
-                <span className="flex items-start gap-4">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink text-tlo">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" />
-                    </svg>
-                  </span>
-                  <span>
-                    <span className="block text-[16px] font-semibold">Zaloguj się lub załóż konto</span>
-                    <span className="mt-0.5 block text-[13.5px] text-ink-2">Historia zamówień, szybsze zakupy, zapisany koszyk.</span>
-                  </span>
-                </span>
-                <span className="text-[20px] text-ink-2 transition-transform group-hover:translate-x-0.5 group-hover:text-ink">→</span>
-              </button>
-            ) : (
-              <div className="p-5 sm:p-6">
-                <div className="mx-auto mb-5 grid max-w-xs grid-cols-2 rounded-lg bg-szary/60 p-1">
-                  {(["login", "rejestr"] as Tryb[]).map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => { setTryb(t); setBlad(""); setInfo(""); }}
-                      className={`rounded-md py-2 text-[13.5px] font-semibold transition-colors ${tryb === t ? "bg-white text-ink shadow-sm" : "text-ink-2 hover:text-ink"}`}
-                    >
-                      {t === "login" ? "Zaloguj się" : "Załóż konto"}
-                    </button>
-                  ))}
-                </div>
-                <form onSubmit={wyslij} className="flex flex-col gap-3">
-                  {tryb === "rejestr" ? (
-                    <input className={input} placeholder="Imię i nazwisko" maxLength={80} value={imie} onChange={(e) => setImie(e.target.value)} />
-                  ) : null}
-                  <input className={input} type="email" placeholder="E-mail" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                  <input className={input} type="password" placeholder="Hasło" autoComplete={tryb === "rejestr" ? "new-password" : "current-password"} value={haslo} onChange={(e) => setHaslo(e.target.value)} />
-
-                  {blad ? <p className="rounded-lg bg-akcent/5 px-3 py-2 text-[13px] text-akcent">{blad}</p> : null}
-                  {info ? <p className="rounded-lg bg-[oklch(95%_0.05_150)] px-3 py-2 text-[13px] text-[oklch(40%_0.12_150)]">{info}</p> : null}
-
-                  <button type="submit" disabled={wysylka} className="mt-1 rounded-lg bg-ink px-6 py-3.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
-                    {wysylka ? "CHWILA…" : tryb === "login" ? "ZALOGUJ SIĘ I PRZEJDŹ DALEJ" : "ZAŁÓŻ KONTO I PRZEJDŹ DALEJ"}
-                  </button>
-                </form>
-
-                <div className="my-4 flex items-center gap-3 text-[12px] text-ink-2">
-                  <span className="h-px flex-1 bg-linia" /> lub <span className="h-px flex-1 bg-linia" />
-                </div>
-                <button
-                  onClick={() => zalogujGoogle()}
-                  className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-linia-2 px-4 py-3 text-[14px] font-medium text-ink transition-colors hover:border-ink hover:bg-szary/30"
-                >
-                  <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
-                    <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.2 17.7 9.5 24 9.5z" />
-                    <path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-2.8-.4-4.1H24v7.4h12.4c-.3 2-1.6 5-4.6 7l7.1 5.5c4.2-3.9 6.7-9.6 6.7-15.8z" />
-                    <path fill="#FBBC05" d="M10.5 28.3c-.5-1.5-.8-3.1-.8-4.8s.3-3.3.8-4.8l-7.9-6.1C1 15.7 0 19.7 0 23.5s1 7.8 2.6 10.9l7.9-6.1z" />
-                    <path fill="#34A853" d="M24 47c6.3 0 11.6-2.1 15.4-5.7l-7.1-5.5c-2 1.3-4.6 2.2-8.3 2.2-6.3 0-11.6-3.7-13.5-9.1l-7.9 6.1C6.5 42.6 14.6 47 24 47z" />
-                  </svg>
-                  Zaloguj przez Google
-                </button>
-
-                <p className="mt-4 text-center text-[13px]">
-                  <button onClick={() => router.push("/zamowienie")} className="text-ink-2 underline underline-offset-2 hover:text-akcent">
-                    …albo pomiń i kontynuuj jako gość →
-                  </button>
-                </p>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={() => { setPokazFormularz(true); setBlad(""); setInfo(""); }}
+            className="group mt-3 flex w-full items-center justify-between gap-4 rounded-xl border border-linia bg-white p-5 text-left transition-all hover:border-ink hover:shadow-[0_4px_20px_-14px_rgba(0,0,0,0.4)]"
+          >
+            <span className="flex items-start gap-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink text-tlo">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" />
+                </svg>
+              </span>
+              <span>
+                <span className="block text-[16px] font-semibold">Zaloguj się lub załóż konto</span>
+                <span className="mt-0.5 block text-[13.5px] text-ink-2">Historia zamówień, szybsze zakupy, zapisany koszyk.</span>
+              </span>
+            </span>
+            <span className="text-[20px] text-ink-2 transition-transform group-hover:translate-x-0.5 group-hover:text-ink">→</span>
+          </button>
         ) : null}
 
         <p className="mt-6 text-center text-[12.5px] text-ink-2">
