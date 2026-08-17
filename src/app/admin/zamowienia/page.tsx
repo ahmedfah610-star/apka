@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { formatCena } from "@/lib/filtrowanie";
+import { PRZEWOZNICY, linkSledzenia } from "@/lib/przewoznicy";
 
 interface Pozycja {
   id: string;
@@ -31,6 +32,8 @@ interface Zamowienie {
   metoda: string;
   klient: Klient;
   status: string;
+  numerPrzesylki?: string | null;
+  przewoznik?: string | null;
 }
 
 const STATUSY: { key: string; label: string; klasa: string }[] = [
@@ -69,6 +72,15 @@ export default function AdminZamowienia() {
     [lista, filtr],
   );
 
+  // Lokalny bufor pól wysyłki (przewoźnik + numer) per zamówienie.
+  const [wys, setWys] = useState<Record<string, { przewoznik: string; numer: string }>>({});
+  const [wysylanie, setWysylanie] = useState<string | null>(null);
+  const [komWys, setKomWys] = useState<Record<string, string>>({});
+
+  function polaWysylki(z: Zamowienie) {
+    return wys[z.id] ?? { przewoznik: z.przewoznik ?? "", numer: z.numerPrzesylki ?? "" };
+  }
+
   async function zmienStatus(id: string, status: string) {
     setLista((prev) => prev.map((z) => (z.id === id ? { ...z, status } : z)));
     try {
@@ -79,6 +91,32 @@ export default function AdminZamowienia() {
       });
     } catch {
       void odswiez();
+    }
+  }
+
+  // Zapisuje przewoźnika + numer, ustawia status „wysłane" i (opcjonalnie) wysyła maila do klienta.
+  async function nadajPaczke(z: Zamowienie, powiadom: boolean) {
+    const p = polaWysylki(z);
+    setWysylanie(z.id);
+    setKomWys((k) => ({ ...k, [z.id]: "" }));
+    setLista((prev) =>
+      prev.map((x) => (x.id === z.id ? { ...x, status: "wyslane", przewoznik: p.przewoznik || null, numerPrzesylki: p.numer || null } : x)),
+    );
+    try {
+      const r = await fetch("/api/zamowienia", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: z.id, status: "wyslane", przewoznik: p.przewoznik || null, numerPrzesylki: p.numer || null, powiadom }),
+      });
+      const d = (await r.json().catch(() => ({}))) as { ok?: boolean; mail?: { ok: boolean; blad?: string }; blad?: string };
+      if (!r.ok || d.ok === false) setKomWys((k) => ({ ...k, [z.id]: d.blad || "Nie udało się zapisać." }));
+      else if (powiadom) setKomWys((k) => ({ ...k, [z.id]: d.mail?.ok ? "Zapisano i wysłano maila do klienta ✓" : `Zapisano. Mail: ${d.mail?.blad || "brak adresu e-mail"}` }));
+      else setKomWys((k) => ({ ...k, [z.id]: "Zapisano ✓" }));
+    } catch {
+      setKomWys((k) => ({ ...k, [z.id]: "Błąd połączenia." }));
+      void odswiez();
+    } finally {
+      setWysylanie(null);
     }
   }
 
@@ -223,6 +261,57 @@ export default function AdminZamowienia() {
                                   ? `Punkt: ${z.klient.punkt}${z.klient?.punktOpis ? ` — ${z.klient.punktOpis}` : ""}`
                                   : [z.klient?.adres, [z.klient?.kod, z.klient?.miasto].filter(Boolean).join(" ")].filter(Boolean).join(", ") || "—"}
                               </p>
+
+                              {/* Nadanie paczki */}
+                              <div className="mt-5 border-t border-linia pt-4">
+                                <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-2">Nadanie paczki</p>
+                                {(() => {
+                                  const p = polaWysylki(z);
+                                  const link = linkSledzenia(p.przewoznik, p.numer);
+                                  return (
+                                    <div className="flex flex-col gap-2">
+                                      <select
+                                        value={p.przewoznik}
+                                        onChange={(e) => setWys((w) => ({ ...w, [z.id]: { ...polaWysylki(z), przewoznik: e.target.value } }))}
+                                        className="border border-linia-2 bg-white px-2.5 py-2 text-[13px] outline-none focus:border-ink"
+                                      >
+                                        <option value="">Wybierz przewoźnika…</option>
+                                        {PRZEWOZNICY.map((pr) => (
+                                          <option key={pr.id} value={pr.id}>{pr.nazwa}</option>
+                                        ))}
+                                      </select>
+                                      <input
+                                        value={p.numer}
+                                        onChange={(e) => setWys((w) => ({ ...w, [z.id]: { ...polaWysylki(z), numer: e.target.value } }))}
+                                        placeholder="Numer przesyłki / listu"
+                                        className="border border-linia-2 bg-white px-2.5 py-2 text-[13px] outline-none focus:border-ink"
+                                      />
+                                      {link ? (
+                                        <a href={link} target="_blank" rel="noopener noreferrer" className="text-[12px] text-akcent underline underline-offset-2">
+                                          Podgląd śledzenia →
+                                        </a>
+                                      ) : null}
+                                      <div className="flex flex-wrap gap-2">
+                                        <button
+                                          onClick={() => void nadajPaczke(z, true)}
+                                          disabled={wysylanie === z.id}
+                                          className="bg-ink px-3.5 py-2 text-[12.5px] font-semibold text-tlo transition-colors hover:bg-akcent disabled:opacity-60"
+                                        >
+                                          {wysylanie === z.id ? "…" : "Oznacz wysłane + powiadom"}
+                                        </button>
+                                        <button
+                                          onClick={() => void nadajPaczke(z, false)}
+                                          disabled={wysylanie === z.id}
+                                          className="border border-linia-2 px-3.5 py-2 text-[12.5px] font-medium text-ink hover:border-ink disabled:opacity-60"
+                                        >
+                                          Zapisz bez maila
+                                        </button>
+                                      </div>
+                                      {komWys[z.id] ? <p className="text-[12px] text-ink-2">{komWys[z.id]}</p> : null}
+                                    </div>
+                                  );
+                                })()}
+                              </div>
                             </div>
                           </div>
                         </td>

@@ -4,6 +4,7 @@
 
 import { M, BAZA, powloka, esc, kartaProduktuMail } from "@/lib/mailSzablon";
 import { linkWypisu } from "@/lib/newsletterToken";
+import { znajdzPrzewoznika, linkSledzenia } from "@/lib/przewoznicy";
 
 const API = "https://api.resend.com/emails";
 const API_BATCH = "https://api.resend.com/emails/batch";
@@ -234,6 +235,44 @@ export async function wyslijMaileZamowienia(d: DaneMaila) {
   zadania.push(wyslij(odbiorcaSklep, `Nowe zamówienie ${nr} — ${zl(d.razem)}`, htmlSklep));
 
   await Promise.all(zadania);
+}
+
+/** Powiadomienie klienta, że paczka została nadana (z numerem i śledzeniem). */
+export async function wyslijMailWyslano(order: {
+  id: string;
+  email?: string;
+  imie?: string;
+  przewoznik?: string | null;
+  numer?: string | null;
+}): Promise<{ ok: boolean; blad?: string }> {
+  if (!mailWlaczony() || !order.email) return { ok: false, blad: "Brak maila/adresu" };
+  const nr = order.id.slice(0, 8);
+  const przew = znajdzPrzewoznika(order.przewoznik);
+  const url = linkSledzenia(order.przewoznik, order.numer);
+  const numer = (order.numer ?? "").trim();
+
+  const infoPrzesylka =
+    przew || numer
+      ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0 0;background:${M.tlo};border-radius:12px">
+          <tr><td style="padding:16px 18px;font-size:14px;line-height:1.7;color:${M.ink2}">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3};margin-bottom:6px">Przesyłka</div>
+            ${przew ? `Przewoźnik: <strong style="color:${M.ink}">${esc(przew.nazwa)}</strong><br>` : ""}
+            ${numer ? `Numer: <strong style="color:${M.ink}">${esc(numer)}</strong>` : ""}
+          </td></tr>
+        </table>`
+      : "";
+
+  const html = powloka({
+    emoji: "📦",
+    naglowek: "Twoja paczka jest w drodze!",
+    preheader: `Zamówienie ${nr} zostało nadane.`,
+    intro: `${order.imie ? `Cześć ${esc(order.imie.split(" ")[0])}! ` : ""}Dobra wiadomość — Twoje zamówienie <strong style="color:${M.ink}">#${nr}</strong> zostało spakowane i nadane. ${url ? "Możesz śledzić przesyłkę pod przyciskiem poniżej." : "Wkrótce paczka dotrze pod wskazany adres."}`,
+    tresc: infoPrzesylka,
+    cta: url
+      ? { tekst: "ŚLEDŹ PRZESYŁKĘ", url }
+      : { tekst: "SZCZEGÓŁY ZAMÓWIENIA", url: `${BAZA}/status-zamowienia` },
+  });
+  return wyslij(order.email, `Zamówienie ${nr} zostało wysłane 📦 — bobas-shopping`, html);
 }
 
 /** Prośba o opinię po zakupie (wysyłana kilka dni po zamówieniu). */
