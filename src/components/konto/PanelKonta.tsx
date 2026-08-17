@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
+import { ZakladkiKonta } from "@/components/konto/ZakladkiKonta";
 
 const KATEGORIE = [
   { href: "/produkty", label: "Wszystkie produkty" },
@@ -54,12 +55,56 @@ export function PanelKonta() {
     else setInfo(r.blad || "Nie udało się zapisać.");
   }
 
+  const imieKrotkie = imieMeta ? imieMeta.split(" ")[0] : "";
+
   return (
     <div className="w-full">
+      {/* Zakładki konta */}
+      <ZakladkiKonta />
+
+      {/* Baner powitalny */}
+      <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-akcent to-[oklch(64%_0.15_38)] px-6 py-7 text-tlo sm:px-8 sm:py-8">
+        <div className="relative z-10">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[12px] font-semibold backdrop-blur-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="m12 17.3-6.16 3.7 1.64-7.03L2 9.24l7.19-.61L12 2l2.81 6.63 7.19.61-5.48 4.73 1.64 7.03z" /></svg>
+            Twoje konto bobas
+          </span>
+          <p className="mt-3 text-[24px] font-bold leading-tight tracking-tight sm:text-[28px]">
+            Cześć{imieKrotkie ? `, ${imieKrotkie}` : ""}! 👋
+          </p>
+          <p className="mt-1 text-[13.5px] text-tlo/85">Zalogowano jako <strong className="font-semibold text-tlo">{user.email}</strong></p>
+        </div>
+        {/* dekor */}
+        <svg className="pointer-events-none absolute -right-6 -top-8 h-40 w-40 text-white/10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
+          <path d="M6 2 4 6v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V6l-2-4H6Z" /><path d="M4 6h16M10 10a2 2 0 0 0 4 0" />
+        </svg>
+      </div>
+
       {/* Nagłówek */}
-      <div className="mb-8">
-        <h1 className="text-[26px] font-bold tracking-tight md:text-[31px]">Cześć{imieMeta ? `, ${imieMeta.split(" ")[0]}` : ""}! 👋</h1>
-        <p className="mt-1 text-[14px] text-ink-2">Zalogowano jako <strong className="font-semibold text-ink">{user.email}</strong></p>
+      <div className="mb-6">
+        <h1 className="text-[26px] font-bold tracking-tight md:text-[31px]">Twoje konto</h1>
+        <p className="mt-1.5 max-w-lg text-[14.5px] leading-relaxed text-ink-2">
+          Witaj w swoim profilu bobas — tutaj zarządzasz zamówieniami, ulubionymi produktami oraz danymi do wysyłki.
+        </p>
+      </div>
+
+      {/* Status — na bieżąco */}
+      <div className="mb-6 flex flex-col items-center rounded-2xl border border-linia bg-white px-6 py-9 text-center">
+        <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-szary/60 text-ink">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M6 2 4 6v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V6l-2-4H6Z" /><path d="M4 6h16M10 10a2 2 0 0 0 4 0" />
+          </svg>
+        </span>
+        <p className="text-[17px] font-bold tracking-tight">Jesteś ze wszystkim na bieżąco :)</p>
+        <p className="mt-1.5 max-w-sm text-[13.5px] leading-relaxed text-ink-2">
+          Tutaj pojawią się wszystkie aktualizacje dotyczące Twoich zamówień i wysyłek.
+        </p>
+        <Link
+          href="/konto/zamowienia"
+          className="mt-5 rounded-lg bg-ink px-6 py-3 text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
+        >
+          ZOBACZ ZAMÓWIENIA
+        </Link>
       </div>
 
       {/* Twoje dane */}
