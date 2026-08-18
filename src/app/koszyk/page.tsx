@@ -13,7 +13,7 @@ import { PrzerwaTechniczna } from "@/components/PrzerwaTechniczna";
 
 const ZAUFANIE = [
   { t: "Wysyłka InPost", o: "Paczkomaty i kurier" },
-  { t: "30 dni na zwrot", o: "Bez podawania przyczyny" },
+  { t: "14 dni na zwrot", o: "Bez podawania przyczyny" },
   { t: "Bezpieczne płatności", o: "BLIK, karta, Przelewy24" },
 ];
 
