@@ -6,8 +6,10 @@ import { Galeria } from "@/components/Galeria";
 import { OstatnioOgladane } from "@/components/OstatnioOgladane";
 import { Opinie } from "@/components/Opinie";
 import { Stopka } from "@/components/Stopka";
+import { TerminDostawy } from "@/components/TerminDostawy";
 import { KATEGORIE_LABEL, opisProduktu, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
+import { etykietaStanu } from "@/lib/dostepnosc";
 
 const CECHY: Record<string, string[]> = {
   dziewczynki: ["Miękka, przyjazna skórze tkanina", "Wygodny krój na co dzień", "Łatwe pranie w 30°C"],
@@ -48,13 +50,28 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
           </p>
           <h1 className="mb-3 text-[30px] font-bold leading-tight tracking-tight md:text-[36px]">{p.nazwa}</h1>
           <p className="mb-2 text-[26px] font-bold text-ink">{formatCena(p.cena)} zł</p>
-          {typeof p.stan === "number" ? (
-            <p className={`mb-6 text-[13px] font-medium ${p.stan === 0 ? "text-ink-2" : "text-[oklch(55%_0.12_150)]"}`}>
-              {p.stan === 0 ? "Produkt niedostępny" : `Na stanie: ${p.stan} szt.`}
-            </p>
-          ) : (
-            <div className="mb-6" />
-          )}
+          {(() => {
+            const et = etykietaStanu(p.stan);
+            if (!et) return <div className="mb-3" />;
+            const kolor =
+              et.ton === "brak" ? "text-ink-2" : et.ton === "malo" ? "text-akcent" : "text-[oklch(52%_0.13_150)]";
+            return (
+              <p className={`mb-3 flex items-center gap-1.5 text-[13.5px] font-semibold ${kolor}`}>
+                {et.ton === "malo" ? (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <path d="M13 2 4.5 12.8c-.4.5 0 1.2.6 1.2H11l-1 8 8.5-10.8c.4-.5 0-1.2-.6-1.2H12l1-8Z" />
+                  </svg>
+                ) : et.ton === "ok" ? (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+                    <path d="m5 13 4 4L19 7" />
+                  </svg>
+                ) : null}
+                {et.tekst}
+              </p>
+            );
+          })()}
+
+          {p.stan !== 0 ? <TerminDostawy klasa="mb-6 flex items-center gap-2 text-[13.5px] text-ink-2" /> : <div className="mb-6" />}
 
           <DodajDoKoszyka produkt={p} />
 

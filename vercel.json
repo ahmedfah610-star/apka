@@ -5,6 +5,7 @@
   "installCommand": "npm install",
   "crons": [
     { "path": "/api/cron/newsletter", "schedule": "0 9 * * 4" },
-    { "path": "/api/cron/opinie", "schedule": "0 11 * * *" }
+    { "path": "/api/cron/opinie", "schedule": "0 11 * * *" },
+    { "path": "/api/cron/koszyk", "schedule": "0 9,19 * * *" }
   ]
 }

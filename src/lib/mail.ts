@@ -243,6 +243,25 @@ export async function wyslijMaileZamowienia(d: DaneMaila) {
   await Promise.all(zadania);
 }
 
+/** Przypomnienie o porzuconym koszyku (dla zalogowanych z zapisanym koszykiem). */
+export async function wyslijMailPorzuconyKoszyk(order: {
+  email: string;
+  imie?: string;
+  produkty: ProduktMail[];
+}): Promise<{ ok: boolean; blad?: string }> {
+  if (!mailWlaczony() || !order.email || order.produkty.length === 0) return { ok: false, blad: "Brak danych" };
+  const karty = order.produkty.slice(0, 4).map((p) => kartaProduktuMail(p)).join("");
+  const html = powloka({
+    emoji: "🛒",
+    naglowek: "Zostawiłeś coś w koszyku",
+    preheader: "Twój koszyk czeka — dokończ zamówienie w kilka chwil.",
+    intro: `${order.imie ? `Cześć ${esc(order.imie.split(" ")[0])}! ` : ""}Twój koszyk wciąż na Ciebie czeka. Produkty są zapisane — możesz dokończyć zamówienie jednym kliknięciem. Pamiętaj, że popularne rozmiary szybko się kończą.`,
+    tresc: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${karty}</table>`,
+    cta: { tekst: "WRÓĆ DO KOSZYKA", url: `${BAZA}/koszyk` },
+  });
+  return wyslij(order.email, "Twój koszyk czeka 🛒 — bobas-shopping", html);
+}
+
 /** Powiadomienie klienta, że paczka została nadana (z numerem i śledzeniem). */
 export async function wyslijMailWyslano(order: {
   id: string;

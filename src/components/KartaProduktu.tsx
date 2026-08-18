@@ -2,12 +2,14 @@ import Link from "next/link";
 import type { Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { PrzyciskUlubione } from "@/components/PrzyciskUlubione";
+import { PROG_MALO } from "@/lib/dostepnosc";
 
 export function KartaProduktu({ produkt }: { produkt: Produkt }) {
   const placeholder = {
     background: `repeating-linear-gradient(115deg, oklch(90% 0.02 ${produkt.hue}) 0 18px, oklch(95% 0.01 ${produkt.hue}) 18px 36px)`,
   };
   const niedostepny = produkt.stan === 0;
+  const malo = typeof produkt.stan === "number" && produkt.stan > 0 && produkt.stan <= PROG_MALO;
 
   return (
     <Link href={`/produkty/${produkt.id}`} className="group block text-inherit no-underline">
@@ -43,6 +45,14 @@ export function KartaProduktu({ produkt }: { produkt: Produkt }) {
       <h3 className="mb-1 text-[15px] font-semibold leading-snug transition-colors group-hover:text-akcent">{produkt.nazwa}</h3>
       <p className="mb-1.5 text-[12.5px] text-[oklch(50%_0.01_90)]">{produkt.wiekLabel}</p>
       <p className="text-[16px] font-bold text-ink">{formatCena(produkt.cena)} zł</p>
+      {malo ? (
+        <p className="mt-1 flex items-center gap-1 text-[12px] font-semibold text-akcent">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M13 2 4.5 12.8c-.4.5 0 1.2.6 1.2H11l-1 8 8.5-10.8c.4-.5 0-1.2-.6-1.2H12l1-8Z" />
+          </svg>
+          Ostatnie sztuki
+        </p>
+      ) : null}
     </Link>
   );
 }

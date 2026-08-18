@@ -10,6 +10,7 @@ import { WyborPunktu, type PunktOdbioru } from "@/components/WyborPunktu";
 import { useKoszyk } from "@/components/KoszykContext";
 import { useAuth } from "@/components/AuthContext";
 import { KrokiZamowienia } from "@/components/KrokiZamowienia";
+import { TerminDostawy } from "@/components/TerminDostawy";
 import { sbBrowser } from "@/lib/supabaseBrowser";
 import { ZAMOWIENIA_WYLACZONE, KOMUNIKAT_PRZERWY } from "@/lib/sklep";
 import { PrzerwaTechniczna } from "@/components/PrzerwaTechniczna";
@@ -396,6 +397,8 @@ export default function StronaZamowienia() {
             <span className="text-[15px] font-semibold">Razem</span>
             <span className="text-[22px] font-bold">{formatCena(razem)} zł</span>
           </div>
+
+          <TerminDostawy klasa="mb-4 flex items-center gap-2 rounded-lg bg-szary/40 px-3 py-2.5 text-[13px] text-ink-2" />
 
           <label className="mb-3 flex cursor-pointer items-start gap-2.5 text-[12.5px] leading-relaxed text-ink-2">
             <input
