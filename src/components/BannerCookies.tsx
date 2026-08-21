@@ -35,8 +35,8 @@ export function BannerCookies() {
         <p className="text-[13.5px] leading-relaxed text-ink md:max-w-2xl">
           <span className="mr-1 font-bold">🍪 Szanujemy Twoją prywatność.</span>
           <span className="text-ink-2">
-            Używamy plików cookies, aby sklep działał poprawnie, a za Twoją zgodą także do analityki i marketingu.
-            Możesz zaakceptować wszystkie lub ograniczyć się do niezbędnych. Szczegóły w{" "}
+            Używamy plików cookies niezbędnych do działania sklepu (m.in. koszyk). Cookies analityczne lub marketingowe
+            włączymy wyłącznie za Twoją zgodą. Możesz zaakceptować wszystkie lub ograniczyć się do niezbędnych — szczegóły w{" "}
             <Link href="/cookies" className="text-ink underline underline-offset-2 hover:text-akcent">Polityce cookies</Link>.
           </span>
         </p>
