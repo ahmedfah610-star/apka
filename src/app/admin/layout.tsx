@@ -7,6 +7,7 @@ import { StrazAdmina, wyloguj } from "@/components/StrazAdmina";
 const LINKI = [
   { href: "/admin", label: "Pulpit" },
   { href: "/admin/produkty", label: "Produkty" },
+  { href: "/admin/import", label: "Import Allegro" },
   { href: "/admin/zamowienia", label: "Zamówienia" },
   { href: "/admin/klienci", label: "Klienci" },
   { href: "/admin/statystyki", label: "Statystyki" },
