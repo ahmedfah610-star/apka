@@ -20,6 +20,70 @@ export interface Artykul {
 
 export const ARTYKULY: Artykul[] = [
   {
+    slug: "ubranka-dla-dziecka-z-wrazliwa-skora",
+    tytul: "Ubranka dla dziecka z wrażliwą skórą i AZS — jakie materiały wybrać",
+    opis: "Skóra dziecka jest cieńsza i bardziej wrażliwa niż skóra dorosłego. Podpowiadamy, jakie materiały wybierać przy podrażnieniach i atopowym zapaleniu skóry (AZS), czego unikać i jak prać ubranka, by nie drażniły.",
+    data: "2026-08-21",
+    czasCzytania: 7,
+    kategoria: "Zdrowie i skóra",
+    hue: 25,
+    zdjecie: "/img/blog/ubranka-dla-dziecka-z-wrazliwa-skora.jpg",
+    tresc: [
+      { typ: "p", tekst: "Skóra dziecka — a zwłaszcza niemowlęcia — jest cieńsza, delikatniejsza i bardziej przepuszczalna niż skóra dorosłego. Łatwiej się podrażnia, szybciej reaguje na szorstki materiał, sztywną metkę czy resztki detergentu w tkaninie. Jeśli Twoje dziecko ma skłonność do zaczerwienień, swędzenia albo zdiagnozowane atopowe zapalenie skóry (AZS), dobór ubranek przestaje być kwestią wyglądu, a staje się częścią codziennej pielęgnacji. Poniżej praktyczny przewodnik: co wybierać, czego unikać i jak dbać o ubrania, żeby skóra miała spokój." },
+
+      { typ: "h2", tekst: "Dlaczego skóra dziecka jest bardziej wrażliwa" },
+      { typ: "p", tekst: "Bariera ochronna skóry maluszka dopiero się rozwija, dlatego łatwiej traci wilgoć i szybciej reaguje na czynniki drażniące. To, co dorosły ledwo poczuje — metka na karku, szew wzdłuż ramienia, syntetyczny materiał, w którym skóra się poci — u dziecka potrafi wywołać zaczerwienienie i swędzenie. Przy AZS skóra jest dodatkowo sucha i skłonna do stanów zapalnych, więc kontakt z odpowiednią tkaniną ma tu realne znaczenie." },
+
+      { typ: "h2", tekst: "Jakie materiały wybierać" },
+      { typ: "p", tekst: "Zasada jest prosta: im bliżej skóry, tym bardziej naturalny i przewiewny materiał. Warstwa, która dotyka ciała (body, koszulka, pajacyk), powinna być miękka i oddychająca." },
+      { typ: "ul", punkty: [
+        "Bawełna — miękka, przewiewna, oddychająca; podstawa garderoby wrażliwej skóry.",
+        "Bawełna organiczna — uprawiana bez syntetycznych pestycydów, zwykle mniej przetworzona; dobra dla skóry skłonnej do podrażnień.",
+        "Wiskoza bambusowa i miękkie dzianiny — jedwabiście gładkie, przyjemne przy AZS, dobrze odprowadzają wilgoć.",
+        "Len (latem) — naturalny, chłodzący i przewiewny, choć nieco sztywniejszy; sprawdza się w upały.",
+        "Miękkie, gęste dzianiny bawełniane — mniej prześwitują i nie „gryzą” jak luźno tkane, szorstkie materiały.",
+      ] },
+
+      { typ: "h2", tekst: "Czego unikać" },
+      { typ: "p", tekst: "Nie chodzi o to, by wszystko wyrzucić — wystarczy pilnować warstwy dotykającej skóry i kilku detali wykończenia." },
+      { typ: "ul", punkty: [
+        "Syntetyki (poliester, akryl) bezpośrednio na skórze — słabiej oddychają, skóra się w nich poci i podrażnia.",
+        "Sztywne, wszywane metki na karku i przy szwach — najczęstsza przyczyna drapania; szukaj metek nadrukowanych.",
+        "Grube, wypukłe szwy — ocierają, zwłaszcza przy AZS. Lepsze są płaskie szwy albo szwy na zewnątrz.",
+        "Wełna bezpośrednio na ciele — u wielu dzieci drażni; noś ją na warstwie bawełnianej.",
+        "Intensywne barwniki i mocno nadrukowane wzory od wewnątrz — sztywna farba potrafi ocierać delikatną skórę.",
+      ] },
+
+      { typ: "h2", tekst: "Na co zwrócić uwagę przy AZS" },
+      { typ: "p", tekst: "Przy atopowym zapaleniu skóry liczą się detale, które przy zdrowej skórze są nieistotne. Dobre ubranko dla dziecka z AZS to najczęściej:" },
+      { typ: "ul", punkty: [
+        "gładka bawełna lub bawełna organiczna jako warstwa przy ciele,",
+        "metki nadrukowane zamiast wszywanych (albo takie, które można odciąć bez ostrej krawędzi),",
+        "płaskie lub zewnętrzne szwy, brak gum uciskających skórę,",
+        "luźniejszy krój, który nie ociera i pozwala skórze oddychać,",
+        "jasne, spokojne kolory — mniej barwników to mniejsze ryzyko podrażnień,",
+        "certyfikat OEKO-TEX STANDARD 100, potwierdzający brak szkodliwych substancji.",
+      ] },
+      { typ: "p", tekst: "Ważne: ten artykuł to poradnik zakupowy, a nie porada medyczna. Jeśli skóra dziecka jest przewlekle podrażniona, swędząca albo zmieniona chorobowo, skonsultuj się z pediatrą lub dermatologiem — dobór ubranek wspiera pielęgnację, ale jej nie zastępuje." },
+
+      { typ: "h2", tekst: "Jak prać ubranka dziecka z wrażliwą skórą" },
+      { typ: "p", tekst: "Nawet najlepszy materiał podrażni skórę, jeśli zostaną w nim resztki detergentu albo zmiękczacza. Pranie ma tu tyle samo znaczenia, co sam skład ubranka." },
+      { typ: "ul", punkty: [
+        "Używaj łagodnego, hipoalergicznego proszku lub płynu do prania ubranek dziecięcych.",
+        "Odpuść zmiękczacze i mocno perfumowane środki — najczęściej to one drażnią skórę.",
+        "Włącz dodatkowe płukanie, żeby wypłukać resztki detergentu z tkaniny.",
+        "Nowe ubranka wypierz przed pierwszym założeniem — usuwa to pozostałości z produkcji i transportu.",
+        "Pierz w 30–40°C; wyższe temperatury szybciej niszczą miękkość dzianiny.",
+      ] },
+
+      { typ: "h2", tekst: "Certyfikaty, którym można ufać" },
+      { typ: "p", tekst: "Najbardziej rozpoznawalny znak przy ubrankach dziecięcych to OEKO-TEX STANDARD 100 — oznacza, że tkanina i dodatki (nici, guziki, nadruki) zostały przebadane pod kątem substancji szkodliwych. Dla najmłodszych obowiązuje najostrzejsza klasa wymagań. To dobry punkt orientacyjny, gdy zależy Ci na bezpieczeństwie skóry dziecka. Więcej o oznaczeniach piszemy w osobnym poradniku o metkach." },
+
+      { typ: "h2", tekst: "Krótko: garderoba dla wrażliwej skóry" },
+      { typ: "p", tekst: "Postaw na miękką, oddychającą bawełnę przy skórze, wybieraj ubranka z nadrukowanymi metkami i płaskimi szwami, unikaj syntetyków oraz sztywnych wykończeń, a do tego pierz łagodnym środkiem z dodatkowym płukaniem. Te kilka nawyków sprawia, że skóra dziecka ma spokój — a Ty mniej zmartwień przy codziennym ubieraniu. W naszym sklepie stawiamy właśnie na miękkie, bawełniane ubranka w wygodnych krojach, przyjazne także delikatnej skórze maluchów." },
+    ],
+  },
+  {
     slug: "ubranka-na-wiosne-dla-dziecka",
     tytul: "Ubranka na wiosnę dla dziecka — warstwy na zmienną pogodę",
     opis: "Wiosną temperatura potrafi zmienić się o kilkanaście stopni w ciągu dnia. Podpowiadamy, jak skompletować wiosenną szafę dziecka i ubierać na cebulkę.",
