@@ -5,8 +5,28 @@ import { notFound } from "next/navigation";
 import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
 import { UdostepnijWpis } from "@/components/UdostepnijWpis";
-import { ARTYKULY, znajdzArtykul, type Blok } from "@/data/blog";
+import { ARTYKULY, znajdzArtykul, polecaneDlaArtykulu, type Blok } from "@/data/blog";
 import { BAZA_URL, NAZWA_SKLEPU, jsonLd } from "@/lib/seo";
+
+// Zamienia znaczniki [tekst](/url) w treści na wewnętrzne odnośniki (tylko ścieżki /…).
+function tekstZLinkami(tekst: string): React.ReactNode {
+  const re = /\[([^\]]+)\]\((\/[^)]+)\)/g;
+  const czesci: React.ReactNode[] = [];
+  let ostatni = 0;
+  let klucz = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(tekst)) !== null) {
+    if (m.index > ostatni) czesci.push(tekst.slice(ostatni, m.index));
+    czesci.push(
+      <Link key={klucz++} href={m[2]} className="font-medium text-akcent underline underline-offset-2 hover:text-ink">
+        {m[1]}
+      </Link>,
+    );
+    ostatni = m.index + m[0].length;
+  }
+  if (ostatni < tekst.length) czesci.push(tekst.slice(ostatni));
+  return czesci.length ? czesci : tekst;
+}
 
 export function generateStaticParams() {
   return ARTYKULY.map((a) => ({ slug: a.slug }));
@@ -37,11 +57,11 @@ function Blok({ b }: { b: Blok }) {
     return (
       <ul className="flex list-disc flex-col gap-2 pl-5 text-ink-2">
         {b.punkty.map((p, i) => (
-          <li key={i}>{p}</li>
+          <li key={i}>{tekstZLinkami(p)}</li>
         ))}
       </ul>
     );
-  return <p className="text-[16px] leading-[1.75] text-ink">{b.tekst}</p>;
+  return <p className="text-[16px] leading-[1.75] text-ink">{tekstZLinkami(b.tekst)}</p>;
 }
 
 export default function Artykul({ params }: { params: { slug: string } }) {
@@ -99,6 +119,29 @@ export default function Artykul({ params }: { params: { slug: string } }) {
             <Blok key={i} b={b} />
           ))}
         </div>
+
+        {/* Polecane w sklepie — kontekstowe linki do kategorii/kolekcji */}
+        {(() => {
+          const polecane = polecaneDlaArtykulu(a.slug);
+          if (polecane.length === 0) return null;
+          return (
+            <aside className="mt-10 rounded-2xl border border-linia bg-szary/30 p-5 sm:p-6">
+              <h2 className="mb-1 text-[16px] font-bold tracking-tight">Polecane w sklepie</h2>
+              <p className="mb-4 text-[13.5px] text-ink-2">Ubranka, które pasują do tego poradnika:</p>
+              <div className="flex flex-wrap gap-2.5">
+                {polecane.map((l) => (
+                  <Link
+                    key={l.url}
+                    href={l.url}
+                    className="rounded-full border border-linia-2 bg-white px-4 py-2 text-[13.5px] font-medium text-ink no-underline transition-colors hover:border-ink hover:bg-ink hover:text-tlo"
+                  >
+                    {l.tekst} →
+                  </Link>
+                ))}
+              </div>
+            </aside>
+          );
+        })()}
 
         <UdostepnijWpis url={`${BAZA_URL}/blog/${a.slug}`} tytul={a.tytul} />
 

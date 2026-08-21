@@ -77,10 +77,10 @@ export const ARTYKULY: Artykul[] = [
       ] },
 
       { typ: "h2", tekst: "Certyfikaty, którym można ufać" },
-      { typ: "p", tekst: "Najbardziej rozpoznawalny znak przy ubrankach dziecięcych to OEKO-TEX STANDARD 100 — oznacza, że tkanina i dodatki (nici, guziki, nadruki) zostały przebadane pod kątem substancji szkodliwych. Dla najmłodszych obowiązuje najostrzejsza klasa wymagań. To dobry punkt orientacyjny, gdy zależy Ci na bezpieczeństwie skóry dziecka. Więcej o oznaczeniach piszemy w osobnym poradniku o metkach." },
+      { typ: "p", tekst: "Najbardziej rozpoznawalny znak przy ubrankach dziecięcych to OEKO-TEX STANDARD 100 — oznacza, że tkanina i dodatki (nici, guziki, nadruki) zostały przebadane pod kątem substancji szkodliwych. Dla najmłodszych obowiązuje najostrzejsza klasa wymagań. To dobry punkt orientacyjny, gdy zależy Ci na bezpieczeństwie skóry dziecka. Więcej o oznaczeniach piszemy w [poradniku o metkach](/blog/co-znacza-metki-ubranek-dzieciecych)." },
 
       { typ: "h2", tekst: "Krótko: garderoba dla wrażliwej skóry" },
-      { typ: "p", tekst: "Postaw na miękką, oddychającą bawełnę przy skórze, wybieraj ubranka z nadrukowanymi metkami i płaskimi szwami, unikaj syntetyków oraz sztywnych wykończeń, a do tego pierz łagodnym środkiem z dodatkowym płukaniem. Te kilka nawyków sprawia, że skóra dziecka ma spokój — a Ty mniej zmartwień przy codziennym ubieraniu. W naszym sklepie stawiamy właśnie na miękkie, bawełniane ubranka w wygodnych krojach, przyjazne także delikatnej skórze maluchów." },
+      { typ: "p", tekst: "Postaw na miękką, oddychającą bawełnę przy skórze, wybieraj ubranka z nadrukowanymi metkami i płaskimi szwami, unikaj syntetyków oraz sztywnych wykończeń, a do tego pierz łagodnym środkiem z dodatkowym płukaniem. Te kilka nawyków sprawia, że skóra dziecka ma spokój — a Ty mniej zmartwień przy codziennym ubieraniu. W naszym sklepie stawiamy właśnie na miękkie, bawełniane [ubranka dla niemowląt](/produkty?kategoria=niemowleta) w wygodnych krojach, przyjazne także delikatnej skórze maluchów." },
     ],
   },
   {
@@ -319,7 +319,7 @@ export const ARTYKULY: Artykul[] = [
         "płaskie szwy i metki na zewnątrz lub nadrukowane,",
         "szeroki, rozpinany dekolt (łatwiej zakładać przez główkę).",
       ] },
-      { typ: "p", tekst: "Nie musisz wybierać między body a pajacykiem — potrzebujesz obu. Body jako wszechstronna baza, pajacyk jako wygodny strój na sen i wyjście. Dobierz proporcje do pory roku i postaw na miękką bawełnę z zatrzaskami — to przepis na wygodę malucha i Twój spokój." },
+      { typ: "p", tekst: "Nie musisz wybierać między body a pajacykiem — potrzebujesz obu. [Body niemowlęce](/kolekcje/body-niemowlece) jako wszechstronna baza, [pajacyk lub śpioszki](/kolekcje/pajacyki-i-spiochy-niemowlece) jako wygodny strój na sen i wyjście. Dobierz proporcje do pory roku i postaw na miękką bawełnę z zatrzaskami — to przepis na wygodę malucha i Twój spokój." },
     ],
   },
   {
@@ -650,8 +650,8 @@ export const ARTYKULY: Artykul[] = [
       { typ: "h2", tekst: "Materiał i krój też mają znaczenie" },
       { typ: "p", tekst: "Dzianina i bawełna z domieszką elastanu wybaczają drobne różnice — rozciągają się i układają na sylwetce. Sztywniejsze tkaniny (jeans, len, tkane koszule) są mniej wyrozumiałe, więc przy nich warto trzymać się tabeli ściślej. Zwróć też uwagę na to, czy producent szyje „na styk”, czy z zapasem — pomaga w tym sekcja opinii i zdjęcia od innych kupujących." },
       { typ: "h2", tekst: "Jak korzystać z tabeli rozmiarów w naszym sklepie" },
-      { typ: "p", tekst: "Na karcie każdego produktu znajdziesz przelicznik rozmiar–wiek–wzrost. Wystarczy porównać zmierzony wzrost dziecka z kolumną „wzrost (cm)” i odczytać odpowiadający rozmiar. Jeśli wahasz się między dwoma, wróć do zasady większego rozmiaru — a gdyby jednak coś nie pasowało, masz 14 dni na bezproblemowy zwrot." },
-      { typ: "p", tekst: "Dobrze dobrany rozmiar to mniej zwrotów, zadowolone dziecko i ubranka, które służą cały sezon. Zmierz, sprawdź tabelę, w razie wątpliwości bierz większy — i gotowe." },
+      { typ: "p", tekst: "Na karcie każdego produktu znajdziesz przelicznik rozmiar–wiek–wzrost, a pełną [tabelę rozmiarów](/rozmiary) zebraliśmy w jednym miejscu. Wystarczy porównać zmierzony wzrost dziecka z kolumną „wzrost (cm)” i odczytać odpowiadający rozmiar. Jeśli wahasz się między dwoma, wróć do zasady większego rozmiaru — a gdyby jednak coś nie pasowało, masz [14 dni na bezproblemowy zwrot](/dostawa-i-zwroty)." },
+      { typ: "p", tekst: "Dobrze dobrany rozmiar to mniej zwrotów, zadowolone dziecko i ubranka, które służą cały sezon. Zmierz, sprawdź [tabelę rozmiarów](/rozmiary), w razie wątpliwości bierz większy — i gotowe." },
     ],
   },
   {
@@ -783,7 +783,7 @@ export const ARTYKULY: Artykul[] = [
         "kilka warstw zamiast jednej grubej — w salach bywa ciepło, a na dworze chłodno,",
         "obuwie zmienne z antypoślizgową podeszwą.",
       ] },
-      { typ: "p", tekst: "Zasada jest prosta: im wygodniej i prościej, tym lepiej — i dla dziecka, i dla opiekunów. Proste, wytrzymałe rzeczy, których nie żal pobrudzić, sprawdzają się w żłobku i przedszkolu najlepiej." },
+      { typ: "p", tekst: "Zasada jest prosta: im wygodniej i prościej, tym lepiej — i dla dziecka, i dla opiekunów. Proste, wytrzymałe [dresy dziecięce](/kolekcje/dresy-dzieciece) i [komplety](/kolekcje/komplety-dzieciece), których nie żal pobrudzić, sprawdzają się w żłobku i przedszkolu najlepiej." },
     ],
   },
   {
@@ -830,4 +830,126 @@ export const ARTYKULY: Artykul[] = [
 
 export function znajdzArtykul(slug: string): Artykul | undefined {
   return ARTYKULY.find((a) => a.slug === slug);
+}
+
+// ── Polecane w sklepie (kontekstowe linki dla każdego artykułu) ──────────
+export interface LinkSklep { tekst: string; url: string }
+
+const DOMYSLNE_POLECANE: LinkSklep[] = [
+  { tekst: "Ubranka dla dziewczynek", url: "/produkty?kategoria=dziewczynki" },
+  { tekst: "Ubranka dla chłopców", url: "/produkty?kategoria=chlopcy" },
+  { tekst: "Ubranka dla niemowląt", url: "/produkty?kategoria=niemowleta" },
+];
+
+const POLECANE: Record<string, LinkSklep[]> = {
+  "ubranka-dla-dziecka-z-wrazliwa-skora": [
+    { tekst: "Body niemowlęce (bawełna)", url: "/kolekcje/body-niemowlece" },
+    { tekst: "Body dziecięce", url: "/kolekcje/body-dzieciece" },
+    { tekst: "Ubranka dla niemowląt", url: "/produkty?kategoria=niemowleta" },
+  ],
+  "ubranka-na-wiosne-dla-dziecka": [
+    { tekst: "Dresy dziecięce", url: "/kolekcje/dresy-dzieciece" },
+    { tekst: "Bluzy dla dziewczynki", url: "/kolekcje/bluzy-dla-dziewczynki" },
+    { tekst: "Bluzy dla chłopca", url: "/kolekcje/bluzy-dla-chlopca" },
+  ],
+  "jak-spakowac-dziecko-na-wakacje": [
+    { tekst: "Komplety dziecięce", url: "/kolekcje/komplety-dzieciece" },
+    { tekst: "Ubranka dla dziewczynek", url: "/produkty?kategoria=dziewczynki" },
+    { tekst: "Ubranka dla chłopców", url: "/produkty?kategoria=chlopcy" },
+  ],
+  "pizama-dla-dziecka-jak-wybrac": [
+    { tekst: "Pajacyki i śpiochy", url: "/kolekcje/pajacyki-i-spiochy-niemowlece" },
+    { tekst: "Body dziecięce", url: "/kolekcje/body-dzieciece" },
+    { tekst: "Komplety dziecięce", url: "/kolekcje/komplety-dzieciece" },
+  ],
+  "jak-ubrac-dziecko-na-lato": [
+    { tekst: "Koszulki i body dla chłopca", url: "/kolekcje/koszulki-dla-chlopca" },
+    { tekst: "Sukienki dla dziewczynki", url: "/kolekcje/sukienki-dla-dziewczynki" },
+    { tekst: "Body dziecięce", url: "/kolekcje/body-dzieciece" },
+  ],
+  "bawelna-organiczna-czy-warto": [
+    { tekst: "Body niemowlęce", url: "/kolekcje/body-niemowlece" },
+    { tekst: "Ubranka dla niemowląt", url: "/produkty?kategoria=niemowleta" },
+    { tekst: "Cała oferta", url: "/produkty" },
+  ],
+  "jak-ubrac-dziecko-na-zime": [
+    { tekst: "Dresy dziecięce", url: "/kolekcje/dresy-dzieciece" },
+    { tekst: "Czapki dziecięce", url: "/kolekcje/czapki-dzieciece" },
+    { tekst: "Bluzy dla chłopca", url: "/kolekcje/bluzy-dla-chlopca" },
+  ],
+  "body-czy-pajacyk-dla-noworodka": [
+    { tekst: "Body niemowlęce", url: "/kolekcje/body-niemowlece" },
+    { tekst: "Pajacyki i śpiochy", url: "/kolekcje/pajacyki-i-spiochy-niemowlece" },
+    { tekst: "Komplety niemowlęce", url: "/kolekcje/komplety-niemowlece" },
+  ],
+  "wyprawka-do-szpitala-lista": [
+    { tekst: "Body niemowlęce", url: "/kolekcje/body-niemowlece" },
+    { tekst: "Pajacyki i śpiochy", url: "/kolekcje/pajacyki-i-spiochy-niemowlece" },
+    { tekst: "Czapki niemowlęce", url: "/kolekcje/czapki-niemowlece" },
+  ],
+  "ile-ubranek-potrzebuje-niemowle": [
+    { tekst: "Body niemowlęce", url: "/kolekcje/body-niemowlece" },
+    { tekst: "Pajacyki i śpiochy", url: "/kolekcje/pajacyki-i-spiochy-niemowlece" },
+    { tekst: "Ubranka dla niemowląt", url: "/produkty?kategoria=niemowleta" },
+  ],
+  "jak-ubrac-dziecko-na-chrzest": [
+    { tekst: "Sukienki dla dziewczynki", url: "/kolekcje/sukienki-dla-dziewczynki" },
+    { tekst: "Komplety dla chłopca", url: "/kolekcje/komplety-dla-chlopca" },
+    { tekst: "Ubranka dla niemowląt", url: "/produkty?kategoria=niemowleta" },
+  ],
+  "7-bledow-przy-kupowaniu-ubranek-dla-dzieci": [
+    { tekst: "Dresy dziecięce", url: "/kolekcje/dresy-dzieciece" },
+    { tekst: "Komplety dziecięce", url: "/kolekcje/komplety-dzieciece" },
+    { tekst: "Cała oferta", url: "/produkty" },
+  ],
+  "prezent-dla-noworodka-pomysly": [
+    { tekst: "Komplety niemowlęce", url: "/kolekcje/komplety-niemowlece" },
+    { tekst: "Body niemowlęce", url: "/kolekcje/body-niemowlece" },
+    { tekst: "Czapki niemowlęce", url: "/kolekcje/czapki-niemowlece" },
+  ],
+  "ubranka-na-jesien-dla-dziecka": [
+    { tekst: "Dresy dziecięce", url: "/kolekcje/dresy-dzieciece" },
+    { tekst: "Bluzy dla dziewczynki", url: "/kolekcje/bluzy-dla-dziewczynki" },
+    { tekst: "Bluzy dla chłopca", url: "/kolekcje/bluzy-dla-chlopca" },
+  ],
+  "jak-zaoszczedzic-na-ubrankach-dzieciecych": [
+    { tekst: "Komplety dziecięce", url: "/kolekcje/komplety-dzieciece" },
+    { tekst: "Dresy dziecięce", url: "/kolekcje/dresy-dzieciece" },
+    { tekst: "Cała oferta", url: "/produkty" },
+  ],
+  "co-znacza-metki-ubranek-dzieciecych": [
+    { tekst: "Body niemowlęce", url: "/kolekcje/body-niemowlece" },
+    { tekst: "Ubranka dla niemowląt", url: "/produkty?kategoria=niemowleta" },
+    { tekst: "Cała oferta", url: "/produkty" },
+  ],
+  "jak-dobrac-rozmiar-ubranka-dla-dziecka": [
+    { tekst: "Tabela rozmiarów", url: "/rozmiary" },
+    { tekst: "Cała oferta", url: "/produkty" },
+    { tekst: "Ubranka dla dziewczynek", url: "/produkty?kategoria=dziewczynki" },
+  ],
+  "wyprawka-dla-noworodka-lista-ubranek": [
+    { tekst: "Body niemowlęce", url: "/kolekcje/body-niemowlece" },
+    { tekst: "Pajacyki i śpiochy", url: "/kolekcje/pajacyki-i-spiochy-niemowlece" },
+    { tekst: "Komplety niemowlęce", url: "/kolekcje/komplety-niemowlece" },
+  ],
+  "jak-ubierac-niemowle-warstwy-pory-roku": [
+    { tekst: "Body niemowlęce", url: "/kolekcje/body-niemowlece" },
+    { tekst: "Komplety niemowlęce", url: "/kolekcje/komplety-niemowlece" },
+    { tekst: "Czapki niemowlęce", url: "/kolekcje/czapki-niemowlece" },
+  ],
+  "ubranka-do-zlobka-i-przedszkola": [
+    { tekst: "Dresy dziecięce", url: "/kolekcje/dresy-dzieciece" },
+    { tekst: "Komplety dziecięce", url: "/kolekcje/komplety-dzieciece" },
+    { tekst: "Spodnie dla chłopca", url: "/kolekcje/spodnie-dla-chlopca" },
+  ],
+  "jak-prac-i-dbac-o-ubranka-dzieciece": [
+    { tekst: "Body niemowlęce", url: "/kolekcje/body-niemowlece" },
+    { tekst: "Ubranka dla niemowląt", url: "/produkty?kategoria=niemowleta" },
+    { tekst: "Cała oferta", url: "/produkty" },
+  ],
+};
+
+/** Kontekstowe linki do sklepu pod artykuł (fallback: główne kategorie). */
+export function polecaneDlaArtykulu(slug: string): LinkSklep[] {
+  return POLECANE[slug] ?? DOMYSLNE_POLECANE;
 }
