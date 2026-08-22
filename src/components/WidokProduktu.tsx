@@ -76,7 +76,14 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
 
           <DodajDoKoszyka produkt={p} />
 
-          <p className="mb-6 max-w-prose text-[15px] leading-relaxed text-ink-2">{opisProduktu(p)}</p>
+          {p.opisHtml ? (
+            <div
+              className="opis-allegro mb-6 max-w-prose text-[15px] leading-relaxed text-ink-2 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-[19px] [&_h1]:font-bold [&_h1]:text-ink [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-[17px] [&_h2]:font-bold [&_h2]:text-ink [&_h3]:font-semibold [&_h3]:text-ink [&_img]:my-3 [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-lg [&_li]:ml-4 [&_li]:list-disc [&_p]:mb-3 [&_ul]:mb-3 [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-1"
+              dangerouslySetInnerHTML={{ __html: p.opisHtml }}
+            />
+          ) : (
+            <p className="mb-6 max-w-prose text-[15px] leading-relaxed text-ink-2">{opisProduktu(p)}</p>
+          )}
 
           <ul className="flex flex-col gap-2 border-t border-linia pt-6">
             {(CECHY[p.kategoria] ?? []).map((c) => (

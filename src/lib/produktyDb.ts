@@ -19,6 +19,7 @@ function zRzedu(r: any): Produkt {
     zdjecie: r.zdjecie ?? null,
     zdjecia: r.zdjecia ?? [],
     opis: r.opis ?? undefined,
+    opisHtml: r.opis_html ?? null,
     kolor: r.kolor ?? null,
     stan: r.stan ?? undefined,
     stanRozmiary: r.stan_rozmiary ?? null,

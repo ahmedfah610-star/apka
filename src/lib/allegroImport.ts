@@ -58,6 +58,16 @@ function stripHtml(html: string): string {
     .trim();
 }
 
+// Prosta sanityzacja HTML opisu (treść z własnych ofert Allegro, ale na wszelki wypadek).
+function sanitizeHtml(html: string): string {
+  return html
+    .replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
+    .replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*\/?>/gi, "")
+    .replace(/\son\w+\s*=\s*"[^"]*"/gi, "")
+    .replace(/\son\w+\s*=\s*'[^']*'/gi, "")
+    .replace(/javascript:/gi, "");
+}
+
 // Pełny opis: wersja czytelna (tekst), oryginalny HTML oraz zdjęcia z opisu.
 function opisIZdjeciaZOpisu(o: any): { opis: string; opisHtml: string; zdjeciaOpis: string[] } {
   const sekcje: any[] = o?.description?.sections ?? [];
@@ -67,11 +77,11 @@ function opisIZdjeciaZOpisu(o: any): { opis: string; opisHtml: string; zdjeciaOp
   for (const s of sekcje) {
     for (const it of s?.items ?? []) {
       if (it?.type === "TEXT" && it.content) {
-        html.push(String(it.content)); // oryginalny HTML — pełny opis
+        html.push(sanitizeHtml(String(it.content))); // pełny opis (tekst) w HTML
         teksty.push(stripHtml(String(it.content)));
       }
       if (it?.type === "IMAGE" && it.url) {
-        html.push(`<img src="${String(it.url)}" alt="" />`);
+        html.push(`<img src="${String(it.url)}" alt="" loading="lazy" />`); // grafiki opisu
         zdj.push(String(it.url));
       }
     }
@@ -118,8 +128,9 @@ export interface OfertaZmapowana {
 // Mapuje jedną ofertę (= zwykle jeden rozmiar) na dane produktu + info o wariancie.
 export function mapujOferte(o: any): OfertaZmapowana {
   const zdjeciaGlowne: string[] = (o?.images ?? []).map((i: any) => String(i?.url ?? i)).filter(Boolean);
-  const { opis, opisHtml, zdjeciaOpis } = opisIZdjeciaZOpisu(o);
-  const zdjecia = [...new Set([...zdjeciaGlowne, ...zdjeciaOpis])];
+  const { opis, opisHtml } = opisIZdjeciaZOpisu(o);
+  // Galeria = zdjęcia produktu; grafiki z opisu zostają w opisHtml (nie zaśmiecają galerii).
+  const zdjecia = [...new Set(zdjeciaGlowne)];
 
   const rozmiar = wartosciParametru(param(o, "rozmiar"))[0] ?? null;
   const barwa = wartosciParametru(param(o, "kolor"))[0] ?? null;

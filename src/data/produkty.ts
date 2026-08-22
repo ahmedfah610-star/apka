@@ -21,6 +21,8 @@ export interface Produkt {
   /** Galeria zdjęć (URL lub data:base64). Pierwsze = główne. */
   zdjecia?: string[];
   opis?: string;
+  /** Pełny opis w HTML (z Allegro: tekst + grafiki). Renderowany na stronie produktu. */
+  opisHtml?: string | null;
   /** Kolor (z parametru Allegro). */
   kolor?: string | null;
   /** Łączny stan magazynowy (suma po rozmiarach). undefined = bez limitu, 0 = brak. */
