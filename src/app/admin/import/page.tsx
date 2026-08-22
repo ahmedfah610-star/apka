@@ -58,19 +58,38 @@ export default function AdminImport() {
 
   async function importuj() {
     setBusy(true);
-    setKomunikat("Pobieranie ofert z Allegro — to może potrwać…");
     setWynik(null);
+    // Import porcjami: wołamy endpoint w pętli, aż koniec === true.
+    let offset = 0;
+    let zapisano = 0;
+    let pobrano = 0;
+    let bledy = 0;
     try {
-      const r = await fetch("/api/admin/allegro", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ akcja: "import", tylkoAktywne: true }),
-      });
-      const d = (await r.json()) as Wynik & { ok?: boolean };
-      setWynik(d);
-      setKomunikat(d.blad ? `Błąd: ${d.blad}` : "Import zakończony ✓");
+      for (let i = 0; i < 1000; i++) {
+        setKomunikat(`Import w toku… zapisano ${zapisano} ofert`);
+        const r = await fetch("/api/admin/allegro", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ akcja: "import", tylkoAktywne: true, offset }),
+        });
+        const d = (await r.json().catch(() => ({}))) as { ok?: boolean; pobrano?: number; zapisano?: number; bledy?: number; koniec?: boolean; blad?: string };
+        if (!r.ok || d.ok === false) {
+          setKomunikat(`Błąd: ${d.blad || `serwer zwrócił ${r.status}`}`);
+          setWynik({ pobrano, zapisano, bledy });
+          setBusy(false);
+          return;
+        }
+        zapisano += d.zapisano ?? 0;
+        pobrano += d.pobrano ?? 0;
+        bledy += d.bledy ?? 0;
+        offset += d.pobrano ?? 0;
+        if (d.koniec || (d.pobrano ?? 0) === 0) break;
+      }
+      setWynik({ pobrano, zapisano, bledy });
+      setKomunikat("Import zakończony ✓");
     } catch {
-      setKomunikat("Błąd połączenia podczas importu.");
+      setKomunikat(`Przerwano połączenie. Zapisano dotąd ${zapisano} ofert — kliknij „Importuj" ponownie, aby dokończyć.`);
+      setWynik({ pobrano, zapisano, bledy });
     } finally {
       setBusy(false);
     }

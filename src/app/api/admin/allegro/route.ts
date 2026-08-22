@@ -1,10 +1,10 @@
 import { czyAdmin } from "@/lib/adminAuth";
 import { allegroSkonfigurowany, czyPolaczony, rozpocznijDevice, sprawdzDevice } from "@/lib/allegro";
-import { importujWszystko } from "@/lib/allegroImport";
+import { importujStrone } from "@/lib/allegroImport";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 300;
+export const maxDuration = 60; // limit planu Hobby
 
 // Status połączenia z Allegro.
 export async function GET() {
@@ -19,7 +19,7 @@ export async function GET() {
 // Akcje: start (device flow), poll (sprawdź autoryzację), import (pobierz oferty).
 export async function POST(req: Request) {
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
-  const b = (await req.json().catch(() => ({}))) as { akcja?: string; deviceCode?: string; tylkoAktywne?: boolean };
+  const b = (await req.json().catch(() => ({}))) as { akcja?: string; deviceCode?: string; tylkoAktywne?: boolean; offset?: number };
 
   if (b.akcja === "start") {
     const r = await rozpocznijDevice();
@@ -41,8 +41,10 @@ export async function POST(req: Request) {
   }
 
   if (b.akcja === "import") {
-    const r = await importujWszystko(b.tylkoAktywne !== false);
-    if (r.ok) odswiezPoZmianieStanu();
+    // Import porcjami — panel woła w pętli ze zwiększanym offsetem (limit Hobby 60 s).
+    const offset = Math.max(0, Number(b.offset) || 0);
+    const r = await importujStrone(offset, 8, b.tylkoAktywne !== false);
+    if (r.ok && r.zapisano > 0) odswiezPoZmianieStanu();
     return Response.json(r, { status: r.ok ? 200 : 500 });
   }
 

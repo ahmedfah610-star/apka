@@ -186,3 +186,39 @@ export async function importujWszystko(tylkoAktywne = true): Promise<WynikImport
   }
   return { ok: true, pobrano: lista.length, zapisano, bledy };
 }
+
+export interface WynikStrony { ok: boolean; pobrano: number; zapisano: number; bledy: number; koniec: boolean; blad?: string }
+
+/**
+ * Import JEDNEJ porcji ofert (dla planu Hobby: krótkie żądania < 60 s).
+ * Panel woła to w pętli, zwiększając offset, aż koniec === true.
+ */
+export async function importujStrone(offset: number, limit = 8, tylkoAktywne = true): Promise<WynikStrony> {
+  const sb = sbService();
+  if (!sb) return { ok: false, pobrano: 0, zapisano: 0, bledy: 0, koniec: true, blad: "Brak bazy." };
+
+  let partia: OfertaLista[];
+  try {
+    const q = `/sale/offers?limit=${limit}&offset=${offset}${tylkoAktywne ? "&publication.status=ACTIVE" : ""}`;
+    const d = await allegroGet<{ offers?: OfertaLista[] }>(q);
+    partia = d.offers ?? [];
+  } catch (e) {
+    return { ok: false, pobrano: 0, zapisano: 0, bledy: 0, koniec: true, blad: e instanceof Error ? e.message : "Błąd pobierania listy." };
+  }
+
+  let zapisano = 0;
+  let bledy = 0;
+  for (const of of partia) {
+    try {
+      const det = await szczegoly(of.id);
+      const wiersz = mapujOferte({ ...det, id: det?.id ?? of.id, name: det?.name ?? of.name });
+      if (!wiersz.nazwa || !wiersz.allegro_id) { bledy++; continue; }
+      const { error } = await sb.from("produkty").upsert(wiersz, { onConflict: "id" });
+      if (error) bledy++;
+      else zapisano++;
+    } catch {
+      bledy++;
+    }
+  }
+  return { ok: true, pobrano: partia.length, zapisano, bledy, koniec: partia.length < limit };
+}
