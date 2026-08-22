@@ -84,6 +84,7 @@ export default function AdminImport() {
     let zapisano = 0;
     let pobrano = 0;
     let bledy = 0;
+    let pierwszyBlad = "";
     try {
       for (let i = 0; i < 1000; i++) {
         setKomunikat(`Import w toku… zapisano ${zapisano} ofert`);
@@ -103,10 +104,11 @@ export default function AdminImport() {
         pobrano += d.pobrano ?? 0;
         bledy += d.bledy ?? 0;
         offset += d.pobrano ?? 0;
+        if (d.blad) pierwszyBlad = d.blad;
         if (d.koniec || (d.pobrano ?? 0) === 0) break;
       }
       setWynik({ pobrano, zapisano, bledy });
-      setKomunikat("Import zakończony ✓");
+      setKomunikat(bledy && pierwszyBlad ? `Zakończono, ale ${bledy} z błędem. Pierwszy błąd: ${pierwszyBlad}` : "Import zakończony ✓");
     } catch {
       setKomunikat(`Przerwano połączenie. Zapisano dotąd ${zapisano} ofert — kliknij „Importuj" ponownie, aby dokończyć.`);
       setWynik({ pobrano, zapisano, bledy });

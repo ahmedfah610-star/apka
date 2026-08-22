@@ -184,10 +184,10 @@ async function szczegoly(id: string): Promise<any> {
 
 // Zapis jednej oferty z GRUPOWANIEM wariantów rozmiaru w jeden produkt.
 // Read-modify-write: dokłada rozmiar + stan do istniejącego produktu (po al-<productId>).
-async function zapiszZgrupowane(sb: any, det: any): Promise<"ok" | "blad"> {
+async function zapiszZgrupowane(sb: any, det: any): Promise<{ ok: boolean; blad?: string }> {
   const m = mapujOferte(det);
   const w = m.wiersz;
-  if (!w.nazwa || !w.allegro_id) return "blad";
+  if (!w.nazwa || !w.allegro_id) return { ok: false, blad: `brak nazwy/id (productId="${w.allegro_id}", nazwa="${w.nazwa}")` };
 
   const { data: istn } = await sb
     .from("produkty")
@@ -214,7 +214,7 @@ async function zapiszZgrupowane(sb: any, det: any): Promise<"ok" | "blad"> {
   }
 
   const { error } = await sb.from("produkty").upsert(w, { onConflict: "id" });
-  return error ? "blad" : "ok";
+  return error ? { ok: false, blad: error.message } : { ok: true };
 }
 
 export interface WynikImportu { ok: boolean; pobrano: number; zapisano: number; bledy: number; blad?: string }
@@ -233,17 +233,19 @@ export async function importujWszystko(tylkoAktywne = true): Promise<WynikImport
 
   let zapisano = 0;
   let bledy = 0;
+  let pierwszyBlad: string | undefined;
   for (const of of lista) {
     try {
       const det = await szczegoly(of.id);
       const r = await zapiszZgrupowane(sb, { ...det, id: det?.id ?? of.id, name: det?.name ?? of.name });
-      if (r === "ok") zapisano++;
-      else bledy++;
-    } catch {
+      if (r.ok) zapisano++;
+      else { bledy++; if (!pierwszyBlad) pierwszyBlad = r.blad; }
+    } catch (e) {
       bledy++;
+      if (!pierwszyBlad) pierwszyBlad = e instanceof Error ? e.message : "wyjątek";
     }
   }
-  return { ok: true, pobrano: lista.length, zapisano, bledy };
+  return { ok: true, pobrano: lista.length, zapisano, bledy, blad: bledy ? pierwszyBlad : undefined };
 }
 
 export interface WynikStrony { ok: boolean; pobrano: number; zapisano: number; bledy: number; koniec: boolean; blad?: string }
@@ -267,15 +269,17 @@ export async function importujStrone(offset: number, limit = 8, tylkoAktywne = t
 
   let zapisano = 0;
   let bledy = 0;
+  let pierwszyBlad: string | undefined;
   for (const of of partia) {
     try {
       const det = await szczegoly(of.id);
       const r = await zapiszZgrupowane(sb, { ...det, id: det?.id ?? of.id, name: det?.name ?? of.name });
-      if (r === "ok") zapisano++;
-      else bledy++;
-    } catch {
+      if (r.ok) zapisano++;
+      else { bledy++; if (!pierwszyBlad) pierwszyBlad = r.blad; }
+    } catch (e) {
       bledy++;
+      if (!pierwszyBlad) pierwszyBlad = e instanceof Error ? e.message : "wyjątek";
     }
   }
-  return { ok: true, pobrano: partia.length, zapisano, bledy, koniec: partia.length < limit };
+  return { ok: true, pobrano: partia.length, zapisano, bledy, koniec: partia.length < limit, blad: bledy ? pierwszyBlad : undefined };
 }
