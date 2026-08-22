@@ -80,6 +80,16 @@ export async function POST(req: Request) {
     return Response.json({ ok: true, usunieto: count ?? 0 });
   }
 
+  if (b.akcja === "wyczysc_wszystko") {
+    // Usuwa WSZYSTKIE produkty (czysta karta). Wymaga potwierdzenia z panelu.
+    const sb = sbService();
+    if (!sb) return Response.json({ ok: false, blad: "Brak bazy" }, { status: 500 });
+    const { error, count } = await sb.from("produkty").delete({ count: "exact" }).not("id", "is", null);
+    if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
+    odswiezPoZmianieStanu();
+    return Response.json({ ok: true, usunieto: count ?? 0 });
+  }
+
   if (b.akcja === "import") {
     // Import porcjami — panel woła w pętli ze zwiększanym offsetem (limit Hobby 60 s).
     const offset = Math.max(0, Number(b.offset) || 0);

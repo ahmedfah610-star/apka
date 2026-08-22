@@ -76,6 +76,27 @@ export default function AdminImport() {
     }
   }
 
+  async function usunWszystko() {
+    if (!confirm("UWAGA: to usunie WSZYSTKIE produkty ze sklepu (stare i zaimportowane). Na pewno?")) return;
+    if (!confirm("Ostatnie ostrzeżenie — sklep zostanie pusty do czasu importu. Kontynuować?")) return;
+    setBusy(true);
+    setKomunikat("Usuwanie wszystkich produktów…");
+    setWynik(null);
+    try {
+      const r = await fetch("/api/admin/allegro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ akcja: "wyczysc_wszystko" }),
+      });
+      const d = (await r.json().catch(() => ({}))) as { ok?: boolean; usunieto?: number; blad?: string };
+      setKomunikat(d.ok ? `Usunięto ${d.usunieto ?? 0} produktów. Teraz kliknij „Importuj oferty".` : `Błąd: ${d.blad || "nie udało się"}`);
+    } catch {
+      setKomunikat("Błąd połączenia podczas usuwania.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function importuj() {
     setBusy(true);
     setWynik(null);
@@ -163,6 +184,9 @@ export default function AdminImport() {
                 </button>
                 <button onClick={wyczysc} disabled={busy} className="border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink-2 transition-colors hover:border-akcent hover:text-akcent disabled:opacity-60">
                   Wyczyść zaimportowane
+                </button>
+                <button onClick={usunWszystko} disabled={busy} className="border border-akcent/50 px-5 py-2.5 text-[13px] font-medium text-akcent transition-colors hover:bg-akcent hover:text-tlo disabled:opacity-60">
+                  Usuń WSZYSTKIE produkty
                 </button>
               </div>
             )}
