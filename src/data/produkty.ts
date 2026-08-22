@@ -21,6 +21,8 @@ export interface Produkt {
   /** Galeria zdjęć (URL lub data:base64). Pierwsze = główne. */
   zdjecia?: string[];
   opis?: string;
+  /** Kolor (z parametru Allegro). */
+  kolor?: string | null;
   /** Łączny stan magazynowy (suma po rozmiarach). undefined = bez limitu, 0 = brak. */
   stan?: number;
   /** Stan magazynowy per rozmiar: { "104": 3, "110": 0, ... }. Gdy ustawione — źródło prawdy dla dostępności rozmiarów. */

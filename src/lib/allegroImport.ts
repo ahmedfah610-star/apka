@@ -13,13 +13,27 @@ const WIEK_LABEL: Record<Wiek, string> = { "0-2": "0-2 lata", "2-6": "2-6 lat", 
 
 // ── Pomocnicze wyciąganie pól z oferty ──────────────────────────────────
 
+// Parametry oferty ORAZ powiązanego produktu (Kolor/Rozmiar/Płeć siedzą w produkcie).
+function wszystkieParametry(o: any): any[] {
+  const oferta: any[] = o?.parameters ?? [];
+  const prod: any[] = (Array.isArray(o?.productSet) && o.productSet[0]?.product?.parameters) || o?.product?.parameters || [];
+  return [...prod, ...oferta];
+}
 function param(o: any, ...nazwy: string[]): any | null {
-  const params: any[] = o?.parameters ?? [];
+  const params = wszystkieParametry(o);
+  for (const n of nazwy) {
+    const p = params.find((x) => String(x?.name ?? "").toLowerCase() === n.toLowerCase());
+    if (p) return p;
+  }
+  // dopasowanie częściowe, gdyby nazwa się różniła
   for (const n of nazwy) {
     const p = params.find((x) => String(x?.name ?? "").toLowerCase().includes(n.toLowerCase()));
     if (p) return p;
   }
   return null;
+}
+function idProduktu(o: any): string {
+  return String((Array.isArray(o?.productSet) && o.productSet[0]?.product?.id) || o?.product?.id || o?.id || "");
 }
 function wartosciParametru(p: any): string[] {
   if (!p) return [];
@@ -77,54 +91,66 @@ function stan(o: any): number | null {
   return Number.isFinite(n) ? n : (typeof s === "number" ? s : null);
 }
 
-// Heurystyka kategorii i wieku — na starcie rozsądne domyślne, łatwe do poprawy w panelu.
-function kategoriaIWiek(rozmiary: string[], o: any): { kategoria: Kategoria; wiek: Wiek } {
-  const liczby = rozmiary.map((r) => parseInt(r, 10)).filter((n) => Number.isFinite(n));
-  const min = liczby.length ? Math.min(...liczby) : 104;
-  const plec = (wartosciParametru(param(o, "płeć", "plec", "dla")).join(" ") || "").toLowerCase();
+// Kategoria + wiek na podstawie rozmiaru i płci.
+function kategoriaIWiek(rozmiar: string, o: any): { kategoria: Kategoria; wiek: Wiek } {
+  const n = parseInt(rozmiar, 10);
+  const min = Number.isFinite(n) ? n : 104;
+  const plec = wartosciParametru(param(o, "płeć", "plec", "dla dzieci")).join(" ").toLowerCase();
+  const tylkoChlopcy = plec.includes("chłop") && !plec.includes("dziew");
+  const tylkoDziewczynki = plec.includes("dziew") && !plec.includes("chłop");
 
   let kategoria: Kategoria = "dziewczynki";
   if (min <= 86) kategoria = "niemowleta";
-  else if (plec.includes("chłop") || plec.includes("chlop")) kategoria = "chlopcy";
-  else if (plec.includes("dziew")) kategoria = "dziewczynki";
+  else if (tylkoChlopcy) kategoria = "chlopcy";
+  else if (tylkoDziewczynki) kategoria = "dziewczynki";
 
   const wiek: Wiek = min <= 98 ? "0-2" : min <= 128 ? "2-6" : "6-12";
   return { kategoria, wiek };
 }
 
-// ── Mapowanie pojedynczej oferty na wiersz produktu ─────────────────────
+export interface OfertaZmapowana {
+  productId: string;
+  rozmiar: string | null;
+  sztuk: number;
+  wiersz: Record<string, unknown>;
+}
 
-export function mapujOferte(o: any): Record<string, unknown> {
+// Mapuje jedną ofertę (= zwykle jeden rozmiar) na dane produktu + info o wariancie.
+export function mapujOferte(o: any): OfertaZmapowana {
   const zdjeciaGlowne: string[] = (o?.images ?? []).map((i: any) => String(i?.url ?? i)).filter(Boolean);
   const { opis, opisHtml, zdjeciaOpis } = opisIZdjeciaZOpisu(o);
   const zdjecia = [...new Set([...zdjeciaGlowne, ...zdjeciaOpis])];
 
-  const rozmiary = wartosciParametru(param(o, "rozmiar"));
-  const kolor = wartosciParametru(param(o, "kolor"))[0] ?? null;
-  const { kategoria, wiek } = kategoriaIWiek(rozmiary, o);
-  const offerId = String(o?.id ?? "");
+  const rozmiar = wartosciParametru(param(o, "rozmiar"))[0] ?? null;
+  const barwa = wartosciParametru(param(o, "kolor"))[0] ?? null;
+  const odcien = wartosciParametru(param(o, "odcień", "odcien"))[0] ?? null;
+  const kolor = barwa ? (odcien && odcien.toLowerCase() !== barwa.toLowerCase() ? `${barwa} (${odcien})` : barwa) : null;
+  const { kategoria, wiek } = kategoriaIWiek(rozmiar ?? "", o);
+  const sztuk = stan(o) ?? 0;
+  const productId = idProduktu(o);
 
-  return {
-    id: `al-${offerId}`,
-    allegro_id: offerId,
+  const wiersz: Record<string, unknown> = {
+    id: `al-${productId}`,
+    allegro_id: productId,
     nazwa: String(o?.name ?? "").trim(),
     cena: cena(o),
     kategoria,
     wiek,
     wiek_label: WIEK_LABEL[wiek],
     badge: null,
-    rozmiary,
+    rozmiary: rozmiar ? [rozmiar] : [],
     kolor,
     zdjecie: zdjecia[0] ?? null,
     zdjecia,
     opis: opis || null,
     opis_html: opisHtml || null, // pełny opis w oryginalnym HTML
     allegro_surowe: o,           // KOMPLETNA oferta z Allegro (wszystkie dane)
-    stan: stan(o),
-    stan_rozmiary: null,
+    stan: sztuk,
+    stan_rozmiary: rozmiar ? { [rozmiar]: sztuk } : null,
     ukryty: false,
     hue: HUE[kategoria],
   };
+  return { productId, rozmiar, sztuk, wiersz };
 }
 
 // ── Pobranie i import wszystkich ofert ──────────────────────────────────
@@ -156,9 +182,44 @@ async function szczegoly(id: string): Promise<any> {
   }
 }
 
+// Zapis jednej oferty z GRUPOWANIEM wariantów rozmiaru w jeden produkt.
+// Read-modify-write: dokłada rozmiar + stan do istniejącego produktu (po al-<productId>).
+async function zapiszZgrupowane(sb: any, det: any): Promise<"ok" | "blad"> {
+  const m = mapujOferte(det);
+  const w = m.wiersz;
+  if (!w.nazwa || !w.allegro_id) return "blad";
+
+  const { data: istn } = await sb
+    .from("produkty")
+    .select("rozmiary, stan_rozmiary, zdjecia, opis, opis_html, kolor")
+    .eq("id", w.id)
+    .maybeSingle();
+
+  if (istn) {
+    const sr: Record<string, number> = { ...(istn.stan_rozmiary ?? {}) };
+    if (m.rozmiar) sr[m.rozmiar] = m.sztuk; // SET (nie dodawaj) — idempotentne przy duplikatach
+    const rozm = Array.from(new Set([...(istn.rozmiary ?? []), ...(m.rozmiar ? [m.rozmiar] : [])])).sort(
+      (a: string, b: string) => (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0),
+    );
+    const zdj = Array.from(new Set([...((istn.zdjecia as string[]) ?? []), ...((w.zdjecia as string[]) ?? [])]));
+    w.stan_rozmiary = Object.keys(sr).length ? sr : null;
+    w.stan = Object.values(sr).reduce((s: number, v) => s + (Number(v) || 0), 0);
+    w.rozmiary = rozm;
+    w.zdjecia = zdj;
+    w.zdjecie = zdj[0] ?? w.zdjecie;
+    // Nie nadpisuj dobrych wartości pustkami z tego wariantu.
+    w.opis = (w.opis as string) || istn.opis || null;
+    w.opis_html = (w.opis_html as string) || istn.opis_html || null;
+    w.kolor = (w.kolor as string) || istn.kolor || null;
+  }
+
+  const { error } = await sb.from("produkty").upsert(w, { onConflict: "id" });
+  return error ? "blad" : "ok";
+}
+
 export interface WynikImportu { ok: boolean; pobrano: number; zapisano: number; bledy: number; blad?: string }
 
-/** Pobiera wszystkie oferty, mapuje i zapisuje do bazy (upsert po id). */
+/** Pobiera wszystkie oferty, mapuje i zapisuje do bazy (grupuje warianty). */
 export async function importujWszystko(tylkoAktywne = true): Promise<WynikImportu> {
   const sb = sbService();
   if (!sb) return { ok: false, pobrano: 0, zapisano: 0, bledy: 0, blad: "Brak bazy." };
@@ -175,11 +236,9 @@ export async function importujWszystko(tylkoAktywne = true): Promise<WynikImport
   for (const of of lista) {
     try {
       const det = await szczegoly(of.id);
-      const wiersz = mapujOferte({ ...det, id: det?.id ?? of.id, name: det?.name ?? of.name });
-      if (!wiersz.nazwa || !wiersz.allegro_id) { bledy++; continue; }
-      const { error } = await sb.from("produkty").upsert(wiersz, { onConflict: "id" });
-      if (error) bledy++;
-      else zapisano++;
+      const r = await zapiszZgrupowane(sb, { ...det, id: det?.id ?? of.id, name: det?.name ?? of.name });
+      if (r === "ok") zapisano++;
+      else bledy++;
     } catch {
       bledy++;
     }
@@ -211,11 +270,9 @@ export async function importujStrone(offset: number, limit = 8, tylkoAktywne = t
   for (const of of partia) {
     try {
       const det = await szczegoly(of.id);
-      const wiersz = mapujOferte({ ...det, id: det?.id ?? of.id, name: det?.name ?? of.name });
-      if (!wiersz.nazwa || !wiersz.allegro_id) { bledy++; continue; }
-      const { error } = await sb.from("produkty").upsert(wiersz, { onConflict: "id" });
-      if (error) bledy++;
-      else zapisano++;
+      const r = await zapiszZgrupowane(sb, { ...det, id: det?.id ?? of.id, name: det?.name ?? of.name });
+      if (r === "ok") zapisano++;
+      else bledy++;
     } catch {
       bledy++;
     }

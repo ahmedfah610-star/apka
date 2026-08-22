@@ -47,6 +47,7 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
         <div className="flex flex-col">
           <p className="mb-2 text-[13px] uppercase tracking-wide text-ink-2">
             {KATEGORIE_LABEL[p.kategoria]} · {p.wiekLabel}
+            {p.kolor ? <span> · {p.kolor}</span> : null}
           </p>
           <h1 className="mb-3 text-[30px] font-bold leading-tight tracking-tight md:text-[36px]">{p.nazwa}</h1>
           <p className="mb-2 text-[26px] font-bold text-ink">{formatCena(p.cena)} zł</p>
