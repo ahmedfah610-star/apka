@@ -35,6 +35,26 @@ function param(o: any, ...nazwy: string[]): any | null {
 function idProduktu(o: any): string {
   return String((Array.isArray(o?.productSet) && o.productSet[0]?.product?.id) || o?.product?.id || o?.id || "");
 }
+
+// Nazwa bez rozmiarów/zakresów — do grupowania „osobnych ofert = jeden produkt".
+function bazaNazwy(n: string): string {
+  return (n || "")
+    .replace(/\d+\s*[-–]\s*\d+/g, " ") // zakresy: 62-68, 86- 92
+    .replace(/\brozm\.?\b/gi, " ")
+    .replace(/\d+/g, " ") // pojedyncze liczby (rozmiary)
+    .replace(/[+/,]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+function hash36(s: string): string {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+// Klucz grupy: baza nazwy + kolor (czerwony i niebieski = osobne produkty).
+function kluczGrupy(nazwa: string, kolor: string | null): string {
+  return hash36(bazaNazwy(nazwa).toLowerCase() + "|" + (kolor || "").toLowerCase());
+}
 function wartosciParametru(p: any): string[] {
   if (!p) return [];
   if (Array.isArray(p.values) && p.values.length) return p.values.map((v: any) => String(v)).filter(Boolean);
@@ -138,12 +158,14 @@ export function mapujOferte(o: any): OfertaZmapowana {
   const kolor = barwa ? (odcien && odcien.toLowerCase() !== barwa.toLowerCase() ? `${barwa} (${odcien})` : barwa) : null;
   const { kategoria, wiek } = kategoriaIWiek(rozmiar ?? "", o);
   const sztuk = stan(o) ?? 0;
-  const productId = idProduktu(o);
+  const nazwaPelna = String(o?.name ?? "").trim();
+  // Grupujemy po nazwie bez rozmiaru + kolor (każdy rozmiar to osobna oferta na Allegro).
+  const klucz = kluczGrupy(nazwaPelna, kolor);
 
   const wiersz: Record<string, unknown> = {
-    id: `al-${productId}`,
-    allegro_id: productId,
-    nazwa: String(o?.name ?? "").trim(),
+    id: `al-${klucz}`,
+    allegro_id: klucz,
+    nazwa: bazaNazwy(nazwaPelna) || nazwaPelna,
     cena: cena(o),
     kategoria,
     wiek,
@@ -161,7 +183,7 @@ export function mapujOferte(o: any): OfertaZmapowana {
     ukryty: false,
     hue: HUE[kategoria],
   };
-  return { productId, rozmiar, sztuk, wiersz };
+  return { productId: klucz, rozmiar, sztuk, wiersz };
 }
 
 // ── Pobranie i import wszystkich ofert ──────────────────────────────────
