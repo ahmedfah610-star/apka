@@ -16,22 +16,27 @@ export async function GET(req: Request) {
   if (url.searchParams.get("probka")) {
     const sb = sbService();
     if (!sb) return Response.json({ ok: false, blad: "Brak bazy" });
-    const { data } = await sb.from("produkty").select("id, allegro_surowe").not("allegro_surowe", "is", null).limit(1).maybeSingle();
+    const { data } = await sb.from("produkty").select("id, opis, opis_html, kolor, rozmiary, allegro_surowe").not("allegro_surowe", "is", null).limit(1).maybeSingle();
     const o: any = data?.allegro_surowe;
     if (!o) return Response.json({ ok: false, blad: "Brak zapisanej surowej oferty" });
-    const opisSekcje = o?.description?.sections;
+    const prod: any = Array.isArray(o?.productSet) && o.productSet[0]?.product ? o.productSet[0].product : null;
+    const opisItem: any = (o?.description?.sections ?? []).flatMap((s: any) => s?.items ?? []).find((it: any) => it?.type === "TEXT");
     return Response.json({
       ok: true,
-      klucze: Object.keys(o),
-      maParametry: Array.isArray(o?.parameters),
-      parametry: (o?.parameters ?? []).map((p: any) => ({ name: p?.name, values: p?.values, valuesIds: p?.valuesIds })).slice(0, 40),
-      opisIstnieje: !!o?.description,
-      opisSekcjeLiczba: Array.isArray(opisSekcje) ? opisSekcje.length : null,
-      opisTypy: Array.isArray(opisSekcje) ? opisSekcje.flatMap((s: any) => (s?.items ?? []).map((it: any) => it?.type)) : null,
-      maProduct: !!o?.product,
-      maProductSet: Array.isArray(o?.productSet),
-      klucze_product: o?.product ? Object.keys(o.product) : null,
-      klucze_productSet0: Array.isArray(o?.productSet) && o.productSet[0] ? Object.keys(o.productSet[0]) : null,
+      // Co ZAPISANO w bazie:
+      zapisane: {
+        opis_len: (data?.opis ?? "").length,
+        opis_html_len: (data?.opis_html ?? "").length,
+        kolor: data?.kolor ?? null,
+        rozmiary: data?.rozmiary ?? [],
+      },
+      // Pole treści TEXT w opisie (żeby potwierdzić nazwę pola):
+      opisItemKlucze: opisItem ? Object.keys(opisItem) : null,
+      // Parametry PRODUKTU (tu powinny być Kolor/Rozmiar/materiał):
+      productKlucze: prod ? Object.keys(prod) : null,
+      productParametry: prod?.parameters ? prod.parameters.map((p: any) => ({ name: p?.name, values: p?.values })).slice(0, 60) : null,
+      // Tabela rozmiarów:
+      sizeTable: o?.sizeTable ?? null,
     });
   }
   return Response.json({
