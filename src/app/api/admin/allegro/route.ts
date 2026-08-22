@@ -2,13 +2,38 @@ import { czyAdmin } from "@/lib/adminAuth";
 import { allegroSkonfigurowany, czyPolaczony, rozpocznijDevice, sprawdzDevice } from "@/lib/allegro";
 import { importujStrone } from "@/lib/allegroImport";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
+import { sbService } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // limit planu Hobby
 
-// Status połączenia z Allegro.
-export async function GET() {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+// Status połączenia z Allegro. ?probka=1 → kształt jednej zapisanej oferty (diagnostyka).
+export async function GET(req: Request) {
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
+  const url = new URL(req.url);
+  if (url.searchParams.get("probka")) {
+    const sb = sbService();
+    if (!sb) return Response.json({ ok: false, blad: "Brak bazy" });
+    const { data } = await sb.from("produkty").select("id, allegro_surowe").not("allegro_surowe", "is", null).limit(1).maybeSingle();
+    const o: any = data?.allegro_surowe;
+    if (!o) return Response.json({ ok: false, blad: "Brak zapisanej surowej oferty" });
+    const opisSekcje = o?.description?.sections;
+    return Response.json({
+      ok: true,
+      klucze: Object.keys(o),
+      maParametry: Array.isArray(o?.parameters),
+      parametry: (o?.parameters ?? []).map((p: any) => ({ name: p?.name, values: p?.values, valuesIds: p?.valuesIds })).slice(0, 40),
+      opisIstnieje: !!o?.description,
+      opisSekcjeLiczba: Array.isArray(opisSekcje) ? opisSekcje.length : null,
+      opisTypy: Array.isArray(opisSekcje) ? opisSekcje.flatMap((s: any) => (s?.items ?? []).map((it: any) => it?.type)) : null,
+      maProduct: !!o?.product,
+      maProductSet: Array.isArray(o?.productSet),
+      klucze_product: o?.product ? Object.keys(o.product) : null,
+      klucze_productSet0: Array.isArray(o?.productSet) && o.productSet[0] ? Object.keys(o.productSet[0]) : null,
+    });
+  }
   return Response.json({
     ok: true,
     skonfigurowany: allegroSkonfigurowany(),
