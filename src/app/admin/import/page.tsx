@@ -56,6 +56,26 @@ export default function AdminImport() {
     }
   }
 
+  async function wyczysc() {
+    if (!confirm("Usunąć wszystkie produkty zaimportowane z Allegro? (Twoje ręcznie dodane produkty zostają.)")) return;
+    setBusy(true);
+    setKomunikat("Czyszczenie…");
+    setWynik(null);
+    try {
+      const r = await fetch("/api/admin/allegro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ akcja: "wyczysc" }),
+      });
+      const d = (await r.json().catch(() => ({}))) as { ok?: boolean; usunieto?: number; blad?: string };
+      setKomunikat(d.ok ? `Usunięto ${d.usunieto ?? 0} zaimportowanych produktów. Teraz kliknij „Importuj oferty".` : `Błąd: ${d.blad || "nie udało się"}`);
+    } catch {
+      setKomunikat("Błąd połączenia podczas czyszczenia.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function importuj() {
     setBusy(true);
     setWynik(null);
@@ -135,9 +155,14 @@ export default function AdminImport() {
                 ) : null}
               </>
             ) : (
-              <button onClick={importuj} disabled={busy} className="bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
-                {busy ? "IMPORTOWANIE…" : "IMPORTUJ OFERTY"}
-              </button>
+              <div className="flex flex-wrap items-center gap-3">
+                <button onClick={importuj} disabled={busy} className="bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
+                  {busy ? "IMPORTOWANIE…" : "IMPORTUJ OFERTY"}
+                </button>
+                <button onClick={wyczysc} disabled={busy} className="border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink-2 transition-colors hover:border-akcent hover:text-akcent disabled:opacity-60">
+                  Wyczyść zaimportowane
+                </button>
+              </div>
             )}
           </section>
 
