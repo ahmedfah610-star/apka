@@ -7,6 +7,11 @@ alter table produkty add column if not exists kolor text;
 alter table produkty add column if not exists allegro_id text;
 create unique index if not exists produkty_allegro_id_idx on produkty (allegro_id) where allegro_id is not null;
 
+-- Pełne dane oferty (żeby nic nie przepadło i można było później przejrzeć opisy):
+-- opis w oryginalnym HTML oraz KOMPLETNY surowy JSON oferty z Allegro API.
+alter table produkty add column if not exists opis_html text;
+alter table produkty add column if not exists allegro_surowe jsonb;
+
 -- Token autoryzacji Allegro (Device Flow). Jeden wiersz (id=1).
 -- Trzymamy refresh_token; access_token odnawiamy automatycznie.
 create table if not exists allegro_auth (

@@ -44,18 +44,25 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-// Pełny opis + dodatkowe zdjęcia z sekcji opisu.
-function opisIZdjeciaZOpisu(o: any): { opis: string; zdjeciaOpis: string[] } {
+// Pełny opis: wersja czytelna (tekst), oryginalny HTML oraz zdjęcia z opisu.
+function opisIZdjeciaZOpisu(o: any): { opis: string; opisHtml: string; zdjeciaOpis: string[] } {
   const sekcje: any[] = o?.description?.sections ?? [];
   const teksty: string[] = [];
+  const html: string[] = [];
   const zdj: string[] = [];
   for (const s of sekcje) {
     for (const it of s?.items ?? []) {
-      if (it?.type === "TEXT" && it.content) teksty.push(stripHtml(String(it.content)));
-      if (it?.type === "IMAGE" && it.url) zdj.push(String(it.url));
+      if (it?.type === "TEXT" && it.content) {
+        html.push(String(it.content)); // oryginalny HTML — pełny opis
+        teksty.push(stripHtml(String(it.content)));
+      }
+      if (it?.type === "IMAGE" && it.url) {
+        html.push(`<img src="${String(it.url)}" alt="" />`);
+        zdj.push(String(it.url));
+      }
     }
   }
-  return { opis: teksty.join("\n\n").trim(), zdjeciaOpis: zdj };
+  return { opis: teksty.join("\n\n").trim(), opisHtml: html.join("\n").trim(), zdjeciaOpis: zdj };
 }
 
 function cena(o: any): number {
@@ -89,7 +96,7 @@ function kategoriaIWiek(rozmiary: string[], o: any): { kategoria: Kategoria; wie
 
 export function mapujOferte(o: any): Record<string, unknown> {
   const zdjeciaGlowne: string[] = (o?.images ?? []).map((i: any) => String(i?.url ?? i)).filter(Boolean);
-  const { opis, zdjeciaOpis } = opisIZdjeciaZOpisu(o);
+  const { opis, opisHtml, zdjeciaOpis } = opisIZdjeciaZOpisu(o);
   const zdjecia = [...new Set([...zdjeciaGlowne, ...zdjeciaOpis])];
 
   const rozmiary = wartosciParametru(param(o, "rozmiar"));
@@ -111,6 +118,8 @@ export function mapujOferte(o: any): Record<string, unknown> {
     zdjecie: zdjecia[0] ?? null,
     zdjecia,
     opis: opis || null,
+    opis_html: opisHtml || null, // pełny opis w oryginalnym HTML
+    allegro_surowe: o,           // KOMPLETNA oferta z Allegro (wszystkie dane)
     stan: stan(o),
     stan_rozmiary: null,
     ukryty: false,
