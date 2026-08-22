@@ -1,5 +1,6 @@
 import { sbService } from "@/lib/supabase";
 import { wyslijMailProsbaOOpinie, mailWlaczony } from "@/lib/mail";
+import { przypomnijKoszyki } from "@/lib/koszykCron";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -50,5 +51,8 @@ export async function GET(req: Request) {
     wyslano++;
   }
 
-  return Response.json({ ok: true, wyslano, sprawdzono: data?.length ?? 0 });
+  // Przy okazji: przypomnienia o porzuconych koszykach (jeden dzienny cron na Hobby).
+  const koszyk = await przypomnijKoszyki();
+
+  return Response.json({ ok: true, wyslano, sprawdzono: data?.length ?? 0, koszyk });
 }
