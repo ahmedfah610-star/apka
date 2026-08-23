@@ -76,6 +76,25 @@ export default function AdminImport() {
     }
   }
 
+  async function poprawKategorie() {
+    setBusy(true);
+    setKomunikat("Przeliczanie kategorii…");
+    setWynik(null);
+    try {
+      const r = await fetch("/api/admin/allegro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ akcja: "przeklasyfikuj" }),
+      });
+      const d = (await r.json().catch(() => ({}))) as { ok?: boolean; zmieniono?: number; blad?: string };
+      setKomunikat(d.ok ? `Poprawiono kategorie: ${d.zmieniono ?? 0} produktów.` : `Błąd: ${d.blad || "nie udało się"}`);
+    } catch {
+      setKomunikat("Błąd połączenia.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function usunWszystko() {
     if (!confirm("UWAGA: to usunie WSZYSTKIE produkty ze sklepu (stare i zaimportowane). Na pewno?")) return;
     if (!confirm("Ostatnie ostrzeżenie — sklep zostanie pusty do czasu importu. Kontynuować?")) return;
@@ -181,6 +200,9 @@ export default function AdminImport() {
               <div className="flex flex-wrap items-center gap-3">
                 <button onClick={importuj} disabled={busy} className="bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
                   {busy ? "IMPORTOWANIE…" : "IMPORTUJ OFERTY"}
+                </button>
+                <button onClick={poprawKategorie} disabled={busy} className="border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink transition-colors hover:border-ink disabled:opacity-60">
+                  Popraw kategorie
                 </button>
                 <button onClick={wyczysc} disabled={busy} className="border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink-2 transition-colors hover:border-akcent hover:text-akcent disabled:opacity-60">
                   Wyczyść zaimportowane

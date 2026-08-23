@@ -256,6 +256,22 @@ async function zapiszZgrupowane(sb: any, det: any): Promise<{ ok: boolean; blad?
   return error ? { ok: false, blad: error.message } : { ok: true };
 }
 
+// Przelicza kategorię/wiek na JUŻ zaimportowanych produktach (bez pobierania z Allegro).
+export async function przeklasyfikuj(): Promise<{ ok: boolean; zmieniono: number; blad?: string }> {
+  const sb = sbService();
+  if (!sb) return { ok: false, zmieniono: 0, blad: "Brak bazy." };
+  const { data, error } = await sb.from("produkty").select("id, nazwa, rozmiary, allegro_surowe").like("id", "al-%");
+  if (error) return { ok: false, zmieniono: 0, blad: error.message };
+  let zmieniono = 0;
+  for (const r of (data ?? []) as any[]) {
+    const minR = (r.rozmiary ?? []).map((x: string) => parseInt(x, 10)).filter((x: number) => Number.isFinite(x)).sort((a: number, b: number) => a - b)[0];
+    const { kategoria, wiek } = kategoriaIWiek(minR ? String(minR) : "", r.allegro_surowe ?? {}, r.nazwa ?? "");
+    const { error: e } = await sb.from("produkty").update({ kategoria, wiek, wiek_label: WIEK_LABEL[wiek], hue: HUE[kategoria] }).eq("id", r.id);
+    if (!e) zmieniono++;
+  }
+  return { ok: true, zmieniono };
+}
+
 export interface WynikImportu { ok: boolean; pobrano: number; zapisano: number; bledy: number; blad?: string }
 
 /** Pobiera wszystkie oferty, mapuje i zapisuje do bazy (grupuje warianty). */
