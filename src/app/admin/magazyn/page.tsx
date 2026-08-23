@@ -10,6 +10,9 @@ import type { Produkt } from "@/data/produkty";
 
 type Stany = Record<string, number>;
 
+// Standardowe rozmiary dziecięce (wzrost w cm) — do szybkiego dodawania.
+const STANDARDOWE = ["56", "62", "68", "74", "80", "86", "92", "98", "104", "110", "116", "122", "128", "134", "140", "146", "152", "158", "164"];
+
 export default function MagazynPage() {
   const [produkty, setProdukty] = useState<Produkt[]>([]);
   const [ladowanie, setLadowanie] = useState(true);
@@ -19,6 +22,8 @@ export default function MagazynPage() {
 
   // Lokalny, edytowalny stan bieżącego produktu.
   const [stany, setStany] = useState<Stany>({});
+  const [rozmiaryLok, setRozmiaryLok] = useState<string[]>([]); // edytowalna lista rozmiarów
+  const [nowyRozmiar, setNowyRozmiar] = useState(""); // pole „inny rozmiar"
   const [stanLaczny, setStanLaczny] = useState(0); // dla produktów bez rozmiarów
   const [brudny, setBrudny] = useState(false);
   const [zapisywanie, setZapisywanie] = useState(false);
@@ -40,8 +45,7 @@ export default function MagazynPage() {
   }, [produkty, szukaj]);
 
   const produkt: Produkt | undefined = widoczne[idx];
-  const rozmiary = produkt?.rozmiary ?? [];
-  const maRozmiary = rozmiary.length > 0;
+  const maRozmiary = rozmiaryLok.length > 0;
 
   // Reset indeksu, gdy zmienia się filtr.
   useEffect(() => {
@@ -55,12 +59,37 @@ export default function MagazynPage() {
     const init: Stany = {};
     for (const r of produkt.rozmiary ?? []) init[r] = Number(sr[r] ?? 0);
     setStany(init);
+    setRozmiaryLok([...(produkt.rozmiary ?? [])]);
+    setNowyRozmiar("");
     setStanLaczny(Number(produkt.stan ?? 0));
     setBrudny(false);
     setZapisano(false);
   }, [produkt]);
 
-  const razem = maRozmiary ? Object.values(stany).reduce((s, v) => s + (Number(v) || 0), 0) : stanLaczny;
+  const razem = maRozmiary
+    ? rozmiaryLok.reduce((s, r) => s + (Number(stany[r]) || 0), 0)
+    : stanLaczny;
+
+  // Dodaj rozmiar do produktu (domyślnie 1 szt. — dodajemy, bo mamy go na stanie).
+  const dodajRozmiar = (r: string) => {
+    const rr = r.trim().replace(/\s+/g, "");
+    if (!rr || rozmiaryLok.includes(rr)) return;
+    setRozmiaryLok((prev) => [...prev, rr].sort((a, b) => (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0)));
+    setStany((prev) => ({ ...prev, [rr]: prev[rr] ?? 1 }));
+    setNowyRozmiar("");
+    setBrudny(true);
+    setZapisano(false);
+  };
+  const usunRozmiar = (r: string) => {
+    setRozmiaryLok((prev) => prev.filter((x) => x !== r));
+    setStany((prev) => {
+      const c = { ...prev };
+      delete c[r];
+      return c;
+    });
+    setBrudny(true);
+    setZapisano(false);
+  };
 
   const zmien = (rozmiar: string, delta: number) => {
     setStany((prev) => {
@@ -93,7 +122,12 @@ export default function MagazynPage() {
     setZapisywanie(true);
     setBlad(null);
     try {
-      const zmiany = maRozmiary ? { stanRozmiary: stany } : { stan: stanLaczny };
+      const zmiany = maRozmiary
+        ? {
+            rozmiary: rozmiaryLok,
+            stanRozmiary: Object.fromEntries(rozmiaryLok.map((r) => [r, Number(stany[r]) || 0])),
+          }
+        : { stan: stanLaczny, rozmiary: [], stanRozmiary: null };
       const r = await fetch("/api/admin/produkty", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -105,7 +139,12 @@ export default function MagazynPage() {
       setProdukty((prev) =>
         prev.map((p) =>
           p.id === produkt.id
-            ? { ...p, stanRozmiary: maRozmiary ? { ...stany } : p.stanRozmiary, stan: razem }
+            ? {
+                ...p,
+                rozmiary: maRozmiary ? [...rozmiaryLok] : [],
+                stanRozmiary: maRozmiary ? { ...stany } : null,
+                stan: razem,
+              }
             : p,
         ),
       );
@@ -118,7 +157,7 @@ export default function MagazynPage() {
     } finally {
       setZapisywanie(false);
     }
-  }, [produkt, maRozmiary, stany, stanLaczny, razem]);
+  }, [produkt, maRozmiary, rozmiaryLok, stany, stanLaczny, razem]);
 
   // Nawigacja z automatycznym zapisem niezapisanych zmian (żeby nic nie zginęło).
   const idzDo = useCallback(
@@ -194,7 +233,7 @@ export default function MagazynPage() {
             {/* Rozmiary — steppery */}
             <div className="mt-6 flex flex-col gap-3">
               {maRozmiary ? (
-                rozmiary.map((r) => (
+                rozmiaryLok.map((r) => (
                   <Wiersz
                     key={r}
                     etykieta={`Rozmiar ${r}`}
@@ -202,6 +241,7 @@ export default function MagazynPage() {
                     onMinus={() => zmien(r, -1)}
                     onPlus={() => zmien(r, +1)}
                     onWpis={(v) => ustaw(r, v)}
+                    onUsun={() => usunRozmiar(r)}
                   />
                 ))
               ) : (
@@ -213,6 +253,38 @@ export default function MagazynPage() {
                   onWpis={(v) => ustawLaczny(v)}
                 />
               )}
+            </div>
+
+            {/* Dodawanie rozmiaru */}
+            <div className="mt-5 rounded-xl border-2 border-dashed border-linia bg-tlo/40 p-4">
+              <p className="mb-3 text-[15px] font-semibold">➕ Dodaj rozmiar</p>
+              <div className="flex flex-wrap gap-2">
+                {STANDARDOWE.filter((r) => !rozmiaryLok.includes(r)).map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => dodajRozmiar(r)}
+                    className="rounded-lg border-2 border-ink bg-white px-3.5 py-2 text-[16px] font-semibold text-ink transition-colors hover:bg-ink hover:text-white"
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <input
+                  value={nowyRozmiar}
+                  onChange={(e) => setNowyRozmiar(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && dodajRozmiar(nowyRozmiar)}
+                  placeholder="inny rozmiar, np. 50 lub S"
+                  className="w-48 rounded-lg border-2 border-linia bg-white px-3 py-2 text-[16px] outline-none focus:border-akcent"
+                />
+                <button
+                  onClick={() => dodajRozmiar(nowyRozmiar)}
+                  disabled={!nowyRozmiar.trim()}
+                  className="rounded-lg bg-ink px-4 py-2 text-[15px] font-semibold text-white transition-colors hover:bg-akcent disabled:opacity-40"
+                >
+                  Dodaj
+                </button>
+              </div>
             </div>
 
             {/* Zapis */}
@@ -292,12 +364,14 @@ function Wiersz({
   onMinus,
   onPlus,
   onWpis,
+  onUsun,
 }: {
   etykieta: string;
   wartosc: number;
   onMinus: () => void;
   onPlus: () => void;
   onWpis: (v: string) => void;
+  onUsun?: () => void;
 }) {
   const brak = wartosc === 0;
   return (
@@ -306,9 +380,19 @@ function Wiersz({
         brak ? "border-linia bg-tlo/40" : "border-linia bg-white"
       }`}
     >
-      <span className="text-[18px] font-semibold">
+      <span className="flex items-center gap-2 text-[18px] font-semibold">
+        {onUsun ? (
+          <button
+            onClick={onUsun}
+            aria-label={`Usuń ${etykieta}`}
+            title="Usuń ten rozmiar"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-[16px] leading-none text-ink-2 transition-colors hover:bg-akcent hover:text-white"
+          >
+            ×
+          </button>
+        ) : null}
         {etykieta}
-        {brak ? <span className="ml-2 text-[13px] font-normal text-akcent">brak</span> : null}
+        {brak ? <span className="ml-1 text-[13px] font-normal text-akcent">brak</span> : null}
       </span>
       <div className="flex items-center gap-2">
         <button
