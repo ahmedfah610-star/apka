@@ -121,18 +121,21 @@ function stan(o: any): number | null {
   return Number.isFinite(n) ? n : (typeof s === "number" ? s : null);
 }
 
-// Kategoria + wiek na podstawie rozmiaru i płci.
-function kategoriaIWiek(rozmiar: string, o: any): { kategoria: Kategoria; wiek: Wiek } {
-  const n = parseInt(rozmiar, 10);
-  const min = Number.isFinite(n) ? n : 104;
-  const plec = wartosciParametru(param(o, "płeć", "plec", "dla dzieci")).join(" ").toLowerCase();
-  const tylkoChlopcy = plec.includes("chłop") && !plec.includes("dziew");
-  const tylkoDziewczynki = plec.includes("dziew") && !plec.includes("chłop");
+// Kategoria + wiek. PŁEĆ (z nazwy lub parametru) ma pierwszeństwo przed rozmiarem;
+// dopiero rzeczy bez sygnału płci trafiają do „niemowlęta".
+function kategoriaIWiek(rozmiar: string, o: any, nazwa: string): { kategoria: Kategoria; wiek: Wiek } {
+  const liczba = parseInt(rozmiar, 10);
+  const min = Number.isFinite(liczba) ? liczba : 104;
+  const n = (nazwa || "").toLowerCase();
+  const plec = wartosciParametru(param(o, "płeć", "plec")).join(" ").toLowerCase();
 
-  let kategoria: Kategoria = "dziewczynki";
-  if (min <= 86) kategoria = "niemowleta";
-  else if (tylkoChlopcy) kategoria = "chlopcy";
-  else if (tylkoDziewczynki) kategoria = "dziewczynki";
+  const chlopiec = /chłop|chlop/.test(n) || (plec.includes("chłop") && !plec.includes("dziew"));
+  const dziewczynka = /dziewczyn|sukienk|legins|legginsy/.test(n) || (plec.includes("dziew") && !plec.includes("chłop"));
+
+  let kategoria: Kategoria;
+  if (chlopiec && !dziewczynka) kategoria = "chlopcy";
+  else if (dziewczynka && !chlopiec) kategoria = "dziewczynki";
+  else kategoria = "niemowleta"; // niemowlęce / uniseks bez wyraźnej płci
 
   const wiek: Wiek = min <= 98 ? "0-2" : min <= 128 ? "2-6" : "6-12";
   return { kategoria, wiek };
@@ -156,9 +159,9 @@ export function mapujOferte(o: any): OfertaZmapowana {
   const barwa = wartosciParametru(param(o, "kolor"))[0] ?? null;
   const odcien = wartosciParametru(param(o, "odcień", "odcien"))[0] ?? null;
   const kolor = barwa ? (odcien && odcien.toLowerCase() !== barwa.toLowerCase() ? `${barwa} (${odcien})` : barwa) : null;
-  const { kategoria, wiek } = kategoriaIWiek(rozmiar ?? "", o);
-  const sztuk = stan(o) ?? 0;
   const nazwaPelna = String(o?.name ?? "").trim();
+  const { kategoria, wiek } = kategoriaIWiek(rozmiar ?? "", o, nazwaPelna);
+  const sztuk = stan(o) ?? 0;
   // Grupowanie wariantów rozmiaru: najpewniejszy sygnał to WSPÓLNE GŁÓWNE ZDJĘCIE
   // (sprzedawca używa tego samego zdjęcia dla różnych rozmiarów jednej rzeczy).
   // Fallback, gdy brak zdjęcia: nazwa bez rozmiaru + kolor.
