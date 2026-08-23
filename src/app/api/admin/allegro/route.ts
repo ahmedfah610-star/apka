@@ -13,6 +13,24 @@ export const maxDuration = 60; // limit planu Hobby
 export async function GET(req: Request) {
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
   const url = new URL(req.url);
+  if (url.searchParams.get("diag") === "stany") {
+    const sb = sbService();
+    if (!sb) return Response.json({ ok: false, blad: "Brak bazy" });
+    const licz = async (f?: (q: any) => any) => {
+      let q = sb.from("produkty").select("*", { count: "exact", head: true });
+      if (f) q = f(q);
+      const { count } = await q;
+      return count ?? 0;
+    };
+    return Response.json({
+      ok: true,
+      wszystkie: await licz(),
+      al: await licz((q) => q.like("id", "al-%")),
+      widoczne: await licz((q) => q.eq("ukryty", false)),
+      ukryte: await licz((q) => q.eq("ukryty", true)),
+      al_widoczne: await licz((q) => q.like("id", "al-%").eq("ukryty", false)),
+    });
+  }
   if (url.searchParams.get("diag") === "oferty") {
     try {
       const all: any = await allegroGet("/sale/offers?limit=100&offset=0");
