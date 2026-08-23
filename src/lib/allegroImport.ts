@@ -159,8 +159,11 @@ export function mapujOferte(o: any): OfertaZmapowana {
   const { kategoria, wiek } = kategoriaIWiek(rozmiar ?? "", o);
   const sztuk = stan(o) ?? 0;
   const nazwaPelna = String(o?.name ?? "").trim();
-  // Grupujemy po nazwie bez rozmiaru + kolor (każdy rozmiar to osobna oferta na Allegro).
-  const klucz = kluczGrupy(nazwaPelna, kolor);
+  // Grupowanie wariantów rozmiaru: najpewniejszy sygnał to WSPÓLNE GŁÓWNE ZDJĘCIE
+  // (sprzedawca używa tego samego zdjęcia dla różnych rozmiarów jednej rzeczy).
+  // Fallback, gdy brak zdjęcia: nazwa bez rozmiaru + kolor.
+  const glowne = zdjecia[0] ?? null;
+  const klucz = glowne ? hash36("img:" + glowne) : kluczGrupy(nazwaPelna, kolor);
 
   const wiersz: Record<string, unknown> = {
     id: `al-${klucz}`,
