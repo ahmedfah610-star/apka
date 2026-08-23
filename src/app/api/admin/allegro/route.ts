@@ -1,5 +1,5 @@
 import { czyAdmin } from "@/lib/adminAuth";
-import { allegroSkonfigurowany, czyPolaczony, rozpocznijDevice, sprawdzDevice } from "@/lib/allegro";
+import { allegroSkonfigurowany, czyPolaczony, rozpocznijDevice, sprawdzDevice, allegroGet } from "@/lib/allegro";
 import { importujStrone, przeklasyfikuj } from "@/lib/allegroImport";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 import { sbService } from "@/lib/supabase";
@@ -13,6 +13,28 @@ export const maxDuration = 60; // limit planu Hobby
 export async function GET(req: Request) {
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
   const url = new URL(req.url);
+  if (url.searchParams.get("diag") === "oferty") {
+    try {
+      const all: any = await allegroGet("/sale/offers?limit=100&offset=0");
+      const active: any = await allegroGet("/sale/offers?limit=100&offset=0&publication.status=ACTIVE");
+      const strona2: any = await allegroGet("/sale/offers?limit=100&offset=100&publication.status=ACTIVE");
+      const nazwaGirl = (arr: any[]) => (arr ?? []).filter((o) => /dziewcz|dziwcz|sukienk|legins/i.test(o?.name || "")).length;
+      return Response.json({
+        ok: true,
+        totalCount_wszystkie: all?.totalCount ?? all?.count ?? null,
+        totalCount_aktywne: active?.totalCount ?? active?.count ?? null,
+        offset0_zwrocono: (active?.offers ?? []).length,
+        offset0_pierwsza: active?.offers?.[0]?.id,
+        offset100_zwrocono: (strona2?.offers ?? []).length,
+        offset100_pierwsza: strona2?.offers?.[0]?.id,
+        paginacja_przesuwa_sie: active?.offers?.[0]?.id !== strona2?.offers?.[0]?.id,
+        girl_w_offset0: nazwaGirl(active?.offers),
+        girl_w_offset100: nazwaGirl(strona2?.offers),
+      });
+    } catch (e) {
+      return Response.json({ ok: false, blad: e instanceof Error ? e.message : "błąd" });
+    }
+  }
   if (url.searchParams.get("probka")) {
     const sb = sbService();
     if (!sb) return Response.json({ ok: false, blad: "Brak bazy" });
