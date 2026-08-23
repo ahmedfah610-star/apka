@@ -14,7 +14,6 @@ import {
   type FiltrWyroznienie,
   type Sortowanie,
 } from "@/lib/filtrowanie";
-import { zwinWarianty } from "@/lib/warianty";
 
 const KATEGORIE: { key: FiltrKategoria; label: string }[] = [
   { key: "wszystkie", label: "Wszystkie" },
@@ -95,9 +94,6 @@ function Listing() {
     [wszystkie, kategoria, wiek, sortBy, rozmiary, cenaIdx, wyroznienie, fraza],
   );
 
-  // Zwiń warianty kolorystyczne — jeden kafel na model (kolory wybierze się na stronie produktu).
-  const zwiniete = useMemo(() => zwinWarianty(produkty), [produkty]);
-
   const toggleKat = (k: FiltrKategoria) => setKategoria((c) => (c === k ? "wszystkie" : k));
   const toggleWiek = (w: FiltrWiek) => setWiek((c) => (c === w ? "wszystkie" : w));
   const toggleRozmiar = (s: string) =>
@@ -128,7 +124,7 @@ function Listing() {
           {fraza ? <>Wyniki: „{fraza}"</> : KATEGORIE_LABEL[kategoria]}
         </h1>
         <p className={`text-[15px] text-ink-2 ${!fraza && OPISY_KATEGORII[kategoria] ? "mb-3" : "mb-7"}`}>
-          {zwiniete.length} {zwiniete.length === 1 ? "produkt" : "produktów"}
+          {produkty.length} {produkty.length === 1 ? "produkt" : "produktów"}
         </p>
         {!fraza && OPISY_KATEGORII[kategoria] ? (
           <p className="mb-7 max-w-3xl text-[14.5px] leading-relaxed text-ink-2">{OPISY_KATEGORII[kategoria]}</p>
@@ -268,7 +264,7 @@ function Listing() {
             onClick={() => setFiltryOtwarte(false)}
             className="mt-2 w-full rounded-lg bg-ink px-6 py-3.5 text-[13px] font-semibold tracking-wide text-tlo md:hidden"
           >
-            POKAŻ {zwiniete.length} {zwiniete.length === 1 ? "PRODUKT" : "PRODUKTÓW"}
+            POKAŻ {produkty.length} {produkty.length === 1 ? "PRODUKT" : "PRODUKTÓW"}
           </button>
         </aside>
 
@@ -286,10 +282,10 @@ function Listing() {
             </select>
           </div>
 
-          {zwiniete.length > 0 ? (
+          {produkty.length > 0 ? (
             <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-3">
-              {zwiniete.map(({ produkt, kolory }) => (
-                <KartaProduktu key={produkt.id} produkt={produkt} liczbaKolorow={kolory} />
+              {produkty.map((p) => (
+                <KartaProduktu key={p.id} produkt={p} />
               ))}
             </div>
           ) : (
