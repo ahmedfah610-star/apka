@@ -163,12 +163,11 @@ export function mapujOferte(o: any): OfertaZmapowana {
   const nazwaPelna = String(o?.name ?? "").trim();
   const { kategoria, wiek } = kategoriaIWiek(rozmiar ?? "", o, nazwaPelna);
   const sztuk = stan(o) ?? 0;
-  // Grupowanie wariantów rozmiaru: najpewniejszy sygnał to WSPÓLNE GŁÓWNE ZDJĘCIE
-  // (sprzedawca używa tego samego zdjęcia dla różnych rozmiarów jednej rzeczy).
-  // Fallback, gdy brak zdjęcia: nazwa bez rozmiaru + kolor.
-  // Grupowanie po nazwie (bez rozmiaru) + kolor — łączy warianty rozmiaru,
-  // także gdy zdjęcia są wgrane pod różnymi URL-ami (częste u sprzedawcy).
-  const klucz = kluczGrupy(nazwaPelna, kolor);
+  // Grupowanie WYŁĄCZNIE po ID produktu z Allegro — bezpieczne i wierne:
+  // łączy rozmiary tylko wtedy, gdy Allegro naprawdę wiąże je jako jeden
+  // produkt (warianty). Osobne wystawienia zostają osobno, nic się nie gubi.
+  // Grupowanie po nazwie skleja różne rzeczy o tej samej generycznej nazwie.
+  const klucz = idProduktu(o) || kluczGrupy(nazwaPelna, kolor);
 
   const wiersz: Record<string, unknown> = {
     id: `al-${klucz}`,
