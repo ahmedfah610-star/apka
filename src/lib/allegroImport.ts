@@ -122,25 +122,56 @@ function stan(o: any): number | null {
   return Number.isFinite(n) ? n : (typeof s === "number" ? s : null);
 }
 
-// Kategoria + wiek. PŁEĆ (z nazwy lub parametru) ma pierwszeństwo przed rozmiarem;
-// dopiero rzeczy bez sygnału płci trafiają do „niemowlęta".
-function kategoriaIWiek(rozmiar: string, o: any, nazwa: string): { kategoria: Kategoria; wiek: Wiek } {
-  const liczba = parseInt(rozmiar, 10);
-  const min = Number.isFinite(liczba) ? liczba : 104;
+// Rozmiary ≤ tego progu = odzież niemowlęca (0–2 lata) → kategoria „niemowlęta".
+const PROG_NIEMOWLE = 92;
+
+// Płeć wyłącznie z NAZWY (obejmuje literówki i typowe „dziewczęce"/„chłopięce" słowa).
+function plecZNazwy(nazwa: string): Kategoria | null {
   const n = (nazwa || "").toLowerCase();
+  const chlopiec = /chłop|chlop/.test(n);
+  const dziewczynka = /dziewcz|dziwcz|dzieczyn|sukien|legins|leggin|getr|rybaczk|tunik|kolark|falban|serduszk|księżn|ksiezn/.test(n);
+  if (chlopiec && !dziewczynka) return "chlopcy";
+  if (dziewczynka && !chlopiec) return "dziewczynki";
+  return null;
+}
+
+// Silny sygnał „to ubranko niemowlęce" z nazwy — dla ofert bez podanego rozmiaru.
+function nazwaNiemowleca(nazwa: string): boolean {
+  return /niemowl|pajac|śpioch|spioch|półśpioch|polspioch|noworod|kaftanik|becik|rożek|rozek|body/i.test(nazwa || "");
+}
+
+function wiekZRozmiaru(min: number): Wiek {
+  return min <= 98 ? "0-2" : min <= 128 ? "2-6" : "6-12";
+}
+
+/**
+ * Kategoria + wiek na podstawie ROZMIARÓW i nazwy. Reguła (istotna dla SEO/UX):
+ * małe rozmiary (≤92, tj. 0–2 lata) ZAWSZE trafiają do „niemowlęta" — niezależnie
+ * od płci. Dopiero starszaki (≥104) dzielimy po płci (z nazwy, potem z parametru
+ * Płeć), a bez sygnału zostają przy „obecnej" kategorii lub niemowlętach.
+ */
+function kategoriaIWiek(
+  rozmiary: string[] | string,
+  o: any,
+  nazwa: string,
+  obecna?: Kategoria,
+): { kategoria: Kategoria; wiek: Wiek } {
+  const lista = Array.isArray(rozmiary) ? rozmiary : [rozmiary];
+  const liczby = lista.map((r) => parseInt(String(r), 10)).filter((x) => Number.isFinite(x));
+  const min = liczby.length ? Math.min(...liczby) : 104;
+  const max = liczby.length ? Math.max(...liczby) : 104;
+  const wiek = wiekZRozmiaru(min);
+
+  const niemowle = liczby.length ? max <= PROG_NIEMOWLE : nazwaNiemowleca(nazwa);
+  if (niemowle) return { kategoria: "niemowleta", wiek };
+
+  // Starszak → płeć z nazwy, potem z parametru Płeć (import), inaczej zachowaj/uniseks.
+  const zNazwy = plecZNazwy(nazwa);
+  if (zNazwy) return { kategoria: zNazwy, wiek };
   const plec = wartosciParametru(param(o, "płeć", "plec")).join(" ").toLowerCase();
-
-  // Uwzględnia literówki sprzedawcy (np. „dziwczynki").
-  const chlopiec = /chłop|chlop/.test(n) || (plec.includes("chłop") && !plec.includes("dziew"));
-  const dziewczynka = /dziewcz|dziwcz|dziewczyn|sukienk|legins/.test(n) || (plec.includes("dziew") && !plec.includes("chłop"));
-
-  let kategoria: Kategoria;
-  if (chlopiec && !dziewczynka) kategoria = "chlopcy";
-  else if (dziewczynka && !chlopiec) kategoria = "dziewczynki";
-  else kategoria = "niemowleta"; // niemowlęce / uniseks bez wyraźnej płci
-
-  const wiek: Wiek = min <= 98 ? "0-2" : min <= 128 ? "2-6" : "6-12";
-  return { kategoria, wiek };
+  if (plec.includes("chłop") && !plec.includes("dziew")) return { kategoria: "chlopcy", wiek };
+  if (plec.includes("dziew") && !plec.includes("chłop")) return { kategoria: "dziewczynki", wiek };
+  return { kategoria: obecna === "chlopcy" || obecna === "dziewczynki" ? obecna : "niemowleta", wiek };
 }
 
 export interface OfertaZmapowana {
@@ -262,12 +293,18 @@ async function zapiszZgrupowane(sb: any, det: any): Promise<{ ok: boolean; blad?
 export async function przeklasyfikuj(): Promise<{ ok: boolean; zmieniono: number; blad?: string }> {
   const sb = sbService();
   if (!sb) return { ok: false, zmieniono: 0, blad: "Brak bazy." };
-  const { data, error } = await sb.from("produkty").select("id, nazwa, rozmiary, allegro_surowe").like("id", "al-%");
-  if (error) return { ok: false, zmieniono: 0, blad: error.message };
+  // Stronicowanie (limit 1000/zapytanie) — obejmuje też produkty poza pierwszym tysiącem.
+  const wszystkie: any[] = [];
+  for (let from = 0; from < 30000; from += 1000) {
+    const { data, error } = await sb.from("produkty").select("id, nazwa, rozmiary, kategoria, wiek").like("id", "al-%").order("id").range(from, from + 999);
+    if (error) return { ok: false, zmieniono: 0, blad: error.message };
+    wszystkie.push(...(data ?? []));
+    if ((data ?? []).length < 1000) break;
+  }
   let zmieniono = 0;
-  for (const r of (data ?? []) as any[]) {
-    const minR = (r.rozmiary ?? []).map((x: string) => parseInt(x, 10)).filter((x: number) => Number.isFinite(x)).sort((a: number, b: number) => a - b)[0];
-    const { kategoria, wiek } = kategoriaIWiek(minR ? String(minR) : "", r.allegro_surowe ?? {}, r.nazwa ?? "");
+  for (const r of wszystkie as any[]) {
+    const { kategoria, wiek } = kategoriaIWiek(r.rozmiary ?? [], {}, r.nazwa ?? "", r.kategoria as Kategoria);
+    if (kategoria === r.kategoria && wiek === r.wiek) continue; // bez zmian — nie pisz
     const { error: e } = await sb.from("produkty").update({ kategoria, wiek, wiek_label: WIEK_LABEL[wiek], hue: HUE[kategoria] }).eq("id", r.id);
     if (!e) zmieniono++;
   }
@@ -312,18 +349,16 @@ export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: 
       if (!opisHtml && p.opis_html) opisHtml = p.opis_html;
     }
     const rozmiary = [...rozm].sort((a, b) => (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0));
-    const minR = rozmiary.map((x) => parseInt(x, 10)).filter((x) => Number.isFinite(x)).sort((a, b) => a - b)[0];
-    // Kategoria: ZACHOWAJ ustaloną przy imporcie (uwzględniała parametr Płeć z Allegro,
-    // którego już nie mamy tutaj). Głosowanie większością w grupie — inaczej dziewczynki,
-    // których nazwa nie zawiera „dziewcz", spadłyby do „niemowlęta".
+    // Większość dotychczasowych kategorii w grupie = „obecna" (fallback dla starszaków
+    // bez płci w nazwie — niesie płeć z parametru Płeć ustaloną przy imporcie).
     const glosy = new Map<Kategoria, number>();
     for (const p of grupa) {
       const k = (p.kategoria as Kategoria) || "niemowleta";
       glosy.set(k, (glosy.get(k) ?? 0) + 1);
     }
-    const kategoria: Kategoria = [...glosy.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "niemowleta";
-    // Wiek z najmniejszego rozmiaru (rozmiar odpowiada wzrostowi — pewny sygnał).
-    const wiek: Wiek = minR ? (minR <= 98 ? "0-2" : minR <= 128 ? "2-6" : "6-12") : "2-6";
+    const obecna: Kategoria = [...glosy.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "niemowleta";
+    // Reguła: małe rozmiary (≤92) → niemowlęta; starszaki → płeć z nazwy/obecna.
+    const { kategoria, wiek } = kategoriaIWiek(rozmiary, {}, first.nazwa || "", obecna);
     const zdjecia = [...zdj];
     const h = hash36(key);
     scalone.push({

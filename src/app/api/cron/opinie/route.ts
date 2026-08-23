@@ -1,7 +1,7 @@
 import { sbService } from "@/lib/supabase";
 import { wyslijMailProsbaOOpinie, mailWlaczony } from "@/lib/mail";
 import { przypomnijKoszyki } from "@/lib/koszykCron";
-import { scalProdukty } from "@/lib/allegroImport";
+import { scalProdukty, przeklasyfikuj } from "@/lib/allegroImport";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +33,12 @@ export async function GET(req: Request) {
     odswiezPoZmianieStanu();
   }
 
-  if (!mailWlaczony()) return Response.json({ ok: true, powod: "brak_maili", scal }, { status: 200 });
+  // Poprawa kategorii wg reguły rozmiaru (≤92 → niemowlęta) — pisze tylko zmienione
+  // wiersze, więc po jednorazowej korekcie to praktycznie no-op.
+  const przekat = await przeklasyfikuj();
+  if (przekat.ok && przekat.zmieniono > 0) odswiezPoZmianieStanu();
+
+  if (!mailWlaczony()) return Response.json({ ok: true, powod: "brak_maili", scal, przekat }, { status: 200 });
 
   const od = new Date(Date.now() - 30 * 86400000).toISOString();
   const doD = new Date(Date.now() - 7 * 86400000).toISOString();
@@ -70,5 +75,5 @@ export async function GET(req: Request) {
   // Przy okazji: przypomnienia o porzuconych koszykach (jeden dzienny cron na Hobby).
   const koszyk = await przypomnijKoszyki();
 
-  return Response.json({ ok: true, wyslano, sprawdzono: data?.length ?? 0, koszyk, scal });
+  return Response.json({ ok: true, wyslano, sprawdzono: data?.length ?? 0, koszyk, scal, przekat });
 }
