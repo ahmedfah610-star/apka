@@ -58,7 +58,8 @@ const KOLUMNY_KATALOG =
 /** Katalog widoczny w sklepie (bez wyłączonych ofert). */
 export async function katalogWidoczny(): Promise<Produkt[]> {
   if (supabaseWlaczony()) {
-    const sb = sbAnon() ?? sbService();
+    // Service role (serwerowo) — omija RLS/limity klucza anon, który zwracał tylko część wierszy.
+    const sb = sbService() ?? sbAnon();
     if (sb) {
       const { data, error } = await sb.from("produkty").select(KOLUMNY_KATALOG).eq("ukryty", false).order("created_at", { ascending: true }).limit(5000);
       if (!error && data) return data.map(zRzedu);
@@ -81,7 +82,7 @@ export async function katalogWszystko(): Promise<Produkt[]> {
 
 export async function znajdzProduktDb(id: string): Promise<Produkt | null> {
   if (supabaseWlaczony()) {
-    const sb = sbAnon() ?? sbService();
+    const sb = sbService() ?? sbAnon();
     if (sb) {
       const { data } = await sb.from("produkty").select("*").eq("id", id).maybeSingle();
       if (data) return zRzedu(data);
