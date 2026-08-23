@@ -50,7 +50,19 @@ export default function PulpitAdmina() {
   return (
     <div>
       <h1 className="mb-1 text-[26px] font-bold tracking-tight">Pulpit</h1>
-      <p className="mb-8 text-[14px] text-ink-2">Przegląd sklepu bobas-shopping</p>
+      <p className="mb-6 text-[14px] text-ink-2">Przegląd sklepu bobas-shopping</p>
+
+      {/* Duży skrót do magazynu — najczęstsza czynność (ustawianie ilości sztuk). */}
+      <Link
+        href="/admin/magazyn"
+        className="mb-8 flex items-center justify-between gap-4 rounded-2xl bg-akcent px-6 py-5 text-white no-underline transition-colors hover:bg-ink"
+      >
+        <span>
+          <span className="block text-[20px] font-bold">📦 Magazyn — ilości sztuk</span>
+          <span className="block text-[14px] text-white/85">Przeglądaj produkty po kolei i ustaw, ile masz sztuk każdego rozmiaru</span>
+        </span>
+        <span className="shrink-0 text-[24px] font-bold">→</span>
+      </Link>
 
       {/* KPI */}
       <div className="mb-10 grid grid-cols-2 gap-4 md:grid-cols-4">
