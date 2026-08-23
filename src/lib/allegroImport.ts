@@ -42,7 +42,7 @@ function bazaNazwy(n: string): string {
     .replace(/\d+\s*[-–]\s*\d+/g, " ") // zakresy: 62-68, 86- 92
     .replace(/\brozm\.?\b/gi, " ")
     .replace(/\d+/g, " ") // pojedyncze liczby (rozmiary)
-    .replace(/[+/,]/g, " ")
+    .replace(/[+/,–-]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -129,8 +129,9 @@ function kategoriaIWiek(rozmiar: string, o: any, nazwa: string): { kategoria: Ka
   const n = (nazwa || "").toLowerCase();
   const plec = wartosciParametru(param(o, "płeć", "plec")).join(" ").toLowerCase();
 
+  // Uwzględnia literówki sprzedawcy (np. „dziwczynki").
   const chlopiec = /chłop|chlop/.test(n) || (plec.includes("chłop") && !plec.includes("dziew"));
-  const dziewczynka = /dziewczyn|sukienk|legins|legginsy/.test(n) || (plec.includes("dziew") && !plec.includes("chłop"));
+  const dziewczynka = /dziewcz|dziwcz|dziewczyn|sukienk|legins/.test(n) || (plec.includes("dziew") && !plec.includes("chłop"));
 
   let kategoria: Kategoria;
   if (chlopiec && !dziewczynka) kategoria = "chlopcy";
@@ -165,8 +166,9 @@ export function mapujOferte(o: any): OfertaZmapowana {
   // Grupowanie wariantów rozmiaru: najpewniejszy sygnał to WSPÓLNE GŁÓWNE ZDJĘCIE
   // (sprzedawca używa tego samego zdjęcia dla różnych rozmiarów jednej rzeczy).
   // Fallback, gdy brak zdjęcia: nazwa bez rozmiaru + kolor.
-  const glowne = zdjecia[0] ?? null;
-  const klucz = glowne ? hash36("img:" + glowne) : kluczGrupy(nazwaPelna, kolor);
+  // Grupowanie po nazwie (bez rozmiaru) + kolor — łączy warianty rozmiaru,
+  // także gdy zdjęcia są wgrane pod różnymi URL-ami (częste u sprzedawcy).
+  const klucz = kluczGrupy(nazwaPelna, kolor);
 
   const wiersz: Record<string, unknown> = {
     id: `al-${klucz}`,
