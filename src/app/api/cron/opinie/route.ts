@@ -1,6 +1,8 @@
 import { sbService } from "@/lib/supabase";
 import { wyslijMailProsbaOOpinie, mailWlaczony } from "@/lib/mail";
 import { przypomnijKoszyki } from "@/lib/koszykCron";
+import { scalProdukty } from "@/lib/allegroImport";
+import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -14,10 +16,24 @@ export async function GET(req: Request) {
   if (req.headers.get("authorization") !== `Bearer ${sekret}`) {
     return Response.json({ ok: false, powod: "brak_dostepu" }, { status: 401 });
   }
-  if (!mailWlaczony()) return Response.json({ ok: false, powod: "brak_maili" }, { status: 503 });
-
   const sb = sbService();
   if (!sb) return Response.json({ ok: false, powod: "brak_bazy" }, { status: 503 });
+
+  // Samoleczenie katalogu Allegro (niezależne od maili): jeśli są jeszcze niescalone
+  // pojedyncze oferty (al-… bez al-m-…), scal warianty rozmiarów w jeden produkt.
+  // Po scaleniu — no-op (brak takich wierszy). Robimy to zanim wyjdziemy przy braku maili.
+  let scal: unknown = { pominieto: true };
+  const { count: doScalenia } = await sb
+    .from("produkty")
+    .select("id", { count: "exact", head: true })
+    .like("id", "al-%")
+    .not("id", "like", "al-m-%");
+  if ((doScalenia ?? 0) > 0) {
+    scal = await scalProdukty();
+    odswiezPoZmianieStanu();
+  }
+
+  if (!mailWlaczony()) return Response.json({ ok: true, powod: "brak_maili", scal }, { status: 200 });
 
   const od = new Date(Date.now() - 30 * 86400000).toISOString();
   const doD = new Date(Date.now() - 7 * 86400000).toISOString();
@@ -54,5 +70,5 @@ export async function GET(req: Request) {
   // Przy okazji: przypomnienia o porzuconych koszykach (jeden dzienny cron na Hobby).
   const koszyk = await przypomnijKoszyki();
 
-  return Response.json({ ok: true, wyslano, sprawdzono: data?.length ?? 0, koszyk });
+  return Response.json({ ok: true, wyslano, sprawdzono: data?.length ?? 0, koszyk, scal });
 }

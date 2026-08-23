@@ -279,7 +279,7 @@ export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: 
   const sb = sbService();
   if (!sb) return { ok: false, przed: 0, po: 0, blad: "Brak bazy." };
 
-  const kolumny = "id, nazwa, kolor, cena, rozmiary, stan_rozmiary, zdjecia, zdjecie, opis, opis_html";
+  const kolumny = "id, nazwa, kolor, cena, kategoria, rozmiary, stan_rozmiary, zdjecia, zdjecie, opis, opis_html";
   const wszystkie: any[] = [];
   for (let from = 0; from < 30000; from += 1000) {
     const { data, error } = await sb.from("produkty").select(kolumny).like("id", "al-%").order("id").range(from, from + 999);
@@ -312,7 +312,17 @@ export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: 
     }
     const rozmiary = [...rozm].sort((a, b) => (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0));
     const minR = rozmiary.map((x) => parseInt(x, 10)).filter((x) => Number.isFinite(x)).sort((a, b) => a - b)[0];
-    const { kategoria, wiek } = kategoriaIWiek(minR ? String(minR) : "", {}, first.nazwa || "");
+    // Kategoria: ZACHOWAJ ustaloną przy imporcie (uwzględniała parametr Płeć z Allegro,
+    // którego już nie mamy tutaj). Głosowanie większością w grupie — inaczej dziewczynki,
+    // których nazwa nie zawiera „dziewcz", spadłyby do „niemowlęta".
+    const glosy = new Map<Kategoria, number>();
+    for (const p of grupa) {
+      const k = (p.kategoria as Kategoria) || "niemowleta";
+      glosy.set(k, (glosy.get(k) ?? 0) + 1);
+    }
+    const kategoria: Kategoria = [...glosy.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "niemowleta";
+    // Wiek z najmniejszego rozmiaru (rozmiar odpowiada wzrostowi — pewny sygnał).
+    const wiek: Wiek = minR ? (minR <= 98 ? "0-2" : minR <= 128 ? "2-6" : "6-12") : "2-6";
     const zdjecia = [...zdj];
     const h = hash36(key);
     scalone.push({
