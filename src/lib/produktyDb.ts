@@ -1,5 +1,6 @@
 import { PRODUKTY, type Produkt } from "@/data/produkty";
 import { sbAnon, sbService, supabaseWlaczony } from "@/lib/supabase";
+import { ladnaNazwa } from "@/lib/nazwa";
 
 // Warstwa danych produktów. Gdy Supabase jest skonfigurowany — czyta z bazy.
 // Bez konfiguracji — fallback do katalogu z kodu (238 produktów), więc sklep
@@ -9,7 +10,7 @@ import { sbAnon, sbService, supabaseWlaczony } from "@/lib/supabase";
 function zRzedu(r: any): Produkt {
   return {
     id: r.id,
-    nazwa: r.nazwa,
+    nazwa: ladnaNazwa(r.nazwa), // schludny tytuł (bez KRZYKU, „cm", literówek) — spójnie wszędzie
     cena: Number(r.cena),
     kategoria: r.kategoria,
     wiek: r.wiek,

@@ -42,7 +42,7 @@ export function KartaProduktu({ produkt }: { produkt: Produkt }) {
           </span>
         ) : null}
       </div>
-      <h3 className="mb-1 text-[15px] font-semibold leading-snug transition-colors group-hover:text-akcent">{produkt.nazwa}</h3>
+      <h3 className="mb-1 line-clamp-2 min-h-[2.7em] text-[15px] font-semibold leading-snug transition-colors group-hover:text-akcent">{produkt.nazwa}</h3>
       <p className="mb-1.5 text-[12.5px] text-[oklch(50%_0.01_90)]">{produkt.wiekLabel}</p>
       <p className="text-[16px] font-bold text-ink">{formatCena(produkt.cena)} zł</p>
       {malo ? (

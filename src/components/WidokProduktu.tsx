@@ -76,16 +76,7 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
 
           <DodajDoKoszyka produkt={p} />
 
-          {p.opisHtml ? (
-            <div
-              className="opis-allegro mb-6 max-w-prose text-[15px] leading-relaxed text-ink-2 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-[19px] [&_h1]:font-bold [&_h1]:text-ink [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-[17px] [&_h2]:font-bold [&_h2]:text-ink [&_h3]:font-semibold [&_h3]:text-ink [&_img]:my-3 [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-lg [&_li]:ml-4 [&_li]:list-disc [&_p]:mb-3 [&_ul]:mb-3 [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-1"
-              dangerouslySetInnerHTML={{ __html: p.opisHtml }}
-            />
-          ) : (
-            <p className="mb-6 max-w-prose text-[15px] leading-relaxed text-ink-2">{opisProduktu(p)}</p>
-          )}
-
-          <ul className="flex flex-col gap-2 border-t border-linia pt-6">
+          <ul className="mt-6 flex flex-col gap-2 border-t border-linia pt-6">
             {(CECHY[p.kategoria] ?? []).map((c) => (
               <li key={c} className="flex items-start gap-2 text-[14px] text-ink-2">
                 <span className="mt-2 h-1 w-1 shrink-0 bg-akcent" />
@@ -95,6 +86,21 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
           </ul>
         </div>
       </div>
+
+      {/* Pełny opis — osobna, pełnowymiarowa sekcja (zdjęcia wyśrodkowane i wyrównane). */}
+      <section className="border-t border-linia px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="mb-6 text-[22px] font-bold tracking-tight">Opis produktu</h2>
+          {p.opisHtml ? (
+            <div
+              className="opis-allegro text-[15px] leading-relaxed text-ink-2 [&_h1]:mb-2 [&_h1]:mt-6 [&_h1]:text-[20px] [&_h1]:font-bold [&_h1]:text-ink [&_h2]:mb-2 [&_h2]:mt-6 [&_h2]:text-[18px] [&_h2]:font-bold [&_h2]:text-ink [&_h3]:mt-4 [&_h3]:font-semibold [&_h3]:text-ink [&_img]:mx-auto [&_img]:my-4 [&_img]:block [&_img]:h-auto [&_img]:w-full [&_img]:max-w-xl [&_img]:rounded-xl [&_img]:border [&_img]:border-linia [&_li]:ml-5 [&_li]:list-disc [&_li]:marker:text-akcent [&_p]:mb-4 [&_strong]:text-ink [&_ul]:mb-4 [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-1.5"
+              dangerouslySetInnerHTML={{ __html: p.opisHtml }}
+            />
+          ) : (
+            <p className="text-[15px] leading-relaxed text-ink-2">{opisProduktu(p)}</p>
+          )}
+        </div>
+      </section>
 
       <Opinie produktId={p.id} />
 

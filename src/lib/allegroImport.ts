@@ -1,5 +1,6 @@
 import { allegroGet } from "@/lib/allegro";
 import { sbService } from "@/lib/supabase";
+import { ladnaNazwa } from "@/lib/nazwa";
 import type { Kategoria, Wiek } from "@/data/produkty";
 
 // Mapowanie ofert z Allegro na produkty sklepu. Wyciąga: nazwę, cenę, wszystkie
@@ -328,7 +329,7 @@ export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: 
     scalone.push({
       id: "al-m-" + h,
       allegro_id: "m-" + h,
-      nazwa: bazaNazwy(first.nazwa || "") || first.nazwa || "Produkt",
+      nazwa: ladnaNazwa(bazaNazwy(first.nazwa || "")) || first.nazwa || "Produkt",
       cena: first.cena ?? 0,
       kategoria, wiek, wiek_label: WIEK_LABEL[wiek], badge: null,
       rozmiary, kolor: first.kolor ?? null,
