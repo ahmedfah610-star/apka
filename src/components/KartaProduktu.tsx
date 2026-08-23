@@ -14,7 +14,7 @@ export function KartaProduktu({ produkt }: { produkt: Produkt }) {
   return (
     <Link href={`/produkty/${produkt.id}`} className="group block text-inherit no-underline">
       <div
-        className="relative mb-3.5 flex h-[320px] items-center justify-center overflow-hidden rounded-2xl border border-linia bg-white transition-all duration-300 group-hover:-translate-y-1 group-hover:border-ink/15 group-hover:shadow-[0_16px_36px_-18px_rgba(0,0,0,0.4)]"
+        className="relative mb-3.5 flex aspect-[4/5] items-center justify-center overflow-hidden rounded-2xl border border-linia bg-white transition-all duration-300 group-hover:-translate-y-1 group-hover:border-ink/15 group-hover:shadow-[0_16px_36px_-18px_rgba(0,0,0,0.4)]"
         style={produkt.zdjecie ? undefined : placeholder}
       >
         <PrzyciskUlubione id={produkt.id} />
@@ -23,7 +23,7 @@ export function KartaProduktu({ produkt }: { produkt: Produkt }) {
           <img
             src={produkt.zdjecie}
             alt={produkt.nazwa}
-            className="h-full w-full object-contain p-3.5 transition-transform duration-500 ease-out group-hover:scale-[1.05]"
+            className="h-full w-full object-contain p-2 transition-transform duration-500 ease-out group-hover:scale-[1.05]"
             loading="lazy"
           />
         ) : (
