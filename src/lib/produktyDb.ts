@@ -49,12 +49,18 @@ export function doRzedu(p: Produkt): Record<string, unknown> {
   };
 }
 
+// Kolumny do LIST — bez ciężkich pól (allegro_surowe = pełny JSON oferty,
+// opis_html = pełny opis). Bez tego odpowiedź przy 1000+ produktach jest
+// gigantyczna i się urywa. Ciężkie pola pobieramy tylko dla jednego produktu.
+const KOLUMNY_KATALOG =
+  "id, nazwa, cena, kategoria, wiek, wiek_label, badge, rozmiary, zdjecie, zdjecia, opis, kolor, stan, stan_rozmiary, ukryty, hue, created_at";
+
 /** Katalog widoczny w sklepie (bez wyłączonych ofert). */
 export async function katalogWidoczny(): Promise<Produkt[]> {
   if (supabaseWlaczony()) {
     const sb = sbAnon() ?? sbService();
     if (sb) {
-      const { data, error } = await sb.from("produkty").select("*").eq("ukryty", false).order("created_at", { ascending: true });
+      const { data, error } = await sb.from("produkty").select(KOLUMNY_KATALOG).eq("ukryty", false).order("created_at", { ascending: true }).limit(5000);
       if (!error && data) return data.map(zRzedu);
     }
   }
@@ -66,7 +72,7 @@ export async function katalogWszystko(): Promise<Produkt[]> {
   if (supabaseWlaczony()) {
     const sb = sbService() ?? sbAnon();
     if (sb) {
-      const { data, error } = await sb.from("produkty").select("*").order("created_at", { ascending: true });
+      const { data, error } = await sb.from("produkty").select(KOLUMNY_KATALOG).order("created_at", { ascending: true }).limit(5000);
       if (!error && data) return data.map(zRzedu);
     }
   }
