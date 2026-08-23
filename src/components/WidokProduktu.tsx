@@ -10,6 +10,7 @@ import { TerminDostawy } from "@/components/TerminDostawy";
 import { KATEGORIE_LABEL, opisProduktu, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { etykietaStanu } from "@/lib/dostepnosc";
+import { wariantyKoloru, kluczWariantu, zwinWarianty } from "@/lib/warianty";
 
 const CECHY: Record<string, string[]> = {
   dziewczynki: ["Miękka, przyjazna skórze tkanina", "Wygodny krój na co dzień", "Łatwe pranie w 30°C"],
@@ -21,7 +22,12 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
   const placeholder = {
     background: `repeating-linear-gradient(115deg, oklch(90% 0.02 ${p.hue}) 0 18px, oklch(95% 0.01 ${p.hue}) 18px 36px)`,
   };
-  const podobne = wszystkie.filter((x) => x.kategoria === p.kategoria && x.id !== p.id).slice(0, 4);
+  const kolory = wariantyKoloru(wszystkie, p);
+  // „Zobacz też" — inne modele (bez wariantów tego samego), zwinięte po kolorze.
+  const kluczTego = kluczWariantu(p);
+  const podobne = zwinWarianty(wszystkie.filter((x) => x.kategoria === p.kategoria && kluczWariantu(x) !== kluczTego))
+    .map((z) => z.produkt)
+    .slice(0, 4);
   const zdjecia = p.zdjecia?.length ? p.zdjecia : p.zdjecie ? [p.zdjecie] : [];
 
   return (
@@ -73,6 +79,37 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
           })()}
 
           {p.stan !== 0 ? <TerminDostawy klasa="mb-6 flex items-center gap-2 text-[13.5px] text-ink-2" /> : <div className="mb-6" />}
+
+          {kolory.length > 1 ? (
+            <div className="mb-6">
+              <p className="mb-2.5 text-[13.5px] font-semibold text-ink">
+                Kolor: <span className="font-normal text-ink-2">{p.kolor ?? "—"}</span>
+                <span className="ml-1 text-ink-2">({kolory.length} do wyboru)</span>
+              </p>
+              <div className="flex flex-wrap gap-2.5">
+                {kolory.map((w) => (
+                  <Link
+                    key={w.id}
+                    href={`/produkty/${w.id}`}
+                    title={`${w.kolor ?? "kolor"}${w.dostepny ? "" : " — brak"}`}
+                    aria-label={w.kolor ?? "kolor"}
+                    scroll={false}
+                    className={`relative block h-14 w-14 overflow-hidden rounded-xl border-2 bg-white transition-all ${
+                      w.aktywny ? "border-ink ring-2 ring-ink ring-offset-2" : "border-linia hover:border-ink"
+                    }`}
+                  >
+                    {w.zdjecie ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={w.zdjecie} alt={w.kolor ?? ""} className={`h-full w-full object-contain p-0.5 ${w.dostepny ? "" : "opacity-40"}`} loading="lazy" />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center text-[10px] text-ink-2">{w.kolor?.slice(0, 6)}</span>
+                    )}
+                    {!w.dostepny ? <span className="absolute inset-x-0 bottom-0 bg-white/85 text-center text-[8px] font-semibold text-ink-2">brak</span> : null}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <DodajDoKoszyka produkt={p} />
 
