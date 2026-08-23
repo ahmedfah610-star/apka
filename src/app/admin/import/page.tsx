@@ -76,6 +76,25 @@ export default function AdminImport() {
     }
   }
 
+  async function scalProdukty() {
+    setBusy(true);
+    setKomunikat("Łączenie rozmiarów w produkty i poprawianie kategorii… (chwilę to potrwa)");
+    setWynik(null);
+    try {
+      const r = await fetch("/api/admin/allegro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ akcja: "scal" }),
+      });
+      const d = (await r.json().catch(() => ({}))) as { ok?: boolean; przed?: number; po?: number; blad?: string };
+      setKomunikat(d.ok ? `Gotowe: ${d.przed ?? 0} ofert połączono w ${d.po ?? 0} produktów.` : `Błąd: ${d.blad || "nie udało się"}`);
+    } catch {
+      setKomunikat("Błąd połączenia (spróbuj kliknąć jeszcze raz — operacja jest bezpieczna do powtórzenia).");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function poprawKategorie() {
     setBusy(true);
     setKomunikat("Przeliczanie kategorii…");
@@ -200,6 +219,9 @@ export default function AdminImport() {
               <div className="flex flex-wrap items-center gap-3">
                 <button onClick={importuj} disabled={busy} className="bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
                   {busy ? "IMPORTOWANIE…" : "IMPORTUJ OFERTY"}
+                </button>
+                <button onClick={scalProdukty} disabled={busy} className="bg-akcent px-5 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-ink disabled:opacity-60">
+                  Połącz rozmiary + popraw kategorie
                 </button>
                 <button onClick={poprawKategorie} disabled={busy} className="border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink transition-colors hover:border-ink disabled:opacity-60">
                   Popraw kategorie

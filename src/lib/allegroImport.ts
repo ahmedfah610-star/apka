@@ -273,6 +273,72 @@ export async function przeklasyfikuj(): Promise<{ ok: boolean; zmieniono: number
   return { ok: true, zmieniono };
 }
 
+// Scala już zaimportowane produkty (osobne oferty na rozmiar) w jeden produkt
+// po nazwie(bez rozmiaru)+kolor+cena i poprawia kategorie. Bez pobierania z Allegro.
+export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: number; blad?: string }> {
+  const sb = sbService();
+  if (!sb) return { ok: false, przed: 0, po: 0, blad: "Brak bazy." };
+
+  const kolumny = "id, nazwa, kolor, cena, rozmiary, stan_rozmiary, zdjecia, zdjecie, opis, opis_html";
+  const wszystkie: any[] = [];
+  for (let from = 0; from < 30000; from += 1000) {
+    const { data, error } = await sb.from("produkty").select(kolumny).like("id", "al-%").order("id").range(from, from + 999);
+    if (error) return { ok: false, przed: wszystkie.length, po: 0, blad: error.message };
+    wszystkie.push(...(data ?? []));
+    if ((data ?? []).length < 1000) break;
+  }
+  const przed = wszystkie.length;
+  if (przed === 0) return { ok: true, przed: 0, po: 0 };
+
+  const grupy = new Map<string, any[]>();
+  for (const p of wszystkie) {
+    const key = bazaNazwy(p.nazwa || "").toLowerCase() + "|" + (p.kolor || "") + "|" + (p.cena ?? "");
+    const arr = grupy.get(key); if (arr) arr.push(p); else grupy.set(key, [p]);
+  }
+
+  const scalone: any[] = [];
+  for (const [key, grupa] of grupy) {
+    const first = grupa[0];
+    const sr: Record<string, number> = {};
+    const rozm = new Set<string>();
+    const zdj = new Set<string>();
+    let opis: string | null = null, opisHtml: string | null = null;
+    for (const p of grupa) {
+      for (const r of p.rozmiary ?? []) rozm.add(String(r));
+      for (const [s, v] of Object.entries(p.stan_rozmiary ?? {})) sr[s] = Math.max(sr[s] ?? 0, Number(v) || 0);
+      for (const z of p.zdjecia ?? []) zdj.add(String(z));
+      if (!opis && p.opis) opis = p.opis;
+      if (!opisHtml && p.opis_html) opisHtml = p.opis_html;
+    }
+    const rozmiary = [...rozm].sort((a, b) => (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0));
+    const minR = rozmiary.map((x) => parseInt(x, 10)).filter((x) => Number.isFinite(x)).sort((a, b) => a - b)[0];
+    const { kategoria, wiek } = kategoriaIWiek(minR ? String(minR) : "", {}, first.nazwa || "");
+    const zdjecia = [...zdj];
+    const h = hash36(key);
+    scalone.push({
+      id: "al-m-" + h,
+      allegro_id: "m-" + h,
+      nazwa: bazaNazwy(first.nazwa || "") || first.nazwa || "Produkt",
+      cena: first.cena ?? 0,
+      kategoria, wiek, wiek_label: WIEK_LABEL[wiek], badge: null,
+      rozmiary, kolor: first.kolor ?? null,
+      zdjecie: zdjecia[0] ?? first.zdjecie ?? null, zdjecia,
+      opis, opis_html: opisHtml,
+      stan: Object.values(sr).reduce((a, b) => a + b, 0),
+      stan_rozmiary: Object.keys(sr).length ? sr : null,
+      ukryty: false, hue: HUE[kategoria],
+    });
+  }
+
+  for (let i = 0; i < scalone.length; i += 200) {
+    const { error } = await sb.from("produkty").upsert(scalone.slice(i, i + 200), { onConflict: "id" });
+    if (error) return { ok: false, przed, po: 0, blad: error.message };
+  }
+  // Usuń pojedyncze oferty (al- ale nie scalone al-m-).
+  await sb.from("produkty").delete().like("id", "al-%").not("id", "like", "al-m-%");
+  return { ok: true, przed, po: scalone.length };
+}
+
 export interface WynikImportu { ok: boolean; pobrano: number; zapisano: number; bledy: number; blad?: string }
 
 /** Pobiera wszystkie oferty, mapuje i zapisuje do bazy (grupuje warianty). */

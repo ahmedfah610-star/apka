@@ -1,6 +1,6 @@
 import { czyAdmin } from "@/lib/adminAuth";
 import { allegroSkonfigurowany, czyPolaczony, rozpocznijDevice, sprawdzDevice, allegroGet } from "@/lib/allegro";
-import { importujStrone, przeklasyfikuj } from "@/lib/allegroImport";
+import { importujStrone, przeklasyfikuj, scalProdukty } from "@/lib/allegroImport";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 import { sbService } from "@/lib/supabase";
 
@@ -128,6 +128,12 @@ export async function POST(req: Request) {
     if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
     odswiezPoZmianieStanu();
     return Response.json({ ok: true, usunieto: count ?? 0 });
+  }
+
+  if (b.akcja === "scal") {
+    const r = await scalProdukty();
+    if (r.ok) odswiezPoZmianieStanu();
+    return Response.json(r, { status: r.ok ? 200 : 500 });
   }
 
   if (b.akcja === "przeklasyfikuj") {
