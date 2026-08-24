@@ -4,7 +4,7 @@ import { formatCena } from "@/lib/filtrowanie";
 import { PrzyciskUlubione } from "@/components/PrzyciskUlubione";
 import { PROG_MALO } from "@/lib/dostepnosc";
 
-export function KartaProduktu({ produkt }: { produkt: Produkt }) {
+export function KartaProduktu({ produkt, liczbaKolorow, cenaOd }: { produkt: Produkt; liczbaKolorow?: number; cenaOd?: number }) {
   const placeholder = {
     background: `repeating-linear-gradient(115deg, oklch(90% 0.02 ${produkt.hue}) 0 18px, oklch(95% 0.01 ${produkt.hue}) 18px 36px)`,
   };
@@ -43,8 +43,16 @@ export function KartaProduktu({ produkt }: { produkt: Produkt }) {
         ) : null}
       </div>
       <h3 className="mb-1 line-clamp-2 min-h-[2.7em] text-[15px] font-semibold leading-snug transition-colors group-hover:text-akcent">{produkt.nazwa}</h3>
-      <p className="mb-1.5 text-[12.5px] text-[oklch(50%_0.01_90)]">{produkt.wiekLabel}</p>
-      <p className="text-[16px] font-bold text-ink">{formatCena(produkt.cena)} zł</p>
+      <p className="mb-1.5 text-[12.5px] text-[oklch(50%_0.01_90)]">
+        {produkt.wiekLabel}
+        {liczbaKolorow && liczbaKolorow > 1 ? (
+          <span className="text-ink-2"> · {liczbaKolorow} {liczbaKolorow <= 4 ? "kolory" : "kolorów"}</span>
+        ) : null}
+      </p>
+      <p className="text-[16px] font-bold text-ink">
+        {cenaOd ? <span className="text-[12.5px] font-semibold text-ink-2">od </span> : null}
+        {formatCena(cenaOd ?? produkt.cena)} zł
+      </p>
       {malo ? (
         <p className="mt-1 flex items-center gap-1 text-[12px] font-semibold text-akcent">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
