@@ -330,7 +330,10 @@ export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: 
 
   const grupy = new Map<string, any[]>();
   for (const p of wszystkie) {
-    const key = bazaNazwy(p.nazwa || "").toLowerCase() + "|" + (p.kolor || "") + "|" + (p.cena ?? "");
+    // Klucz zawiera PROJEKT/WZÓR (początek opisu) — inaczej dwa różne wzory o tej
+    // samej nazwie+kolorze+cenie (np. „GOAL" i „miś") zlepiłyby się w jeden produkt.
+    const opisKlucz = (p.opis || "").replace(/\s+/g, " ").trim().toLowerCase().slice(0, 60);
+    const key = bazaNazwy(p.nazwa || "").toLowerCase() + "|" + (p.kolor || "") + "|" + (p.cena ?? "") + "|" + opisKlucz;
     const arr = grupy.get(key); if (arr) arr.push(p); else grupy.set(key, [p]);
   }
 
