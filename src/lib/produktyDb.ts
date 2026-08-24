@@ -1,6 +1,7 @@
 import { PRODUKTY, type Produkt } from "@/data/produkty";
 import { sbAnon, sbService, supabaseWlaczony } from "@/lib/supabase";
 import { ladnaNazwa } from "@/lib/nazwa";
+import { HERO_ZDJEC } from "@/data/heroZdjec";
 
 // Warstwa danych produktów. Gdy Supabase jest skonfigurowany — czyta z bazy.
 // Bez konfiguracji — fallback do katalogu z kodu (238 produktów), więc sklep
@@ -8,6 +9,10 @@ import { ladnaNazwa } from "@/lib/nazwa";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function zRzedu(r: any): Produkt {
+  // Zdjęcie najlepiej pasujące do koloru (analiza obrazu) na pierwsze miejsce.
+  let zdjecia: string[] = r.zdjecia ?? [];
+  const hero = HERO_ZDJEC[r.id as string];
+  if (hero && zdjecia.includes(hero)) zdjecia = [hero, ...zdjecia.filter((z: string) => z !== hero)];
   return {
     id: r.id,
     nazwa: ladnaNazwa(r.nazwa), // schludny tytuł (bez KRZYKU, „cm", literówek) — spójnie wszędzie
@@ -17,8 +22,8 @@ function zRzedu(r: any): Produkt {
     wiekLabel: r.wiek_label,
     badge: r.badge ?? null,
     rozmiary: r.rozmiary ?? [],
-    zdjecie: r.zdjecie ?? null,
-    zdjecia: r.zdjecia ?? [],
+    zdjecie: zdjecia[0] ?? r.zdjecie ?? null,
+    zdjecia,
     opis: r.opis ?? undefined,
     opisHtml: r.opis_html ?? null,
     kolor: r.kolor ?? null,
