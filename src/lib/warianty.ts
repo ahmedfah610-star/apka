@@ -10,16 +10,37 @@ import type { Produkt } from "@/data/produkty";
 // danych — grupujemy w locie.
 
 function normOpis(s: string | null | undefined): string {
-  return (s || "").replace(/\s+/g, " ").trim().toLowerCase();
+  return (s || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-ząćęłńóśźż0-9 ]/g, "");
+}
+
+// Typ ubranka z nazwy — zabezpieczenie, żeby ten sam początek opisu nie zlepił
+// różnych rzeczy (np. spodnie z bluzą). Kolejność ma znaczenie (dłuższe/pewniejsze wcześniej).
+const TYPY = [
+  "półśpioch", "polspioch", "śpioch", "spioch", "skarpet", "bucik", "pajac", "wyprawk", "komplet",
+  "legins", "leggin", "getr", "rybaczk", "kolark", "spodnie", "bluzka", "bluza", "tshirt", "t shirt",
+  "koszul", "sukien", "tunik", "czapk", "opaska", "kurtk", "kamizel", "sweter", "kaftanik", "body",
+  "ramper", "kombinezon", "rękawic", "półbucik",
+];
+function typUbranka(nazwa: string): string {
+  const n = (nazwa || "").toLowerCase();
+  for (const t of TYPY) if (n.includes(t)) return t;
+  return "";
 }
 
 /**
- * Klucz rodziny wariantów. Identyczny (znormalizowany) opis = ten sam model.
- * Zbyt krótki/pusty opis → klucz unikalny (produkt nie łączy się z niczym).
+ * Klucz rodziny wariantów kolorystycznych = POCZĄTEK OPISU (90 zn.) + kategoria +
+ * typ ubranka. Sprzedawca kopiuje ten sam opis dla wszystkich kolorów jednego
+ * modelu (czasem z drobną zmianą w ogonie — dlatego prefiks, nie całość).
+ * Zbyt krótki opis → klucz unikalny (produkt nie łączy się z niczym).
  */
 export function kluczWariantu(p: Produkt): string {
   const o = normOpis(p.opis);
-  return o.length >= 20 ? `op:${o}` : `id:${p.id}`;
+  if (o.length < 40) return `id:${p.id}`;
+  return `${o.slice(0, 90)}|${p.kategoria}|${typUbranka(p.nazwa)}`;
 }
 
 function stanProduktu(p: Produkt): number {
