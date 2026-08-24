@@ -33,14 +33,16 @@ function typUbranka(nazwa: string): string {
 
 /**
  * Klucz rodziny wariantów kolorystycznych = POCZĄTEK OPISU (90 zn.) + kategoria +
- * typ ubranka. Sprzedawca kopiuje ten sam opis dla wszystkich kolorów jednego
- * modelu (czasem z drobną zmianą w ogonie — dlatego prefiks, nie całość).
+ * typ ubranka + CENA. Sprzedawca kopiuje ten sam opis dla wszystkich kolorów
+ * jednego modelu (czasem z drobną zmianą w ogonie — dlatego prefiks, nie całość).
+ * Cena to bezpiecznik: warianty koloru mają tę samą cenę, więc różne produkty
+ * o wspólnym (ogólnym) opisie, ale różnej cenie, NIE zlepiają się w jeden.
  * Zbyt krótki opis → klucz unikalny (produkt nie łączy się z niczym).
  */
 export function kluczWariantu(p: Produkt): string {
   const o = normOpis(p.opis);
   if (o.length < 40) return `id:${p.id}`;
-  return `${o.slice(0, 90)}|${p.kategoria}|${typUbranka(p.nazwa)}`;
+  return `${o.slice(0, 90)}|${p.kategoria}|${typUbranka(p.nazwa)}|${p.cena}`;
 }
 
 function stanProduktu(p: Produkt): number {
