@@ -19,6 +19,8 @@ export interface Zamowienie {
   dostawa: number;
   razem: number;
   metoda: string;
+  /** Status: nowe | oczekuje_na_platnosc | oplacone | wyslane | anulowane. */
+  status?: string;
 }
 
 export function slugify(s: string): string {

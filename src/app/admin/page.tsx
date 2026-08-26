@@ -44,7 +44,9 @@ export default function PulpitAdmina() {
   }, []);
 
   const kat = useMemo(() => statystykiKatalogu(produkty), [produkty]);
-  const zam = useMemo(() => statystykiZamowien(zamowienia), [zamowienia]);
+  // Realne = opłacone/wysłane (prawdziwa sprzedaż przez P24). Nowe/oczekujące/anulowane nie liczą się do obrotu.
+  const realne = useMemo(() => zamowienia.filter((z) => z.status === "oplacone" || z.status === "wyslane"), [zamowienia]);
+  const zam = useMemo(() => statystykiZamowien(realne), [realne]);
   const maxKat = Math.max(1, ...KATEGORIE.map((k) => kat.wgKategorii[k]));
 
   return (
@@ -68,8 +70,8 @@ export default function PulpitAdmina() {
       <div className="mb-10 grid grid-cols-2 gap-4 md:grid-cols-4">
         <Kafel etykieta="Produkty" wartosc={String(kat.liczba)} pod={`${kat.zPromocja} w promocji`} />
         <Kafel etykieta="Średnia cena" wartosc={`${formatCena(kat.sredniaCena)} zł`} pod={`od ${formatCena(kat.minCena)} do ${formatCena(kat.maxCena)} zł`} />
-        <Kafel etykieta="Zamówienia" wartosc={String(zam.liczba)} pod={`${zam.sztuk} szt. łącznie`} />
-        <Kafel etykieta="Obrót (demo)" wartosc={`${formatCena(zam.obrot)} zł`} pod={zam.liczba ? `śr. ${formatCena(zam.sredniaWartosc)} zł/zam.` : "brak zamówień"} />
+        <Kafel etykieta="Zamówienia" wartosc={String(zam.liczba)} pod={zam.liczba ? `${zam.sztuk} szt. łącznie` : "opłacone i wysłane"} />
+        <Kafel etykieta="Obrót" wartosc={`${formatCena(zam.obrot)} zł`} pod={zam.liczba ? `śr. ${formatCena(zam.sredniaWartosc)} zł/zam.` : "brak opłaconych zamówień"} />
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -99,13 +101,13 @@ export default function PulpitAdmina() {
         {/* Ostatnie zamówienia */}
         <section className="border border-linia bg-white p-6">
           <h2 className="mb-5 text-[16px] font-bold">Ostatnie zamówienia</h2>
-          {zamowienia.length === 0 ? (
+          {realne.length === 0 ? (
             <p className="text-[13px] text-ink-2">
-              Brak zamówień. Złóż testowe zamówienie w sklepie (demo), a pojawi się tutaj.
+              Brak opłaconych zamówień. Pojawią się tu po pierwszej sprzedaży przez Przelewy24.
             </p>
           ) : (
             <div className="flex flex-col divide-y divide-linia">
-              {zamowienia.slice(0, 6).map((z) => (
+              {realne.slice(0, 6).map((z) => (
                 <div key={z.id} className="flex items-center justify-between py-2.5 text-[13px]">
                   <span className="text-ink-2">
                     {new Date(z.data).toLocaleDateString("pl-PL")} · {z.pozycje.reduce((s, p) => s + p.ilosc, 0)} szt.
