@@ -47,6 +47,7 @@ export function doRzedu(p: Produkt): Record<string, unknown> {
     zdjecie: p.zdjecie ?? null,
     zdjecia: p.zdjecia ?? [],
     opis: p.opis ?? null,
+    opis_html: p.opisHtml ?? null,
     kolor: p.kolor ?? null,
     stan: p.stan ?? null,
     stan_rozmiary: p.stanRozmiary ?? null,

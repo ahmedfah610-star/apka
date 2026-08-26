@@ -3,21 +3,42 @@
 import { useRef, useState } from "react";
 import { type Kategoria, type Produkt, type Wiek } from "@/data/produkty";
 
+const WIEK_LABEL: Record<Wiek, string> = { "0-2": "0-2 lata", "2-6": "2-6 lat", "6-12": "6-12 lat" };
+const HUE: Record<Kategoria, number> = { dziewczynki: 340, chlopcy: 230, niemowleta: 160 };
+
+// Uproszczona sanityzacja opisu HTML (na wypadek wklejenia czegoś niebezpiecznego).
+function sanitizeHtml(html: string): string {
+  return html
+    .replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
+    .replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*\/?>/gi, "")
+    .replace(/\son\w+\s*=\s*"[^"]*"/gi, "")
+    .replace(/\son\w+\s*=\s*'[^']*'/gi, "")
+    .replace(/javascript:/gi, "");
+}
+
+const OPIS_KLASY =
+  "opis-allegro text-[14px] leading-relaxed text-ink-2 [&_h1]:mb-1 [&_h1]:mt-3 [&_h1]:text-[18px] [&_h1]:font-bold [&_h1]:text-ink [&_h2]:mb-1 [&_h2]:mt-3 [&_h2]:text-[16px] [&_h2]:font-bold [&_h2]:text-ink [&_h3]:mt-2 [&_h3]:font-semibold [&_h3]:text-ink [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded [&_li]:ml-5 [&_li]:list-disc [&_p]:mb-2 [&_strong]:text-ink [&_ul]:mb-2 [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-0.5";
+
 export function EdytorProduktu({
   produkt,
+  nowy = false,
   onZamknij,
   onZapisano,
 }: {
   produkt: Produkt;
+  nowy?: boolean;
   onZamknij: () => void;
   onZapisano: (zmiany: Partial<Produkt>) => void;
 }) {
   const [nazwa, setNazwa] = useState(produkt.nazwa);
-  const [cena, setCena] = useState(String(produkt.cena));
+  const [cena, setCena] = useState(produkt.cena ? String(produkt.cena) : "");
   const [kategoria, setKategoria] = useState<Kategoria>(produkt.kategoria);
   const [wiek, setWiek] = useState<Wiek>(produkt.wiek);
   const [badge, setBadge] = useState(produkt.badge ?? "");
+  const [kolor, setKolor] = useState(produkt.kolor ?? "");
   const [opis, setOpis] = useState(produkt.opis ?? "");
+  const [opisHtml, setOpisHtml] = useState(produkt.opisHtml ?? "");
+  const [podglad, setPodglad] = useState(false);
 
   const startZdj = produkt.zdjecia?.length ? produkt.zdjecia : produkt.zdjecie ? [produkt.zdjecie] : [];
   const [zdjecia, setZdjecia] = useState<string[]>(startZdj);
@@ -38,6 +59,8 @@ export function EdytorProduktu({
   const [zapis, setZapis] = useState(false);
   const [komunikat, setKomunikat] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const STANDARDOWE = ["56", "62", "68", "74", "80", "86", "92", "98", "104", "110", "116", "122", "128", "134", "140", "146", "152", "158", "164"];
 
   async function dodajPliki(e: React.ChangeEvent<HTMLInputElement>) {
     const pliki = e.target.files;
@@ -71,11 +94,11 @@ export function EdytorProduktu({
   const ustawGlowne = (i: number) => setZdjecia((z) => [z[i], ...z.filter((_, idx) => idx !== i)]);
   const usunZdj = (i: number) => setZdjecia((z) => z.filter((_, idx) => idx !== i));
 
-  function dodajRozmiar() {
-    const r = nowyRozmiar.trim();
-    if (!r || rozmiary.includes(r)) return;
-    setRozmiary((p) => [...p, r]);
-    setStany((s) => ({ ...s, [r]: 0 }));
+  function dodajRozmiar(r: string) {
+    const rr = (r ?? "").trim().replace(/\s+/g, "");
+    if (!rr || rozmiary.includes(rr)) return;
+    setRozmiary((p) => [...p, rr].sort((a, b) => (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0)));
+    setStany((s) => ({ ...s, [rr]: s[rr] ?? 0 }));
     setNowyRozmiar("");
   }
   function usunRozmiar(r: string) {
@@ -93,39 +116,64 @@ export function EdytorProduktu({
       setKomunikat("Podaj nazwę i poprawną cenę.");
       return;
     }
-    const zmiany: Partial<Produkt> = {
+    const wspolne: Partial<Produkt> = {
       nazwa: nazwa.trim(),
       cena: cenaN,
       kategoria,
       wiek,
+      wiekLabel: WIEK_LABEL[wiek],
       badge: badge || null,
+      kolor: kolor.trim() || null,
       opis: opis.trim() || undefined,
+      opisHtml: opisHtml.trim() ? sanitizeHtml(opisHtml.trim()) : null,
       zdjecia,
       zdjecie: zdjecia[0] ?? null,
+      hue: HUE[kategoria],
     };
     if (maRozmiary && rozmiary.length) {
-      zmiany.rozmiary = rozmiary;
-      zmiany.stanRozmiary = Object.fromEntries(rozmiary.map((r) => [r, Math.max(0, Number(stany[r]) || 0)]));
+      wspolne.rozmiary = rozmiary;
+      wspolne.stanRozmiary = Object.fromEntries(rozmiary.map((r) => [r, Math.max(0, Number(stany[r]) || 0)]));
+      wspolne.stan = Object.values(wspolne.stanRozmiary).reduce((s, v) => s + v, 0);
     } else {
-      zmiany.rozmiary = [];
-      zmiany.stanRozmiary = null;
-      zmiany.stan = stanProsty.trim() === "" ? undefined : Math.max(0, parseInt(stanProsty, 10) || 0);
+      wspolne.rozmiary = [];
+      wspolne.stanRozmiary = null;
+      wspolne.stan = stanProsty.trim() === "" ? undefined : Math.max(0, parseInt(stanProsty, 10) || 0);
     }
 
     setZapis(true);
     try {
-      const res = await fetch("/api/admin/produkty", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: produkt.id, zmiany }),
-      });
-      const d = (await res.json().catch(() => ({}))) as { ok?: boolean; blad?: string };
-      if (!res.ok || d.ok === false) {
-        setKomunikat(d.blad || "Nie udało się zapisać.");
-        setZapis(false);
-        return;
+      if (nowy) {
+        const nowyProdukt: Produkt = {
+          id: `reczny-${Date.now().toString(36)}`,
+          ukryty: false,
+          ...wspolne,
+        } as Produkt;
+        const res = await fetch("/api/admin/produkty", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(nowyProdukt),
+        });
+        const d = (await res.json().catch(() => ({}))) as { ok?: boolean; powod?: string; blad?: string };
+        if (!res.ok || d.ok === false) {
+          setKomunikat(d.powod === "brak_bazy" ? "Dodawanie wymaga podłączonej bazy (Supabase)." : d.blad || "Nie udało się zapisać.");
+          setZapis(false);
+          return;
+        }
+        onZapisano(nowyProdukt);
+      } else {
+        const res = await fetch("/api/admin/produkty", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: produkt.id, zmiany: wspolne }),
+        });
+        const d = (await res.json().catch(() => ({}))) as { ok?: boolean; blad?: string };
+        if (!res.ok || d.ok === false) {
+          setKomunikat(d.blad || "Nie udało się zapisać.");
+          setZapis(false);
+          return;
+        }
+        onZapisano(wspolne);
       }
-      onZapisano(zmiany);
     } catch {
       setKomunikat("Błąd połączenia.");
       setZapis(false);
@@ -138,7 +186,7 @@ export function EdytorProduktu({
     <div className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8" onClick={onZamknij}>
       <div className="w-full max-w-2xl border border-linia bg-tlo shadow-xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-linia px-5 py-3.5">
-          <h2 className="text-[16px] font-bold">Edytuj produkt</h2>
+          <h2 className="text-[16px] font-bold">{nowy ? "Wystaw nowy produkt" : "Edytuj produkt"}</h2>
           <button onClick={onZamknij} aria-label="Zamknij" className="text-ink-2 hover:text-ink">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path d="m6 6 12 12M18 6 6 18" />
@@ -148,7 +196,7 @@ export function EdytorProduktu({
 
         <div className="max-h-[75vh] overflow-y-auto p-5">
           {/* Zdjęcia */}
-          <p className="mb-2 text-[13px] font-semibold text-ink-2">Zdjęcia</p>
+          <p className="mb-2 text-[13px] font-semibold text-ink-2">Zdjęcia <span className="font-normal">(pierwsze = główne, najedź by zmienić)</span></p>
           <div className="mb-3 flex flex-wrap gap-2">
             {zdjecia.map((z, i) => (
               <div key={i} className="group relative h-20 w-20 border border-linia bg-szary">
@@ -157,36 +205,22 @@ export function EdytorProduktu({
                 {i === 0 ? (
                   <span className="absolute left-0 top-0 bg-ink px-1 text-[9px] font-semibold text-tlo">GŁÓWNE</span>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => ustawGlowne(i)}
-                    className="absolute inset-x-0 bottom-0 bg-ink/80 py-0.5 text-[9px] font-semibold text-tlo opacity-0 transition-opacity group-hover:opacity-100"
-                  >
+                  <button type="button" onClick={() => ustawGlowne(i)} className="absolute inset-x-0 bottom-0 bg-ink/80 py-0.5 text-[9px] font-semibold text-tlo opacity-0 transition-opacity group-hover:opacity-100">
                     główne
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={() => usunZdj(i)}
-                  className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center bg-ink text-[11px] text-tlo"
-                  aria-label="Usuń zdjęcie"
-                >
+                <button type="button" onClick={() => usunZdj(i)} className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center bg-ink text-[11px] text-tlo" aria-label="Usuń zdjęcie">
                   ✕
                 </button>
               </div>
             ))}
+            {zdjecia.length === 0 ? <span className="flex h-20 w-full items-center text-[12px] text-ink-2">Brak zdjęć — wgraj z dysku lub dodaj URL.</span> : null}
           </div>
           <div className="mb-5 flex flex-wrap items-center gap-3">
             <input ref={fileRef} type="file" accept="image/*" multiple onChange={dodajPliki} className="text-[13px]" />
             {wgrywanie ? <span className="text-[12px] text-ink-2">Wgrywanie…</span> : null}
             <span className="text-[12px] text-ink-2">lub</span>
-            <input
-              className={`${input} max-w-[200px]`}
-              placeholder="adres zdjęcia (URL)"
-              value={urlZdj}
-              onChange={(e) => setUrlZdj(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), dodajUrl())}
-            />
+            <input className={`${input} max-w-[200px]`} placeholder="adres zdjęcia (URL)" value={urlZdj} onChange={(e) => setUrlZdj(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), dodajUrl())} />
             <button type="button" onClick={dodajUrl} className="border border-ink px-3 py-2 text-[13px] font-semibold hover:bg-ink hover:text-tlo">
               Dodaj URL
             </button>
@@ -196,20 +230,15 @@ export function EdytorProduktu({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="sm:col-span-2 text-[12px] font-semibold text-ink-2">
               Nazwa
-              <input className={`${input} mt-1`} value={nazwa} onChange={(e) => setNazwa(e.target.value)} />
+              <input className={`${input} mt-1`} value={nazwa} onChange={(e) => setNazwa(e.target.value)} placeholder="np. Bluza dziecięca z kapturem" />
             </label>
             <label className="text-[12px] font-semibold text-ink-2">
               Cena (zł)
-              <input className={`${input} mt-1`} value={cena} onChange={(e) => setCena(e.target.value)} />
+              <input className={`${input} mt-1`} value={cena} onChange={(e) => setCena(e.target.value)} placeholder="49.99" />
             </label>
             <label className="text-[12px] font-semibold text-ink-2">
-              Plakietka
-              <select className={`${input} mt-1`} value={badge} onChange={(e) => setBadge(e.target.value)}>
-                <option value="">Bez plakietki</option>
-                <option value="NOWOŚĆ">NOWOŚĆ</option>
-                <option value="BESTSELLER">BESTSELLER</option>
-                <option value="-20%">-20%</option>
-              </select>
+              Kolor
+              <input className={`${input} mt-1`} value={kolor} onChange={(e) => setKolor(e.target.value)} placeholder="np. różowy" />
             </label>
             <label className="text-[12px] font-semibold text-ink-2">
               Kategoria
@@ -227,10 +256,46 @@ export function EdytorProduktu({
                 <option value="6-12">6-12 lat</option>
               </select>
             </label>
-            <label className="sm:col-span-2 text-[12px] font-semibold text-ink-2">
-              Opis
-              <textarea className={`${input} mt-1 min-h-[70px]`} value={opis} onChange={(e) => setOpis(e.target.value)} />
+            <label className="text-[12px] font-semibold text-ink-2">
+              Plakietka
+              <select className={`${input} mt-1`} value={badge} onChange={(e) => setBadge(e.target.value)}>
+                <option value="">Bez plakietki</option>
+                <option value="NOWOŚĆ">NOWOŚĆ</option>
+                <option value="BESTSELLER">BESTSELLER</option>
+                <option value="-20%">-20%</option>
+              </select>
             </label>
+            <label className="sm:col-span-2 text-[12px] font-semibold text-ink-2">
+              Krótki opis (pokazywany, gdy nie ma opisu rozszerzonego)
+              <textarea className={`${input} mt-1 min-h-[60px]`} value={opis} onChange={(e) => setOpis(e.target.value)} placeholder="Krótki, zachęcający opis produktu…" />
+            </label>
+          </div>
+
+          {/* Opis rozszerzony (HTML) — jak na stronie */}
+          <div className="mt-5 border-t border-linia pt-4">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[13px] font-semibold text-ink-2">Opis rozszerzony (jak na stronie)</p>
+              <button type="button" onClick={() => setPodglad((v) => !v)} className="text-[12px] font-semibold text-ink underline underline-offset-2 hover:text-akcent">
+                {podglad ? "Edytuj" : "Podgląd"}
+              </button>
+            </div>
+            {podglad ? (
+              <div className="min-h-[120px] rounded border border-linia-2 bg-white p-3">
+                {opisHtml.trim() ? (
+                  <div className={OPIS_KLASY} dangerouslySetInnerHTML={{ __html: sanitizeHtml(opisHtml) }} />
+                ) : (
+                  <p className="text-[13px] text-ink-2">Pusto. Wpisz treść w trybie edycji.</p>
+                )}
+              </div>
+            ) : (
+              <textarea
+                className={`${input} min-h-[160px] font-mono text-[12.5px]`}
+                value={opisHtml}
+                onChange={(e) => setOpisHtml(e.target.value)}
+                placeholder={"Rozbudowany opis. Możesz użyć prostego HTML:\n<h2>Nagłówek</h2>\n<p>Akapit opisu…</p>\n<ul><li>Cecha 1</li><li>Cecha 2</li></ul>\n<img src=\"adres-zdjęcia\" />"}
+              />
+            )}
+            <p className="mt-1.5 text-[11px] text-ink-2">Dozwolone znaczniki: nagłówki, akapity, listy, pogrubienie, zdjęcia. Skrypty są usuwane. Zostaw puste, jeśli wystarczy krótki opis.</p>
           </div>
 
           {/* Rozmiary i stany */}
@@ -247,28 +312,24 @@ export function EdytorProduktu({
                   {rozmiary.map((r) => (
                     <div key={r} className="flex items-center gap-1.5 border border-linia-2 bg-white px-2.5 py-1.5">
                       <span className="text-[12px] font-semibold text-ink-2">{r}</span>
-                      <input
-                        type="number"
-                        min={0}
-                        value={stany[r] ?? 0}
-                        onChange={(e) => setStany((s) => ({ ...s, [r]: Math.max(0, parseInt(e.target.value, 10) || 0) }))}
-                        className="w-14 border border-linia-2 bg-white px-1.5 py-1 text-center text-[13px] outline-none focus:border-ink"
-                      />
+                      <input type="number" min={0} value={stany[r] ?? 0} onChange={(e) => setStany((s) => ({ ...s, [r]: Math.max(0, parseInt(e.target.value, 10) || 0) }))} className="w-14 border border-linia-2 bg-white px-1.5 py-1 text-center text-[13px] outline-none focus:border-ink" />
                       <button type="button" onClick={() => usunRozmiar(r)} className="text-ink-2 hover:text-akcent" aria-label="Usuń rozmiar">
                         ✕
                       </button>
                     </div>
                   ))}
                 </div>
+                {/* Szybkie dodawanie standardowych rozmiarów */}
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {STANDARDOWE.filter((r) => !rozmiary.includes(r)).map((r) => (
+                    <button key={r} type="button" onClick={() => dodajRozmiar(r)} className="border border-linia-2 px-2.5 py-1 text-[12.5px] font-semibold hover:border-ink" title="Dodaj rozmiar">
+                      + {r}
+                    </button>
+                  ))}
+                </div>
                 <div className="mt-3 flex items-center gap-2">
-                  <input
-                    className={`${input} max-w-[160px]`}
-                    placeholder="nowy rozmiar (np. 116)"
-                    value={nowyRozmiar}
-                    onChange={(e) => setNowyRozmiar(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), dodajRozmiar())}
-                  />
-                  <button type="button" onClick={dodajRozmiar} className="border border-ink px-3 py-2 text-[13px] font-semibold hover:bg-ink hover:text-tlo">
+                  <input className={`${input} max-w-[160px]`} placeholder="inny rozmiar (np. 50, S)" value={nowyRozmiar} onChange={(e) => setNowyRozmiar(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), dodajRozmiar(nowyRozmiar))} />
+                  <button type="button" onClick={() => dodajRozmiar(nowyRozmiar)} className="border border-ink px-3 py-2 text-[13px] font-semibold hover:bg-ink hover:text-tlo">
                     Dodaj rozmiar
                   </button>
                 </div>
@@ -288,12 +349,8 @@ export function EdytorProduktu({
             <button onClick={onZamknij} className="border border-linia-2 px-5 py-2.5 text-[13px] font-semibold hover:border-ink">
               Anuluj
             </button>
-            <button
-              onClick={zapisz}
-              disabled={zapis}
-              className="bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60"
-            >
-              {zapis ? "ZAPISYWANIE…" : "ZAPISZ"}
+            <button onClick={zapisz} disabled={zapis} className="bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
+              {zapis ? "ZAPISYWANIE…" : nowy ? "WYSTAW PRODUKT" : "ZAPISZ"}
             </button>
           </div>
         </div>

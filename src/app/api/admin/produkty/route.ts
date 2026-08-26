@@ -48,6 +48,8 @@ export async function PATCH(req: Request) {
   if ("nazwa" in zmiany) map.nazwa = zmiany.nazwa;
   if ("cena" in zmiany) map.cena = zmiany.cena;
   if ("opis" in zmiany) map.opis = zmiany.opis ?? null;
+  if ("opisHtml" in zmiany) map.opis_html = zmiany.opisHtml ?? null;
+  if ("kolor" in zmiany) map.kolor = zmiany.kolor ?? null;
   if ("kategoria" in zmiany) map.kategoria = zmiany.kategoria;
   if ("wiek" in zmiany) {
     map.wiek = zmiany.wiek;
