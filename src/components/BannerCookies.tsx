@@ -24,6 +24,12 @@ export function BannerCookies() {
     } catch {
       /* ignoruj */
     }
+    // Powiadom Google Analytics o wyborze (start/stop bez przeładowania).
+    try {
+      window.dispatchEvent(new CustomEvent("zgoda-cookies", { detail: wybor }));
+    } catch {
+      /* ignoruj */
+    }
     setWidoczny(false);
   }
 

@@ -5,6 +5,7 @@ import { AuthProvider } from "@/components/AuthContext";
 import { KoszykProvider } from "@/components/KoszykContext";
 import { UlubioneProvider } from "@/components/UlubioneContext";
 import { BannerCookies } from "@/components/BannerCookies";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { BAZA_URL, NAZWA_SKLEPU, OPIS_SKLEPU, jsonLd } from "@/lib/seo";
 
 // Self-hosting fontu przez next/font — bez blokującego zapytania do Google
@@ -123,6 +124,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </UlubioneProvider>
         </AuthProvider>
         <BannerCookies />
+        <GoogleAnalytics />
       </body>
     </html>
   );
