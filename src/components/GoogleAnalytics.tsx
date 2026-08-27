@@ -9,7 +9,9 @@ const KLUCZ = "fasolka-zgoda-cookies";
 // („Akceptuję wszystkie"), zgodnie z RODO/ePrivacy. Identyfikator z env
 // NEXT_PUBLIC_GA_ID (np. "G-XXXXXXXXXX"). Brak env lub brak zgody = brak śledzenia.
 export function GoogleAnalytics() {
-  const id = process.env.NEXT_PUBLIC_GA_ID;
+  // Identyfikator GA4. Domyślnie stały (publiczny i tak widoczny w źródle strony);
+  // można nadpisać zmienną NEXT_PUBLIC_GA_ID w Vercel.
+  const id = process.env.NEXT_PUBLIC_GA_ID || "G-RG4NHT446C";
   const [zgoda, setZgoda] = useState(false);
 
   useEffect(() => {
