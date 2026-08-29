@@ -24,9 +24,12 @@ function Kafel({ etykieta, wartosc, pod }: { etykieta: string; wartosc: string; 
   );
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export default function PulpitAdmina() {
   const [produkty, setProdukty] = useState<Produkt[]>([]);
   const [zamowienia, setZamowienia] = useState<Zamowienie[]>([]);
+  const [ga4, setGa4] = useState<any>(null);
 
   useEffect(() => {
     fetch("/api/admin/produkty")
@@ -40,6 +43,10 @@ export default function PulpitAdmina() {
       .then((d) => {
         if (Array.isArray(d.items)) setZamowienia(d.items);
       })
+      .catch(() => {});
+    fetch("/api/admin/ga4")
+      .then((r) => r.json())
+      .then((d) => setGa4(d))
       .catch(() => {});
   }, []);
 
@@ -65,6 +72,42 @@ export default function PulpitAdmina() {
         </span>
         <span className="shrink-0 text-[24px] font-bold">→</span>
       </Link>
+
+      {/* Pasek GA4 — ruch na żywo i za 28 dni */}
+      {ga4?.ok ? (
+        <div className="mb-8 flex flex-wrap items-center gap-x-8 gap-y-3 border border-linia bg-white px-5 py-4">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[oklch(72%_0.12_150)] opacity-75" />
+              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[oklch(60%_0.13_150)]" />
+            </span>
+            <span className="text-[18px] font-bold tabular-nums">{new Intl.NumberFormat("pl-PL").format(ga4.naZywo ?? 0)}</span>
+            <span className="text-[12px] text-ink-2">aktywnych teraz</span>
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-[18px] font-bold tabular-nums">{new Intl.NumberFormat("pl-PL").format(ga4.podsumowanie?.uzytkownicy ?? 0)}</span>
+            <span className="text-[12px] text-ink-2">użytkowników / 28 dni</span>
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-[18px] font-bold tabular-nums">{new Intl.NumberFormat("pl-PL").format(ga4.podsumowanie?.sesje ?? 0)}</span>
+            <span className="text-[12px] text-ink-2">sesji</span>
+          </div>
+          {ga4.kanaly?.[0] ? (
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[14px] font-semibold">{ga4.kanaly[0].kanal}</span>
+              <span className="text-[12px] text-ink-2">główne źródło ruchu</span>
+            </div>
+          ) : null}
+          <Link href="/admin/analityka" className="ml-auto text-[13px] font-semibold text-ink underline underline-offset-2 hover:text-akcent">
+            Pełna analityka →
+          </Link>
+        </div>
+      ) : ga4 && !ga4.ok ? (
+        <Link href="/admin/analityka" className="mb-8 flex items-center justify-between gap-3 border border-dashed border-linia-2 bg-white px-5 py-3.5 text-[13px] no-underline">
+          <span className="text-ink-2">📊 Podłącz Google Analytics, aby widzieć ruch, źródła i najczęściej oglądane produkty w panelu.</span>
+          <span className="shrink-0 font-semibold text-ink">Skonfiguruj →</span>
+        </Link>
+      ) : null}
 
       {/* KPI */}
       <div className="mb-10 grid grid-cols-2 gap-4 md:grid-cols-4">
