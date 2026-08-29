@@ -12,6 +12,7 @@ const LINKI = [
   { href: "/admin/zamowienia", label: "Zamówienia" },
   { href: "/admin/klienci", label: "Klienci" },
   { href: "/admin/statystyki", label: "Statystyki" },
+  { href: "/admin/analityka", label: "Analityka" },
   { href: "/admin/opinie", label: "Opinie" },
   { href: "/admin/kody", label: "Kody rabatowe" },
 ];
