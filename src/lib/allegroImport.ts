@@ -9,8 +9,8 @@ import type { Kategoria, Wiek } from "@/data/produkty";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const HUE: Record<Kategoria, number> = { dziewczynki: 340, chlopcy: 230, niemowleta: 160 };
-const WIEK_LABEL: Record<Wiek, string> = { "0-2": "0-2 lata", "2-6": "2-6 lat", "6-12": "6-12 lat" };
+const HUE: Record<Kategoria, number> = { dziewczynki: 340, chlopcy: 230, niemowleta: 160, dorosli: 90 };
+const WIEK_LABEL: Record<Wiek, string> = { "0-2": "0-2 lata", "2-6": "2-6 lat", "6-12": "6-12 lat", dorosli: "rozmiar dorosły" };
 
 // ── Pomocnicze wyciąganie pól z oferty ──────────────────────────────────
 
@@ -144,11 +144,21 @@ function wiekZRozmiaru(min: number): Wiek {
   return min <= 98 ? "0-2" : min <= 128 ? "2-6" : "6-12";
 }
 
+// Rozmiar dorosłego ubrania (litery: S/M/L/XL/XXL/3XL–6XL, także złożenia „M/L").
+// UWAGA: nie mylić z rozmiarami niemowlęcymi w cm/zakresach liczbowych (np. „16-18", „26-30 cm").
+function rozmiarDorosly(r: string): boolean {
+  return /^(x{0,3}s|x{0,3}l|m|[2-6]xl)(\s*\/\s*(x{0,3}s|x{0,3}l|m|[2-6]xl))?$/i.test((r || "").trim());
+}
+// Produkt dla dorosłych — z nazwy (męskie/damskie/dorosłe) albo z rozmiaru literowego.
+function czyDorosly(nazwa: string, rozmiary: string[]): boolean {
+  if (/męsk|meski|damsk|damski|dorosł|dorosl|mężczyzn|kobiec|dla taty|dla mamy/i.test(nazwa || "")) return true;
+  return (rozmiary || []).some(rozmiarDorosly);
+}
+
 /**
- * Kategoria + wiek na podstawie ROZMIARÓW i nazwy. Reguła (istotna dla SEO/UX):
- * małe rozmiary (≤92, tj. 0–2 lata) ZAWSZE trafiają do „niemowlęta" — niezależnie
- * od płci. Dopiero starszaki (≥104) dzielimy po płci (z nazwy, potem z parametru
- * Płeć), a bez sygnału zostają przy „obecnej" kategorii lub niemowlętach.
+ * Kategoria + wiek na podstawie ROZMIARÓW i nazwy. Kolejność: (1) DOROSŁY (męskie/
+ * damskie/rozmiar literowy) → osobny dział; (2) małe rozmiary (≤92) → niemowlęta;
+ * (3) starszaki → płeć z nazwy/parametru, inaczej „obecna" lub niemowlęta.
  */
 function kategoriaIWiek(
   rozmiary: string[] | string,
@@ -157,6 +167,10 @@ function kategoriaIWiek(
   obecna?: Kategoria,
 ): { kategoria: Kategoria; wiek: Wiek } {
   const lista = Array.isArray(rozmiary) ? rozmiary : [rozmiary];
+
+  // (1) Dorośli — najwyższy priorytet.
+  if (czyDorosly(nazwa, lista)) return { kategoria: "dorosli", wiek: "dorosli" };
+
   const liczby = lista.map((r) => parseInt(String(r), 10)).filter((x) => Number.isFinite(x));
   const min = liczby.length ? Math.min(...liczby) : 104;
   const max = liczby.length ? Math.max(...liczby) : 104;

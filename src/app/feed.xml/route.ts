@@ -21,6 +21,7 @@ function plec(p: Produkt): string {
   return "unisex";
 }
 function grupaWiekowa(p: Produkt): string {
+  if (p.kategoria === "dorosli") return "adult";
   if (p.kategoria === "niemowleta") return "infant";
   if (p.wiek === "6-12") return "kids";
   return "toddler";

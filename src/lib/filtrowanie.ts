@@ -6,6 +6,7 @@ const SYNONIMY: Record<Kategoria, string> = {
   dziewczynki: "dziewczynka dziewczyna dziewczece dziewczeca corka",
   chlopcy: "chlopiec chlopak chlopieca chlopiece syn",
   niemowleta: "niemowle niemowlak niemowleca bobas maluch noworodek",
+  dorosli: "meski meskie damski damskie dorosly dorosli mezczyzna kobieta tata mama",
 };
 const STOP = new Set(["i", "oraz", "dla", "na", "w", "z", "a", "do", "po", "lub", "the"]);
 

@@ -13,6 +13,7 @@ const CECHY: Record<string, string[]> = {
   dziewczynki: ["Miękka, przyjazna skórze tkanina", "Wygodny krój na co dzień", "Łatwe pranie w 30°C"],
   chlopcy: ["Wytrzymały materiał na zabawę", "Wygodny, swobodny krój", "Łatwe pranie w 30°C"],
   niemowleta: ["Delikatna bawełna dla niemowląt", "Łatwe zakładanie i zmiana pieluszki", "Bez uciskających szwów"],
+  dorosli: ["Wygodny, sportowy fason", "Miękki, ciepły materiał", "Szeroki zakres rozmiarów"],
 };
 
 /**

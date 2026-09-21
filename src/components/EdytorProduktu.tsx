@@ -3,8 +3,8 @@
 import { useRef, useState } from "react";
 import { type Kategoria, type Produkt, type Wiek } from "@/data/produkty";
 
-const WIEK_LABEL: Record<Wiek, string> = { "0-2": "0-2 lata", "2-6": "2-6 lat", "6-12": "6-12 lat" };
-const HUE: Record<Kategoria, number> = { dziewczynki: 340, chlopcy: 230, niemowleta: 160 };
+const WIEK_LABEL: Record<Wiek, string> = { "0-2": "0-2 lata", "2-6": "2-6 lat", "6-12": "6-12 lat", dorosli: "rozmiar dorosły" };
+const HUE: Record<Kategoria, number> = { dziewczynki: 340, chlopcy: 230, niemowleta: 160, dorosli: 90 };
 
 // Uproszczona sanityzacja opisu HTML (na wypadek wklejenia czegoś niebezpiecznego).
 function sanitizeHtml(html: string): string {
@@ -246,6 +246,7 @@ export function EdytorProduktu({
                 <option value="dziewczynki">Dziewczynki</option>
                 <option value="chlopcy">Chłopcy</option>
                 <option value="niemowleta">Niemowlęta</option>
+                <option value="dorosli">Dla dorosłych</option>
               </select>
             </label>
             <label className="text-[12px] font-semibold text-ink-2">
@@ -254,6 +255,7 @@ export function EdytorProduktu({
                 <option value="0-2">0-2 lata</option>
                 <option value="2-6">2-6 lat</option>
                 <option value="6-12">6-12 lat</option>
+                <option value="dorosli">Dorośli</option>
               </select>
             </label>
             <label className="text-[12px] font-semibold text-ink-2">

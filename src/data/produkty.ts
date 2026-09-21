@@ -4,8 +4,8 @@
 // Kategorie/wiek przypisane automatycznie po nazwach — można korygować ręcznie.
 // ---------------------------------------------------------------------------
 
-export type Kategoria = "dziewczynki" | "chlopcy" | "niemowleta";
-export type Wiek = "0-2" | "2-6" | "6-12";
+export type Kategoria = "dziewczynki" | "chlopcy" | "niemowleta" | "dorosli";
+export type Wiek = "0-2" | "2-6" | "6-12" | "dorosli";
 
 export interface Produkt {
   id: string;
@@ -39,6 +39,7 @@ export const KATEGORIE_LABEL: Record<Kategoria | "wszystkie", string> = {
   dziewczynki: "Dziewczynki",
   chlopcy: "Chłopcy",
   niemowleta: "Niemowlęta",
+  dorosli: "Dla dorosłych",
 };
 
 export const WSZYSTKIE_ROZMIARY = ["62", "74", "86", "92", "104", "116", "128", "140", "152", "164"];
@@ -110,6 +111,10 @@ const UZYCIE: Record<Kategoria, string[]> = {
   niemowleta: [
     "Łatwe zakładanie i zdejmowanie oraz pełen komfort maluszka przez cały dzień.",
     "Delikatne dla wrażliwej skóry noworodka — miękkie szwy i wygodny krój.",
+  ],
+  dorosli: [
+    "Wygodny, sportowy fason na co dzień — do domu, na spacer i na trening.",
+    "Miękki, przyjemny materiał i szeroki zakres rozmiarów.",
   ],
 };
 

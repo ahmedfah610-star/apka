@@ -21,6 +21,7 @@ const KATEGORIE: { key: FiltrKategoria; label: string }[] = [
   { key: "dziewczynki", label: "Dziewczynki" },
   { key: "chlopcy", label: "Chłopcy" },
   { key: "niemowleta", label: "Niemowlęta" },
+  { key: "dorosli", label: "Dla dorosłych" },
 ];
 
 const WIEKI: { key: FiltrWiek; label: string }[] = [
@@ -45,6 +46,8 @@ const OPISY_KATEGORII: Record<string, string> = {
     "Ubranka dla chłopców 0–12 lat: dresy, spodnie, bluzy, komplety i koszulki. Wytrzymałe i wygodne, gotowe na przedszkole, plac zabaw i każdą przygodę.",
   niemowleta:
     "Ubranka dla niemowląt i noworodków: body, pajacyki, śpiochy, komplety i czapeczki. Delikatna bawełna, zatrzaski ułatwiające przewijanie i płaskie szwy przyjazne skórze malucha.",
+  dorosli:
+    "Odzież dla dorosłych — męskie i damskie bluzy, dresy i spodnie w wygodnych fasonach. Rozmiary od S do 6XL. Ta sama niska cena co w reszcie sklepu.",
 };
 
 function Listing() {

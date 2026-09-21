@@ -14,6 +14,7 @@ const SKROTY: { label: string; fraza: string }[] = [
   { label: "Dziewczynki", fraza: "dziewczynki" },
   { label: "Chłopcy", fraza: "chlopcy" },
   { label: "Niemowlęta", fraza: "niemowleta" },
+  { label: "Męskie", fraza: "męskie" },
   { label: "Komplet", fraza: "komplet" },
   { label: "Body", fraza: "body" },
   { label: "Spodnie", fraza: "spodnie" },

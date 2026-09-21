@@ -7,11 +7,12 @@ import { statystykiKatalogu, statystykiZamowien } from "@/lib/statystyki";
 import { formatCena } from "@/lib/filtrowanie";
 import { KATEGORIE_LABEL, type Produkt } from "@/data/produkty";
 
-const KATEGORIE = ["dziewczynki", "chlopcy", "niemowleta"] as const;
+const KATEGORIE = ["dziewczynki", "chlopcy", "niemowleta", "dorosli"] as const;
 const KOLOR: Record<(typeof KATEGORIE)[number], string> = {
   dziewczynki: "oklch(70% 0.11 340)",
   chlopcy: "oklch(66% 0.10 250)",
   niemowleta: "oklch(70% 0.10 160)",
+  dorosli: "oklch(62% 0.08 90)",
 };
 
 function Kafel({ etykieta, wartosc, pod }: { etykieta: string; wartosc: string; pod?: string }) {

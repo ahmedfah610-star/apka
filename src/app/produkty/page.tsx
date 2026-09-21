@@ -18,6 +18,11 @@ const META_KATEGORII: Record<string, { title: string; description: string }> = {
     description:
       "Ubranka dla niemowląt i noworodków — body, pajacyki, śpiochy, komplety i czapeczki. Delikatna bawełna i łatwe przewijanie. Wysyłka InPost, 14 dni na zwrot.",
   },
+  dorosli: {
+    title: "Odzież dla dorosłych — męska i damska",
+    description:
+      "Odzież dla dorosłych: męskie i damskie bluzy, dresy i spodnie. Rozmiary S–6XL, wygodne fasony w niskich cenach. Wysyłka InPost, 14 dni na zwrot.",
+  },
 };
 
 export function generateMetadata({

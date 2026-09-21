@@ -34,6 +34,7 @@ const KATEGORIE: { key: Kategoria; label: string; hue: number }[] = [
   { key: "dziewczynki", label: "Dziewczynki", hue: 30 },
   { key: "chlopcy", label: "Chłopcy", hue: 250 },
   { key: "niemowleta", label: "Niemowlęta", hue: 140 },
+  { key: "dorosli", label: "Dla dorosłych", hue: 90 },
 ];
 
 function reprKategorii(lista: Produkt[], kat: Kategoria): Produkt | null {

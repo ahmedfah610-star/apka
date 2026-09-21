@@ -11,7 +11,7 @@ export interface StatystykiKatalogu {
 }
 
 export function statystykiKatalogu(produkty: Produkt[]): StatystykiKatalogu {
-  const wgKategorii: Record<Kategoria, number> = { dziewczynki: 0, chlopcy: 0, niemowleta: 0 };
+  const wgKategorii: Record<Kategoria, number> = { dziewczynki: 0, chlopcy: 0, niemowleta: 0, dorosli: 0 };
   let suma = 0;
   let min = Infinity;
   let max = 0;
