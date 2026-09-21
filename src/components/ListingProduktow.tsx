@@ -30,6 +30,21 @@ const WIEKI: { key: FiltrWiek; label: string }[] = [
   { key: "6-12", label: "6-12 lat" },
 ];
 
+// Podział na płeć w dziale „Dla dorosłych" — rozpoznanie po nazwie/opisie.
+type Plec = "wszystkie" | "meskie" | "damskie";
+const PLCIE: { key: Plec; label: string }[] = [
+  { key: "wszystkie", label: "Wszystkie" },
+  { key: "meskie", label: "Męskie" },
+  { key: "damskie", label: "Damskie" },
+];
+
+function plecProduktu(p: Produkt): "meskie" | "damskie" | null {
+  const t = `${p.nazwa} ${p.opis ?? ""}`.toLowerCase();
+  if (/damsk|kobiec|dla mamy|dla niej|spódnic|spodnic|sukienk|dla kobiet/.test(t)) return "damskie";
+  if (/męsk|mesk|mężczyzn|mezczyzn|dla taty|dla niego|dla panów|dla panow|dla mężczyzn/.test(t)) return "meskie";
+  return null;
+}
+
 const WYROZNIENIA: { key: FiltrWyroznienie; label: string }[] = [
   { key: "NOWOŚĆ", label: "Nowości" },
   { key: "BESTSELLER", label: "Bestsellery" },
@@ -85,6 +100,7 @@ function Listing() {
   );
 
   const [kategoria, setKategoria] = useState<FiltrKategoria>(poczatkowa);
+  const [plec, setPlec] = useState<Plec>("wszystkie");
   const [wiek, setWiek] = useState<FiltrWiek>("wszystkie");
   const [rozmiary, setRozmiary] = useState<string[]>([]);
   const [cenaIdx, setCenaIdx] = useState<number | null>(null);
@@ -92,19 +108,26 @@ function Listing() {
   const [sortBy, setSortBy] = useState<Sortowanie>("domyslnie");
   const [filtryOtwarte, setFiltryOtwarte] = useState(false);
 
-  const produkty = useMemo(
-    () =>
-      filtrujProdukty(bazaKatalog, {
-        kategoria,
-        wiek,
-        sortBy,
-        rozmiary,
-        cena: cenaIdx !== null ? ZAKRESY_CENY[cenaIdx] : null,
-        wyroznienie,
-        fraza,
-      }),
-    [bazaKatalog, kategoria, wiek, sortBy, rozmiary, cenaIdx, wyroznienie, fraza],
-  );
+  // Reset filtra płci przy wyjściu z działu „Dla dorosłych".
+  useEffect(() => {
+    if (kategoria !== "dorosli") setPlec("wszystkie");
+  }, [kategoria]);
+
+  const produkty = useMemo(() => {
+    const baza = filtrujProdukty(bazaKatalog, {
+      kategoria,
+      wiek,
+      sortBy,
+      rozmiary,
+      cena: cenaIdx !== null ? ZAKRESY_CENY[cenaIdx] : null,
+      wyroznienie,
+      fraza,
+    });
+    if (kategoria === "dorosli" && plec !== "wszystkie") {
+      return baza.filter((p) => plecProduktu(p) === plec);
+    }
+    return baza;
+  }, [bazaKatalog, kategoria, plec, wiek, sortBy, rozmiary, cenaIdx, wyroznienie, fraza]);
 
   // Zwiń warianty kolorystyczne (po opisie) — jeden kafel na model.
   const zwiniete = useMemo(() => zwinWarianty(produkty), [produkty]);
@@ -116,6 +139,7 @@ function Listing() {
   const toggleWyroznienie = (w: FiltrWyroznienie) => setWyroznienie((c) => (c === w ? "wszystkie" : w));
   const reset = () => {
     setKategoria("wszystkie");
+    setPlec("wszystkie");
     setWiek("wszystkie");
     setRozmiary([]);
     setCenaIdx(null);
@@ -143,6 +167,26 @@ function Listing() {
         </p>
         {!fraza && OPISY_KATEGORII[kategoria] ? (
           <p className="mb-7 max-w-3xl text-[14.5px] leading-relaxed text-ink-2">{OPISY_KATEGORII[kategoria]}</p>
+        ) : null}
+
+        {/* Podział na płeć — tylko w dziale „Dla dorosłych" */}
+        {kategoria === "dorosli" && !fraza ? (
+          <div className="mb-1 flex flex-wrap gap-2">
+            {PLCIE.map((pl) => {
+              const on = plec === pl.key;
+              return (
+                <button
+                  key={pl.key}
+                  onClick={() => setPlec(pl.key)}
+                  className={`rounded-full border px-4 py-2 text-[13.5px] font-medium transition-colors ${
+                    on ? "border-ink bg-ink text-tlo" : "border-linia-2 text-ink hover:border-ink"
+                  }`}
+                >
+                  {pl.label}
+                </button>
+              );
+            })}
+          </div>
         ) : null}
       </div>
 
