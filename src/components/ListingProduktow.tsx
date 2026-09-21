@@ -70,11 +70,19 @@ function Listing() {
   );
 
   const fraza = params.get("szukaj") ?? "";
+  const grupa = params.get("grupa"); // "dzieci" → tylko asortyment dziecięcy (bez dorosłych)
+  const tylkoDzieci = grupa === "dzieci";
   const startKat = params.get("kategoria");
   const poczatkowa: FiltrKategoria =
     startKat && startKat !== "wyprzedaz" && startKat in KATEGORIE_LABEL
       ? (startKat as FiltrKategoria)
       : "wszystkie";
+
+  // Baza katalogu z uwzględnieniem grupy (dzieci = bez dorosłych).
+  const bazaKatalog = useMemo(
+    () => (tylkoDzieci ? wszystkie.filter((p) => p.kategoria !== "dorosli") : wszystkie),
+    [wszystkie, tylkoDzieci],
+  );
 
   const [kategoria, setKategoria] = useState<FiltrKategoria>(poczatkowa);
   const [wiek, setWiek] = useState<FiltrWiek>("wszystkie");
@@ -86,7 +94,7 @@ function Listing() {
 
   const produkty = useMemo(
     () =>
-      filtrujProdukty(wszystkie, {
+      filtrujProdukty(bazaKatalog, {
         kategoria,
         wiek,
         sortBy,
@@ -95,7 +103,7 @@ function Listing() {
         wyroznienie,
         fraza,
       }),
-    [wszystkie, kategoria, wiek, sortBy, rozmiary, cenaIdx, wyroznienie, fraza],
+    [bazaKatalog, kategoria, wiek, sortBy, rozmiary, cenaIdx, wyroznienie, fraza],
   );
 
   // Zwiń warianty kolorystyczne (po opisie) — jeden kafel na model.
@@ -128,7 +136,7 @@ function Listing() {
 
       <div className="mx-auto max-w-content px-6 pb-2 pt-11 md:px-12">
         <h1 className="mb-1.5 text-[32px] font-bold tracking-tight">
-          {fraza ? <>Wyniki: „{fraza}"</> : KATEGORIE_LABEL[kategoria]}
+          {fraza ? <>Wyniki: „{fraza}"</> : tylkoDzieci && kategoria === "wszystkie" ? "Dla dzieci" : KATEGORIE_LABEL[kategoria]}
         </h1>
         <p className={`text-[15px] text-ink-2 ${!fraza && OPISY_KATEGORII[kategoria] ? "mb-3" : "mb-7"}`}>
           {zwiniete.length} {zwiniete.length === 1 ? "produkt" : "produktów"}
@@ -167,7 +175,7 @@ function Listing() {
           <div>
             <h3 className="mb-4 text-[13px] font-semibold tracking-wide text-ink-2">KATEGORIA</h3>
             <div className="flex flex-col gap-3">
-              {KATEGORIE.filter((c) => c.key !== "wszystkie").map((c) => {
+              {KATEGORIE.filter((c) => c.key !== "wszystkie" && !(tylkoDzieci && c.key === "dorosli")).map((c) => {
                 const on = kategoria === c.key;
                 return (
                   <button key={c.key} onClick={() => toggleKat(c.key)} className="flex items-center gap-2.5 text-left">

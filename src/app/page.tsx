@@ -30,13 +30,6 @@ const TYPY_SEO = [
 // (szybszy TTFB, mniejsze obciążenie bazy, lepsze Core Web Vitals).
 export const revalidate = 300;
 
-const KATEGORIE: { key: Kategoria; label: string; hue: number }[] = [
-  { key: "dziewczynki", label: "Dziewczynki", hue: 30 },
-  { key: "chlopcy", label: "Chłopcy", hue: 250 },
-  { key: "niemowleta", label: "Niemowlęta", hue: 140 },
-  { key: "dorosli", label: "Dla dorosłych", hue: 90 },
-];
-
 function reprKategorii(lista: Produkt[], kat: Kategoria): Produkt | null {
   return lista.find((p) => p.kategoria === kat && (p.zdjecia?.length || p.zdjecie)) ?? lista.find((p) => p.kategoria === kat) ?? null;
 }
@@ -59,13 +52,14 @@ export default async function StronaGlowna() {
       {/* Kategorie */}
       <section className="px-6 py-20 md:px-12">
         <Reveal className="mx-auto max-w-content">
-          <h2 className="mb-8 text-[26px] font-bold tracking-tight">Kupuj według kategorii</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {KATEGORIE.map((k, i) => (
-              <Reveal key={k.key} delay={i * 120}>
-                <KafelKategorii kluczKat={k.key} label={k.label} fallbackSrc={reprKategorii(katalog, k.key)?.zdjecie ?? null} />
-              </Reveal>
-            ))}
+          <h2 className="mb-8 text-[26px] font-bold tracking-tight">Kupuj według grupy</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Reveal>
+              <KafelKategorii kluczKat="dzieci" label="Dla dzieci" href="/produkty?grupa=dzieci" fallbackSrc={reprKategorii(katalog, "niemowleta")?.zdjecie ?? null} />
+            </Reveal>
+            <Reveal delay={120}>
+              <KafelKategorii kluczKat="dorosli" label="Dla dorosłych" href="/produkty?kategoria=dorosli" fallbackSrc={reprKategorii(katalog, "dorosli")?.zdjecie ?? null} />
+            </Reveal>
           </div>
 
           {/* Kupuj według typu — linki do stron docelowych (SEO) */}
