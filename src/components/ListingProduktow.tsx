@@ -99,8 +99,11 @@ function Listing() {
     [wszystkie, tylkoDzieci],
   );
 
+  const startPlec = params.get("plec");
+  const poczatkowaPlec: Plec = startPlec === "meskie" || startPlec === "damskie" ? startPlec : "wszystkie";
+
   const [kategoria, setKategoria] = useState<FiltrKategoria>(poczatkowa);
-  const [plec, setPlec] = useState<Plec>("wszystkie");
+  const [plec, setPlec] = useState<Plec>(poczatkowaPlec);
   const [wiek, setWiek] = useState<FiltrWiek>("wszystkie");
   const [rozmiary, setRozmiary] = useState<string[]>([]);
   const [cenaIdx, setCenaIdx] = useState<number | null>(null);

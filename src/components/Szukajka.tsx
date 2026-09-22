@@ -10,16 +10,17 @@ import { formatCena, pasujeFraza } from "@/lib/filtrowanie";
 let KATALOG_CACHE: Produkt[] | null = null;
 
 // Szybkie skróty pokazywane po kliknięciu w puste pole.
-const SKROTY: { label: string; fraza: string }[] = [
+// `href` → bezpośredni link (np. do działu dorosłych z płcią); w pozostałych szuka po frazie.
+const SKROTY: { label: string; fraza?: string; href?: string }[] = [
   { label: "Dziewczynki", fraza: "dziewczynki" },
   { label: "Chłopcy", fraza: "chlopcy" },
   { label: "Niemowlęta", fraza: "niemowleta" },
-  { label: "Męskie", fraza: "męskie" },
+  { label: "Męskie", href: "/produkty?kategoria=dorosli&plec=meskie" },
+  { label: "Damskie", href: "/produkty?kategoria=dorosli&plec=damskie" },
   { label: "Komplet", fraza: "komplet" },
   { label: "Body", fraza: "body" },
   { label: "Spodnie", fraza: "spodnie" },
   { label: "Bluza", fraza: "bluza" },
-  { label: "Czapka", fraza: "czapka" },
 ];
 
 export function Szukajka({ mobilna = false }: { mobilna?: boolean }) {
@@ -117,9 +118,16 @@ export function Szukajka({ mobilna = false }: { mobilna?: boolean }) {
               <div className="flex flex-wrap gap-2">
                 {SKROTY.map((s) => (
                   <button
-                    key={s.fraza}
+                    key={s.label}
                     onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => idzDoWynikow(s.fraza)}
+                    onClick={() => {
+                      if (s.href) {
+                        setOtwarte(false);
+                        router.push(s.href);
+                      } else {
+                        idzDoWynikow(s.fraza ?? "");
+                      }
+                    }}
                     className="rounded-full border border-linia-2 px-3 py-1.5 text-[12.5px] font-medium text-ink transition-colors hover:border-ink hover:bg-szary"
                   >
                     {s.label}
