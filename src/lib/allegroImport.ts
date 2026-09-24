@@ -359,6 +359,8 @@ export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: 
   }
 
   const scalone: any[] = [];
+  const uzyteId = new Set<string>();
+  const zbedneScalone: string[] = []; // al-m-… wchłonięte przez inny scalony wiersz tej samej grupy
   for (const [key, grupa] of grupy) {
     const first = grupa[0];
     const sr: Record<string, number> = {};
@@ -385,9 +387,18 @@ export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: 
     const { kategoria, wiek } = kategoriaIWiek(rozmiary, {}, first.nazwa || "", obecna);
     const zdjecia = [...zdj];
     const h = hash36(key);
+    // Stabilne ID: gdy grupa zawiera już scalony produkt (al-m-…), zachowaj jego ID.
+    // Inaczej każda zmiana nazwy (panel, porządkowanie nazw) dawała nowy wiersz,
+    // a stary zostawał — duplikat produktu i zmiana adresu strony.
+    const kanon = "al-m-" + h;
+    const istniejace = grupa.map((p) => String(p.id)).filter((x) => x.startsWith("al-m-")).sort();
+    let id = istniejace.includes(kanon) ? kanon : (istniejace[0] ?? kanon);
+    if (uzyteId.has(id)) id = kanon + "-" + uzyteId.size.toString(36);
+    uzyteId.add(id);
+    zbedneScalone.push(...istniejace.filter((x) => x !== id));
     scalone.push({
-      id: "al-m-" + h,
-      allegro_id: "m-" + h,
+      id,
+      allegro_id: id.slice(3),
       nazwa: ladnaNazwa(bazaNazwy(first.nazwa || "")) || first.nazwa || "Produkt",
       cena: first.cena ?? 0,
       kategoria, wiek, wiek_label: WIEK_LABEL[wiek], badge: null,
@@ -406,6 +417,11 @@ export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: 
   }
   // Usuń pojedyncze oferty (al- ale nie scalone al-m-).
   await sb.from("produkty").delete().like("id", "al-%").not("id", "like", "al-m-%");
+  // Usuń scalone wiersze wchłonięte przez inny w tej samej grupie (ich dane są już w nim).
+  const doUsuniecia = zbedneScalone.filter((x) => !uzyteId.has(x)); // nigdy nie kasuj ID nadanego w tym przebiegu
+  for (let i = 0; i < doUsuniecia.length; i += 200) {
+    await sb.from("produkty").delete().in("id", doUsuniecia.slice(i, i + 200));
+  }
   return { ok: true, przed, po: scalone.length };
 }
 

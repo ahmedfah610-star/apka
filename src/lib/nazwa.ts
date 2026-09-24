@@ -31,6 +31,10 @@ export function ladnaNazwa(surowa: string): string {
   // Wiszące jednostki/śmieci po usuniętym rozmiarze: „56 cm" → „", „100% " → „%", „r. 56".
   s = s.replace(/\b\d+\s*cm\b/gi, " ").replace(/\bcm\b/gi, " ");
   s = s.replace(/\brozm\.?\b/gi, " ").replace(/\br\.?\s*\d+\b/gi, " ");
+  // Samo słowo „rozmiar" (liczbę zdjęto przy łączeniu rozmiarów) i osierocone „szt." /
+  // „cz." / „-elementowy" / „-częściowy" po usuniętych liczbach („5 szt. 5-elementowy").
+  s = s.replace(/(?<!\p{L})rozmiar(?!\p{L})/giu, " "); // (\b w JS nie zna polskich liter: „rozmiarów")
+  s = s.replace(/(^|\s)((szt|cz)\.?|r\.)(?=\s|$)/gi, " ").replace(/(^|\s)(elementow|częściow|czesciow)[yae](?=\s|$)/gi, " ");
   s = s.replace(/\s{2,}/g, " ").trim();
 
   const slowa = s.split(" ").filter(Boolean);
