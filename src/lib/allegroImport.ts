@@ -38,7 +38,7 @@ function idProduktu(o: any): string {
 }
 
 // Nazwa bez rozmiarów/zakresów — do grupowania „osobnych ofert = jeden produkt".
-function bazaNazwy(n: string): string {
+export function bazaNazwy(n: string): string {
   return (n || "")
     .replace(/\d+\s*[-–]\s*\d+/g, " ") // zakresy: 62-68, 86- 92
     .replace(/\brozm\.?\b/gi, " ")
@@ -149,15 +149,21 @@ function wiekZRozmiaru(min: number): Wiek {
 function rozmiarDorosly(r: string): boolean {
   return /^(x{0,3}s|x{0,3}l|m|[2-6]xl)(\s*\/\s*(x{0,3}s|x{0,3}l|m|[2-6]xl))?$/i.test((r || "").trim());
 }
-// Produkt dla dorosłych — z nazwy (męskie/damskie/dorosłe) albo z rozmiaru literowego.
+// Odzież damska — sklep jej NIE prowadzi; takie oferty są pomijane przy imporcie.
+// (Tylko jednoznaczne słowa — „spódnica" sama w sobie bywa dziewczęca.)
+export function czyDamski(nazwa: string): boolean {
+  return /damsk|kobiec|dla kobiet|dla mamy/i.test(nazwa || "");
+}
+
+// Produkt dla dorosłych — z nazwy (męskie/dorosłe) albo z rozmiaru literowego.
 function czyDorosly(nazwa: string, rozmiary: string[]): boolean {
-  if (/męsk|meski|damsk|damski|dorosł|dorosl|mężczyzn|kobiec|dla taty|dla mamy/i.test(nazwa || "")) return true;
+  if (/męsk|meski|dorosł|dorosl|mężczyzn|dla taty/i.test(nazwa || "")) return true;
   return (rozmiary || []).some(rozmiarDorosly);
 }
 
 /**
  * Kategoria + wiek na podstawie ROZMIARÓW i nazwy. Kolejność: (1) DOROSŁY (męskie/
- * damskie/rozmiar literowy) → osobny dział; (2) małe rozmiary (≤92) → niemowlęta;
+ * rozmiar literowy) → osobny dział; (2) małe rozmiary (≤92) → niemowlęta;
  * (3) starszaki → płeć z nazwy/parametru, inaczej „obecna" lub niemowlęta.
  */
 function kategoriaIWiek(
@@ -270,7 +276,8 @@ async function szczegoly(id: string): Promise<any> {
 
 // Zapis jednej oferty z GRUPOWANIEM wariantów rozmiaru w jeden produkt.
 // Read-modify-write: dokłada rozmiar + stan do istniejącego produktu (po al-<productId>).
-async function zapiszZgrupowane(sb: any, det: any): Promise<{ ok: boolean; blad?: string }> {
+async function zapiszZgrupowane(sb: any, det: any): Promise<{ ok: boolean; pominiety?: boolean; blad?: string }> {
+  if (czyDamski(String(det?.name ?? ""))) return { ok: true, pominiety: true };
   const m = mapujOferte(det);
   const w = m.wiersz;
   if (!w.nazwa || !w.allegro_id) return { ok: false, blad: `brak nazwy/id (productId="${w.allegro_id}", nazwa="${w.nazwa}")` };
@@ -402,7 +409,7 @@ export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: 
   return { ok: true, przed, po: scalone.length };
 }
 
-export interface WynikImportu { ok: boolean; pobrano: number; zapisano: number; bledy: number; blad?: string }
+export interface WynikImportu { ok: boolean; pobrano: number; zapisano: number; pominiete?: number; bledy: number; blad?: string }
 
 /** Pobiera wszystkie oferty, mapuje i zapisuje do bazy (grupuje warianty). */
 export async function importujWszystko(tylkoAktywne = true): Promise<WynikImportu> {
@@ -417,23 +424,25 @@ export async function importujWszystko(tylkoAktywne = true): Promise<WynikImport
   }
 
   let zapisano = 0;
+  let pominiete = 0; // odzież damska — sklep jej nie prowadzi
   let bledy = 0;
   let pierwszyBlad: string | undefined;
   for (const of of lista) {
     try {
       const det = await szczegoly(of.id);
       const r = await zapiszZgrupowane(sb, { ...det, id: det?.id ?? of.id, name: det?.name ?? of.name });
-      if (r.ok) zapisano++;
+      if (r.pominiety) pominiete++;
+      else if (r.ok) zapisano++;
       else { bledy++; if (!pierwszyBlad) pierwszyBlad = r.blad; }
     } catch (e) {
       bledy++;
       if (!pierwszyBlad) pierwszyBlad = e instanceof Error ? e.message : "wyjątek";
     }
   }
-  return { ok: true, pobrano: lista.length, zapisano, bledy, blad: bledy ? pierwszyBlad : undefined };
+  return { ok: true, pobrano: lista.length, zapisano, pominiete, bledy, blad: bledy ? pierwszyBlad : undefined };
 }
 
-export interface WynikStrony { ok: boolean; pobrano: number; zapisano: number; bledy: number; koniec: boolean; blad?: string }
+export interface WynikStrony { ok: boolean; pobrano: number; zapisano: number; pominiete?: number; bledy: number; koniec: boolean; blad?: string }
 
 /**
  * Import JEDNEJ porcji ofert (dla planu Hobby: krótkie żądania < 60 s).
@@ -453,18 +462,20 @@ export async function importujStrone(offset: number, limit = 8, tylkoAktywne = t
   }
 
   let zapisano = 0;
+  let pominiete = 0; // odzież damska — sklep jej nie prowadzi
   let bledy = 0;
   let pierwszyBlad: string | undefined;
   for (const of of partia) {
     try {
       const det = await szczegoly(of.id);
       const r = await zapiszZgrupowane(sb, { ...det, id: det?.id ?? of.id, name: det?.name ?? of.name });
-      if (r.ok) zapisano++;
+      if (r.pominiety) pominiete++;
+      else if (r.ok) zapisano++;
       else { bledy++; if (!pierwszyBlad) pierwszyBlad = r.blad; }
     } catch (e) {
       bledy++;
       if (!pierwszyBlad) pierwszyBlad = e instanceof Error ? e.message : "wyjątek";
     }
   }
-  return { ok: true, pobrano: partia.length, zapisano, bledy, koniec: partia.length < limit, blad: bledy ? pierwszyBlad : undefined };
+  return { ok: true, pobrano: partia.length, zapisano, pominiete, bledy, koniec: partia.length < limit, blad: bledy ? pierwszyBlad : undefined };
 }

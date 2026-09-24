@@ -1,6 +1,7 @@
 import { czyAdmin } from "@/lib/adminAuth";
 import { allegroSkonfigurowany, czyPolaczony, rozpocznijDevice, sprawdzDevice, allegroGet } from "@/lib/allegro";
-import { importujStrone, przeklasyfikuj, scalProdukty } from "@/lib/allegroImport";
+import { bazaNazwy, czyDamski, importujStrone, przeklasyfikuj, scalProdukty } from "@/lib/allegroImport";
+import { ladnaNazwa } from "@/lib/nazwa";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 import { sbService } from "@/lib/supabase";
 
@@ -48,6 +49,79 @@ export async function GET(req: Request) {
         paginacja_przesuwa_sie: active?.offers?.[0]?.id !== strona2?.offers?.[0]?.id,
         girl_w_offset0: nazwaGirl(active?.offers),
         girl_w_offset100: nazwaGirl(strona2?.offers),
+      });
+    } catch (e) {
+      return Response.json({ ok: false, blad: e instanceof Error ? e.message : "błąd" });
+    }
+  }
+  // Porównanie: wszystkie AKTYWNE oferty Allegro ↔ produkty w sklepie.
+  // Dopasowanie po nazwie (tak jak ją tworzy import) + cenie.
+  if (url.searchParams.get("diag") === "porownanie") {
+    const sb = sbService();
+    if (!sb) return Response.json({ ok: false, blad: "Brak bazy" });
+    try {
+      const oferty: any[] = [];
+      for (let offset = 0; offset < 5000; offset += 100) {
+        const d: any = await allegroGet(`/sale/offers?limit=100&offset=${offset}&publication.status=ACTIVE`);
+        const partia: any[] = d?.offers ?? [];
+        oferty.push(...partia);
+        if (partia.length < 100) break;
+      }
+      const produkty: any[] = [];
+      for (let from = 0; from < 30000; from += 1000) {
+        const { data, error } = await sb.from("produkty").select("id, nazwa, cena, ukryty, stan").order("id").range(from, from + 999);
+        if (error) return Response.json({ ok: false, blad: error.message });
+        produkty.push(...(data ?? []));
+        if ((data ?? []).length < 1000) break;
+      }
+
+      const norm = (s: string) => ladnaNazwa(bazaNazwy(bazaNazwy(s || ""))).toLowerCase().replace(/\s+/g, " ").trim();
+      const cenaOf = (o: any) => Number(o?.sellingMode?.price?.amount ?? 0);
+      const klucz = (n: string, c: unknown) => norm(n) + "|" + Number(c ?? 0).toFixed(2);
+
+      const sklepPoKluczu = new Map<string, any>();
+      const sklepPoNazwie = new Map<string, any[]>();
+      for (const p of produkty) {
+        sklepPoKluczu.set(klucz(p.nazwa, p.cena), p);
+        const n = norm(p.nazwa);
+        sklepPoNazwie.set(n, [...(sklepPoNazwie.get(n) ?? []), p]);
+      }
+
+      const brakuje: any[] = [];
+      const innaCena: any[] = [];
+      const ukryteNaStronie: any[] = [];
+      const kluczeOfert = new Set<string>();
+      let damskie = 0;
+      for (const o of oferty) {
+        if (czyDamski(o?.name)) { damskie++; continue; }
+        const c = cenaOf(o);
+        const k = klucz(o?.name, c);
+        kluczeOfert.add(k);
+        const p = sklepPoKluczu.get(k);
+        const wpis = { oferta: o?.id, nazwa: o?.name, cena: c, sztuk: o?.stock?.available ?? null };
+        if (p) {
+          if (p.ukryty) ukryteNaStronie.push({ ...wpis, produkt: p.id });
+          continue;
+        }
+        const tenSam = sklepPoNazwie.get(norm(o?.name));
+        if (tenSam?.length) innaCena.push({ ...wpis, cenaNaStronie: tenSam.map((x) => Number(x.cena)) });
+        else brakuje.push(wpis);
+      }
+      // Produkty z Allegro widoczne w sklepie, dla których nie ma już aktywnej oferty.
+      const nieaktualne = produkty
+        .filter((p) => String(p.id).startsWith("al-") && !p.ukryty && !kluczeOfert.has(klucz(p.nazwa, p.cena)))
+        .map((p) => ({ produkt: p.id, nazwa: p.nazwa, cena: Number(p.cena), stan: p.stan }));
+
+      return Response.json({
+        ok: true,
+        aktywneOferty: oferty.length,
+        pominieteDamskie: damskie,
+        produktySklep: produkty.length,
+        brakujeNaStronie: brakuje.length,
+        innaCenaNaStronie: innaCena.length,
+        ukryteNaStronie: ukryteNaStronie.length,
+        nieaktualneNaStronie: nieaktualne.length,
+        listy: { brakuje, innaCena, ukryteNaStronie, nieaktualne },
       });
     } catch (e) {
       return Response.json({ ok: false, blad: e instanceof Error ? e.message : "błąd" });

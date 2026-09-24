@@ -10,17 +10,17 @@ import { formatCena, pasujeFraza } from "@/lib/filtrowanie";
 let KATALOG_CACHE: Produkt[] | null = null;
 
 // Szybkie skróty pokazywane po kliknięciu w puste pole.
-// `href` → bezpośredni link (np. do działu dorosłych z płcią); w pozostałych szuka po frazie.
+// `href` → bezpośredni link (np. do działu dorosłych); w pozostałych szuka po frazie.
 const SKROTY: { label: string; fraza?: string; href?: string }[] = [
   { label: "Dziewczynki", fraza: "dziewczynki" },
   { label: "Chłopcy", fraza: "chlopcy" },
   { label: "Niemowlęta", fraza: "niemowleta" },
-  { label: "Męskie", href: "/produkty?kategoria=dorosli&plec=meskie" },
-  { label: "Damskie", href: "/produkty?kategoria=dorosli&plec=damskie" },
+  { label: "Męskie", href: "/produkty?kategoria=dorosli" },
   { label: "Komplet", fraza: "komplet" },
   { label: "Body", fraza: "body" },
   { label: "Spodnie", fraza: "spodnie" },
   { label: "Bluza", fraza: "bluza" },
+  { label: "Czapka", fraza: "czapka" },
 ];
 
 export function Szukajka({ mobilna = false }: { mobilna?: boolean }) {
