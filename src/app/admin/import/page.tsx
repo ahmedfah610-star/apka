@@ -186,7 +186,7 @@ export default function AdminImport() {
       {!status ? (
         <p className="text-[13px] text-ink-2">Sprawdzanie statusu…</p>
       ) : !status.skonfigurowany ? (
-        <div className="border border-[oklch(92%_0.07_85)] bg-[oklch(97%_0.03_85)] p-5 text-[14px] text-ink">
+        <div className="rounded-xl border border-[oklch(92%_0.07_85)] bg-[oklch(97%_0.03_85)] p-5 text-[14px] text-ink">
           <p className="font-semibold">Brak konfiguracji Allegro</p>
           <p className="mt-1 text-[13.5px] text-ink-2">
             Dodaj w Vercelu zmienne <code className="rounded bg-szary px-1">ALLEGRO_CLIENT_ID</code> i{" "}
@@ -197,14 +197,14 @@ export default function AdminImport() {
       ) : (
         <div className="flex flex-col gap-6">
           {/* Połączenie */}
-          <section className="border border-linia bg-white p-5">
+          <section className="rounded-xl border border-linia bg-white p-5">
             <div className="mb-3 flex items-center gap-2">
               <span className={`h-2.5 w-2.5 rounded-full ${status.polaczony ? "bg-[oklch(70%_0.15_150)]" : "bg-linia-2"}`} />
               <h2 className="text-[15px] font-bold">{status.polaczony ? "Połączono z Allegro" : "Niepołączono"}</h2>
             </div>
             {!status.polaczony ? (
               <>
-                <button onClick={polacz} disabled={busy} className="bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
+                <button onClick={polacz} disabled={busy} className="rounded-lg bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
                   {busy ? "ŁĄCZENIE…" : "POŁĄCZ Z ALLEGRO"}
                 </button>
                 {start ? (
@@ -217,19 +217,19 @@ export default function AdminImport() {
               </>
             ) : (
               <div className="flex flex-wrap items-center gap-3">
-                <button onClick={importuj} disabled={busy} className="bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
+                <button onClick={importuj} disabled={busy} className="rounded-lg bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
                   {busy ? "IMPORTOWANIE…" : "IMPORTUJ OFERTY"}
                 </button>
-                <button onClick={scalProdukty} disabled={busy} className="bg-akcent px-5 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-ink disabled:opacity-60">
+                <button onClick={scalProdukty} disabled={busy} className="rounded-lg bg-akcent px-5 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-ink disabled:opacity-60">
                   Połącz rozmiary + popraw kategorie
                 </button>
-                <button onClick={poprawKategorie} disabled={busy} className="border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink transition-colors hover:border-ink disabled:opacity-60">
+                <button onClick={poprawKategorie} disabled={busy} className="rounded-lg border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink transition-colors hover:border-ink disabled:opacity-60">
                   Popraw kategorie
                 </button>
-                <button onClick={wyczysc} disabled={busy} className="border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink-2 transition-colors hover:border-akcent hover:text-akcent disabled:opacity-60">
+                <button onClick={wyczysc} disabled={busy} className="rounded-lg border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink-2 transition-colors hover:border-akcent hover:text-akcent disabled:opacity-60">
                   Wyczyść zaimportowane
                 </button>
-                <button onClick={usunWszystko} disabled={busy} className="border border-akcent/50 px-5 py-2.5 text-[13px] font-medium text-akcent transition-colors hover:bg-akcent hover:text-tlo disabled:opacity-60">
+                <button onClick={usunWszystko} disabled={busy} className="rounded-lg border border-akcent/50 px-5 py-2.5 text-[13px] font-medium text-akcent transition-colors hover:bg-akcent hover:text-tlo disabled:opacity-60">
                   Usuń WSZYSTKIE produkty
                 </button>
               </div>
@@ -238,7 +238,7 @@ export default function AdminImport() {
 
           {komunikat ? <p className="text-[13.5px] text-ink-2">{komunikat}</p> : null}
           {wynik && !wynik.blad ? (
-            <div className="border border-linia bg-white p-5 text-[14px]">
+            <div className="rounded-xl border border-linia bg-white p-5 text-[14px]">
               <p><strong>{wynik.zapisano}</strong> ofert zapisanych z {wynik.pobrano} pobranych{wynik.bledy ? `, ${wynik.bledy} z błędem` : ""}.</p>
               <p className="mt-1 text-[13px] text-ink-2">Sprawdź je w zakładce <a href="/admin/produkty" className="underline hover:text-akcent">Produkty</a> — możesz poprawić kategorię, wiek i stan.</p>
             </div>

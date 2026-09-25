@@ -44,7 +44,7 @@ function Sparkline({ dane }: { dane: { data: string; uzytkownicy: number }[] }) 
 
 function Kafel({ etykieta, wartosc, pod }: { etykieta: string; wartosc: string; pod?: string }) {
   return (
-    <div className="border border-linia bg-white p-5">
+    <div className="rounded-xl border border-linia bg-white p-5">
       <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-2">{etykieta}</p>
       <p className="text-[28px] font-bold leading-none tracking-tight tabular-nums">{wartosc}</p>
       {pod ? <p className="mt-1.5 text-[12px] text-ink-2">{pod}</p> : null}
@@ -54,7 +54,7 @@ function Kafel({ etykieta, wartosc, pod }: { etykieta: string; wartosc: string; 
 
 function Tabela({ tytul, wiersze }: { tytul: string; wiersze: { l: string; v: string; sub?: string }[] }) {
   return (
-    <section className="border border-linia bg-white p-6">
+    <section className="rounded-xl border border-linia bg-white p-6">
       <h2 className="mb-4 text-[16px] font-bold">{tytul}</h2>
       {wiersze.length === 0 ? (
         <p className="text-[13px] text-ink-2">Brak danych w tym okresie.</p>
@@ -104,9 +104,9 @@ export default function Analityka() {
   if (d && !d.ok && d.powod === "brak_konfiguracji") {
     return (
       <div>
-        <h1 className="mb-1 text-[26px] font-bold tracking-tight">Analityka</h1>
+        <h1 className="mb-1 text-[26px] font-bold tracking-tight">Ruch na stronie</h1>
         <p className="mb-6 text-[14px] text-ink-2">Dane na żywo z Google Analytics 4.</p>
-        <div className="max-w-2xl border border-linia bg-white p-6">
+        <div className="rounded-xl max-w-2xl border border-linia bg-white p-6">
           <h2 className="mb-2 text-[16px] font-bold">Podłącz GA4 do panelu (jednorazowo)</h2>
           <p className="mb-4 text-[13.5px] leading-relaxed text-ink-2">
             Panel czyta dane przez konto serwisowe Google. Ustaw to raz, a potem statystyki będą tu same.
@@ -132,9 +132,9 @@ export default function Analityka() {
   if (blad || (d && !d.ok)) {
     return (
       <div>
-        <h1 className="mb-1 text-[26px] font-bold tracking-tight">Analityka</h1>
+        <h1 className="mb-1 text-[26px] font-bold tracking-tight">Ruch na stronie</h1>
         <p className="mt-4 text-[14px] text-akcent">{blad || "GA4 zwróciło błąd. Sprawdź uprawnienia konta serwisowego i numer usługi."}</p>
-        <button onClick={() => void wczytaj()} className="mt-4 border border-ink px-4 py-2 text-[13px] font-semibold hover:bg-ink hover:text-tlo">
+        <button onClick={() => void wczytaj()} className="rounded-lg mt-4 border border-ink px-4 py-2 text-[13px] font-semibold hover:bg-ink hover:text-tlo">
           Spróbuj ponownie
         </button>
       </div>
@@ -146,10 +146,10 @@ export default function Analityka() {
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-[26px] font-bold tracking-tight">Analityka</h1>
+          <h1 className="text-[26px] font-bold tracking-tight">Ruch na stronie</h1>
           <p className="text-[14px] text-ink-2">Google Analytics 4 · ostatnie 28 dni</p>
         </div>
-        <div className="flex items-center gap-2 border border-linia bg-white px-3.5 py-2">
+        <div className="rounded-lg flex items-center gap-2 border border-linia bg-white px-3.5 py-2">
           <span className="relative flex h-2.5 w-2.5">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[oklch(72%_0.12_150)] opacity-75" />
             <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[oklch(60%_0.13_150)]" />
@@ -168,7 +168,7 @@ export default function Analityka() {
       </div>
 
       {/* Wykres */}
-      <section className="mb-6 border border-linia bg-white p-6">
+      <section className="rounded-xl mb-6 border border-linia bg-white p-6">
         <h2 className="mb-3 text-[16px] font-bold">Użytkownicy dziennie</h2>
         <Sparkline dane={d?.seria ?? []} />
       </section>
@@ -184,7 +184,7 @@ export default function Analityka() {
       </div>
 
       {/* Urządzenia */}
-      <section className="mt-6 border border-linia bg-white p-6">
+      <section className="rounded-xl mt-6 border border-linia bg-white p-6">
         <h2 className="mb-4 text-[16px] font-bold">Urządzenia</h2>
         <div className="flex flex-col gap-3">
           {(d?.urzadzenia ?? []).map((u) => {

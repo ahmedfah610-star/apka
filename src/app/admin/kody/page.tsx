@@ -98,7 +98,7 @@ export default function AdminKody() {
       </div>
 
       {/* Nowy kod */}
-      <form onSubmit={zapiszKod} className="mb-8 border border-linia bg-white p-5">
+      <form onSubmit={zapiszKod} className="rounded-xl mb-8 border border-linia bg-white p-5">
         <h2 className="mb-4 text-[15px] font-bold">Nowy kod</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <input className={`${input} uppercase`} placeholder="KOD (np. LATO10)" value={form.kod} onChange={(e) => setForm({ ...form, kod: e.target.value.toUpperCase() })} />
@@ -112,7 +112,7 @@ export default function AdminKody() {
           <input className={input} placeholder="Limit użyć (opcjonalnie)" value={form.limitUzyc} onChange={(e) => setForm({ ...form, limitUzyc: e.target.value })} />
         </div>
         <div className="mt-4 flex items-center gap-4">
-          <button type="submit" disabled={zapis} className="bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
+          <button type="submit" disabled={zapis} className="rounded-lg bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
             {zapis ? "ZAPISYWANIE…" : "UTWÓRZ KOD"}
           </button>
           {komunikat ? <span className="text-[13px] text-ink-2">{komunikat}</span> : null}
@@ -123,12 +123,12 @@ export default function AdminKody() {
       {ladowanie ? (
         <p className="text-[13px] text-ink-2">Wczytywanie…</p>
       ) : lista.length === 0 ? (
-        <div className="border border-linia bg-white px-6 py-12 text-center text-ink-2">
+        <div className="rounded-xl border border-linia bg-white px-6 py-12 text-center text-ink-2">
           <p className="text-[15px] font-semibold text-ink">Brak kodów</p>
           <p className="mt-1 text-[13px]">Utwórz pierwszy kod powyżej.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto border border-linia">
+        <div className="rounded-xl bg-white overflow-x-auto border border-linia">
           <table className="w-full min-w-[720px] text-left text-[14px]">
             <thead className="border-b border-linia bg-szary text-[12px] uppercase tracking-wide text-ink-2">
               <tr>

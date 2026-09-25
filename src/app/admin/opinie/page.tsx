@@ -91,7 +91,7 @@ export default function AdminOpinie() {
           <button
             key={k}
             onClick={() => setFiltr(k)}
-            className={`border px-3 py-1.5 text-[13px] transition-colors ${filtr === k ? "border-ink bg-ink text-tlo" : "border-linia-2 text-ink hover:border-ink"}`}
+            className={`rounded-full border px-3 py-1.5 text-[13px] transition-colors ${filtr === k ? "border-ink bg-ink text-tlo" : "border-linia-2 text-ink hover:border-ink"}`}
           >
             {l} <span className={filtr === k ? "opacity-80" : "text-ink-2"}>{liczby[k]}</span>
           </button>
@@ -101,14 +101,14 @@ export default function AdminOpinie() {
       {ladowanie ? (
         <p className="text-[13px] text-ink-2">Wczytywanie…</p>
       ) : widoczne.length === 0 ? (
-        <div className="border border-linia bg-white px-6 py-12 text-center text-ink-2">
+        <div className="rounded-xl border border-linia bg-white px-6 py-12 text-center text-ink-2">
           <p className="text-[15px] font-semibold text-ink">Brak opinii</p>
           <p className="mt-1 text-[13px]">Opinie klientów pojawią się tutaj.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           {widoczne.map((o) => (
-            <div key={o.id} className={`border bg-white p-5 ${o.zatwierdzona ? "border-linia" : "border-akcent/40 bg-akcent/[0.03]"}`}>
+            <div key={o.id} className={`rounded-xl border bg-white p-5 ${o.zatwierdzona ? "border-linia" : "border-akcent/40 bg-akcent/[0.03]"}`}>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <Gwiazdki ocena={o.ocena} />

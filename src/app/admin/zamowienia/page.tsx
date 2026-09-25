@@ -146,7 +146,7 @@ export default function AdminZamowienia() {
             <button
               key={s.key}
               onClick={() => setFiltr(s.key)}
-              className={`border px-3 py-1.5 text-[13px] transition-colors ${on ? "border-ink bg-ink text-tlo" : "border-linia-2 text-ink hover:border-ink"}`}
+              className={`rounded-full border px-3 py-1.5 text-[13px] transition-colors ${on ? "border-ink bg-ink text-tlo" : "border-linia-2 text-ink hover:border-ink"}`}
             >
               {s.label} <span className={on ? "opacity-80" : "text-ink-2"}>{n}</span>
             </button>
@@ -157,12 +157,12 @@ export default function AdminZamowienia() {
       {ladowanie ? (
         <p className="text-[13px] text-ink-2">Wczytywanie…</p>
       ) : widoczne.length === 0 ? (
-        <div className="border border-linia bg-white px-6 py-12 text-center text-ink-2">
+        <div className="rounded-xl border border-linia bg-white px-6 py-12 text-center text-ink-2">
           <p className="text-[15px] font-semibold text-ink">Brak zamówień</p>
           <p className="mt-1 text-[13px]">Zamówienia ze sklepu pojawią się tutaj.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto border border-linia">
+        <div className="rounded-xl bg-white overflow-x-auto border border-linia">
           <table className="w-full min-w-[760px] text-left text-[14px]">
             <thead className="border-b border-linia bg-szary text-[12px] uppercase tracking-wide text-ink-2">
               <tr>
@@ -281,7 +281,7 @@ export default function AdminZamowienia() {
                                       <select
                                         value={p.przewoznik}
                                         onChange={(e) => setWys((w) => ({ ...w, [z.id]: { ...polaWysylki(z), przewoznik: e.target.value } }))}
-                                        className="border border-linia-2 bg-white px-2.5 py-2 text-[13px] outline-none focus:border-ink"
+                                        className="rounded-md border border-linia-2 bg-white px-2.5 py-2 text-[13px] outline-none focus:border-ink"
                                       >
                                         <option value="">Wybierz przewoźnika…</option>
                                         {PRZEWOZNICY.map((pr) => (
@@ -292,7 +292,7 @@ export default function AdminZamowienia() {
                                         value={p.numer}
                                         onChange={(e) => setWys((w) => ({ ...w, [z.id]: { ...polaWysylki(z), numer: e.target.value } }))}
                                         placeholder="Numer przesyłki / listu"
-                                        className="border border-linia-2 bg-white px-2.5 py-2 text-[13px] outline-none focus:border-ink"
+                                        className="rounded-md border border-linia-2 bg-white px-2.5 py-2 text-[13px] outline-none focus:border-ink"
                                       />
                                       {link ? (
                                         <a href={link} target="_blank" rel="noopener noreferrer" className="text-[12px] text-akcent underline underline-offset-2">
@@ -303,14 +303,14 @@ export default function AdminZamowienia() {
                                         <button
                                           onClick={() => void nadajPaczke(z, true)}
                                           disabled={wysylanie === z.id}
-                                          className="bg-ink px-3.5 py-2 text-[12.5px] font-semibold text-tlo transition-colors hover:bg-akcent disabled:opacity-60"
+                                          className="rounded-lg bg-ink px-3.5 py-2 text-[12.5px] font-semibold text-tlo transition-colors hover:bg-akcent disabled:opacity-60"
                                         >
                                           {wysylanie === z.id ? "…" : "Oznacz wysłane + powiadom"}
                                         </button>
                                         <button
                                           onClick={() => void nadajPaczke(z, false)}
                                           disabled={wysylanie === z.id}
-                                          className="border border-linia-2 px-3.5 py-2 text-[12.5px] font-medium text-ink hover:border-ink disabled:opacity-60"
+                                          className="rounded-lg border border-linia-2 px-3.5 py-2 text-[12.5px] font-medium text-ink hover:border-ink disabled:opacity-60"
                                         >
                                           Zapisz bez maila
                                         </button>

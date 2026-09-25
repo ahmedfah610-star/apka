@@ -79,7 +79,7 @@ export default function AdminKlienci() {
       </div>
 
       <input
-        className="mb-4 w-full max-w-sm border border-linia-2 bg-white px-3 py-2 text-[14px] outline-none focus:border-ink"
+        className="rounded-md mb-4 w-full max-w-sm border border-linia-2 bg-white px-3 py-2 text-[14px] outline-none focus:border-ink"
         placeholder="Szukaj po e-mailu, imieniu, telefonie…"
         value={szukaj}
         onChange={(e) => setSzukaj(e.target.value)}
@@ -88,12 +88,12 @@ export default function AdminKlienci() {
       {ladowanie ? (
         <p className="text-[13px] text-ink-2">Wczytywanie…</p>
       ) : widoczne.length === 0 ? (
-        <div className="border border-linia bg-white px-6 py-12 text-center text-ink-2">
+        <div className="rounded-xl border border-linia bg-white px-6 py-12 text-center text-ink-2">
           <p className="text-[15px] font-semibold text-ink">Brak klientów</p>
           <p className="mt-1 text-[13px]">Gdy pojawią się zamówienia, klienci znajdą się tutaj.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto border border-linia">
+        <div className="rounded-xl bg-white overflow-x-auto border border-linia">
           <table className="w-full min-w-[720px] text-left text-[14px]">
             <thead className="border-b border-linia bg-szary text-[12px] uppercase tracking-wide text-ink-2">
               <tr>

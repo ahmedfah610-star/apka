@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const KLUCZ = "fasolka-zgoda-cookies";
@@ -9,6 +10,7 @@ const KLUCZ = "fasolka-zgoda-cookies";
 // Zapisuje wybór w localStorage; realne skrypty analityczne/marketingowe wczytuj dopiero po zgodzie.
 export function BannerCookies() {
   const [widoczny, setWidoczny] = useState(false);
+  const panel = (usePathname() ?? "").startsWith("/admin"); // w panelu admina baner nie jest potrzebny
 
   useEffect(() => {
     try {
@@ -33,7 +35,7 @@ export function BannerCookies() {
     setWidoczny(false);
   }
 
-  if (!widoczny) return null;
+  if (!widoczny || panel) return null;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-[90] border-t-[3px] border-akcent bg-white shadow-[0_-12px_44px_-8px_rgba(0,0,0,0.4)]">

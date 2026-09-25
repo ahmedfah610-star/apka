@@ -1,6 +1,7 @@
 "use client";
 
 import Script from "next/script";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const KLUCZ = "fasolka-zgoda-cookies";
@@ -13,6 +14,12 @@ export function GoogleAnalytics() {
   // można nadpisać zmienną NEXT_PUBLIC_GA_ID w Vercel.
   const id = process.env.NEXT_PUBLIC_GA_ID || "G-RG4NHT446C";
   const [zgoda, setZgoda] = useState(false);
+  // Panel admina nie jest ruchem sklepu — nie licz go (także po przejściu ze sklepu
+  // do panelu bez przeładowania, gdy gtag jest już wczytany).
+  const panel = (usePathname() ?? "").startsWith("/admin");
+  useEffect(() => {
+    (window as unknown as Record<string, boolean>)[`ga-disable-${id}`] = panel;
+  }, [panel, id]);
 
   useEffect(() => {
     const sprawdz = () => {
@@ -29,7 +36,7 @@ export function GoogleAnalytics() {
     return () => window.removeEventListener("zgoda-cookies", sprawdz);
   }, []);
 
-  if (!id || !zgoda) return null;
+  if (!id || !zgoda || panel) return null;
 
   return (
     <>

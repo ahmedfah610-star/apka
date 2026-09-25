@@ -35,7 +35,7 @@ const dzienLabel = (iso: string) => new Date(iso).toLocaleDateString("pl-PL", { 
 
 function Kafel({ etykieta, wartosc, pod }: { etykieta: string; wartosc: string; pod?: string }) {
   return (
-    <div className="border border-linia bg-white p-5">
+    <div className="rounded-xl border border-linia bg-white p-5">
       <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-2">{etykieta}</p>
       <p className="text-[26px] font-bold leading-none tracking-tight">{wartosc}</p>
       {pod ? <p className="mt-1.5 text-[12px] text-ink-2">{pod}</p> : null}
@@ -110,7 +110,7 @@ export default function AdminStatystyki() {
             <button
               key={o.dni}
               onClick={() => setOkres(o.dni)}
-              className={`border px-3 py-1.5 text-[13px] transition-colors ${okres === o.dni ? "border-ink bg-ink text-tlo" : "border-linia-2 text-ink hover:border-ink"}`}
+              className={`rounded-full border px-3 py-1.5 text-[13px] transition-colors ${okres === o.dni ? "border-ink bg-ink text-tlo" : "border-linia-2 text-ink hover:border-ink"}`}
             >
               {o.label}
             </button>
@@ -131,7 +131,7 @@ export default function AdminStatystyki() {
           </div>
 
           {/* Wykres obrotu */}
-          <section className="mb-8 border border-linia bg-white p-6">
+          <section className="rounded-xl mb-8 border border-linia bg-white p-6">
             <h2 className="mb-5 text-[16px] font-bold">Obrót dzienny</h2>
             {dane.slupki.every((s) => s.wartosc === 0) ? (
               <p className="text-[13px] text-ink-2">Brak zrealizowanej sprzedaży w tym okresie.</p>
@@ -155,7 +155,7 @@ export default function AdminStatystyki() {
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             {/* Bestsellery */}
-            <section className="border border-linia bg-white p-6">
+            <section className="rounded-xl border border-linia bg-white p-6">
               <h2 className="mb-5 text-[16px] font-bold">Bestsellery</h2>
               {dane.bestsellery.length === 0 ? (
                 <p className="text-[13px] text-ink-2">Brak sprzedaży w tym okresie.</p>
@@ -177,7 +177,7 @@ export default function AdminStatystyki() {
             </section>
 
             {/* Rozkład statusów */}
-            <section className="border border-linia bg-white p-6">
+            <section className="rounded-xl border border-linia bg-white p-6">
               <h2 className="mb-5 text-[16px] font-bold">Zamówienia wg statusu</h2>
               {dane.wszystkie === 0 ? (
                 <p className="text-[13px] text-ink-2">Brak zamówień w tym okresie.</p>

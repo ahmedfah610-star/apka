@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { type Kategoria, type Produkt, type Wiek } from "@/data/produkty";
+import { KATEGORIE_LABEL, type Kategoria, type Produkt, type Wiek } from "@/data/produkty";
 import { glowneZdjecie } from "@/lib/sklepStore";
 import { EdytorProduktu } from "@/components/EdytorProduktu";
 
@@ -25,10 +25,24 @@ const PUSTY_PRODUKT: Produkt = {
   hue: 340,
 };
 
+type Filtr = "wszystkie" | Kategoria | "bez_stanu" | "wylaczone";
+const FILTRY: { key: Filtr; label: string; test: (p: Produkt) => boolean }[] = [
+  { key: "wszystkie", label: "Wszystkie", test: () => true },
+  { key: "niemowleta", label: KATEGORIE_LABEL.niemowleta, test: (p) => p.kategoria === "niemowleta" },
+  { key: "dziewczynki", label: KATEGORIE_LABEL.dziewczynki, test: (p) => p.kategoria === "dziewczynki" },
+  { key: "chlopcy", label: KATEGORIE_LABEL.chlopcy, test: (p) => p.kategoria === "chlopcy" },
+  { key: "dorosli", label: KATEGORIE_LABEL.dorosli, test: (p) => p.kategoria === "dorosli" },
+  { key: "bez_stanu", label: "Bez stanu", test: (p) => typeof p.stan === "number" && p.stan <= 0 },
+  { key: "wylaczone", label: "Wyłączone", test: (p) => !!p.ukryty },
+];
+const NA_STRONE = 60;
+
 export default function AdminProdukty() {
   const [lista, setLista] = useState<Produkt[]>([]);
   const [ladowanie, setLadowanie] = useState(true);
   const [szukaj, setSzukaj] = useState("");
+  const [filtr, setFiltr] = useState<Filtr>("wszystkie");
+  const [limit, setLimit] = useState(NA_STRONE);
   const [rozwiniety, setRozwiniety] = useState<string | null>(null);
   const [edytowany, setEdytowany] = useState<Produkt | null>(null);
   const [nowyOtwarty, setNowyOtwarty] = useState(false);
@@ -49,10 +63,12 @@ export default function AdminProdukty() {
     void odswiez();
   }, []);
 
-  const widoczne = useMemo(
-    () => lista.filter((p) => p.nazwa.toLowerCase().includes(szukaj.toLowerCase())),
-    [lista, szukaj],
-  );
+  const widoczne = useMemo(() => {
+    const test = FILTRY.find((f) => f.key === filtr)?.test ?? (() => true);
+    const q = szukaj.trim().toLowerCase();
+    return lista.filter((p) => test(p) && (!q || p.nazwa.toLowerCase().includes(q)));
+  }, [lista, szukaj, filtr]);
+  useEffect(() => setLimit(NA_STRONE), [szukaj, filtr]);
 
   async function edytuj(id: string, zmiany: Partial<Pick<Produkt, "cena" | "stan" | "badge" | "ukryty" | "stanRozmiary">>) {
     const patch = { ...zmiany };
@@ -85,7 +101,7 @@ export default function AdminProdukty() {
     }
   }
 
-  const input = "w-full border border-linia-2 bg-white px-3 py-2 text-[14px] outline-none focus:border-ink";
+  const input = "w-full rounded-lg border border-linia-2 bg-white px-3 py-2 text-[14px] outline-none focus:border-ink";
   const naStanie = lista.reduce((s, p) => s + (typeof p.stan === "number" ? p.stan : 0), 0);
 
   return (
@@ -99,24 +115,39 @@ export default function AdminProdukty() {
         </div>
         <button
           onClick={() => setNowyOtwarty(true)}
-          className="bg-akcent px-5 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-ink"
+          className="rounded-lg bg-akcent px-5 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-ink"
         >
           ＋ Wystaw nowy produkt
         </button>
       </div>
 
-      <p className="mb-4 max-w-2xl text-[13px] leading-relaxed text-ink-2">
-        „Wystaw nowy produkt" otwiera pełny edytor: zdjęcia, kolor, rozmiary z ilościami, krótki opis oraz
-        <b> rozbudowany opis (jak na stronie)</b>. Szybkie zmiany (cena, stan, status) robisz w tabeli;
-        „Edytuj" otwiera ten sam pełny edytor. Wszystko zapisuje się w bazie i jest wspólne dla klientów.
-      </p>
-
-      <input className={`${input} mb-4 max-w-sm`} placeholder="Szukaj po nazwie…" value={szukaj} onChange={(e) => setSzukaj(e.target.value)} />
+      <div className="mb-4 flex flex-col gap-3">
+        <input className={`${input} max-w-sm`} placeholder="Szukaj po nazwie…" value={szukaj} onChange={(e) => setSzukaj(e.target.value)} />
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
+          {FILTRY.map((f) => {
+            const on = filtr === f.key;
+            const ile = f.key === "wszystkie" ? lista.length : lista.filter(f.test).length;
+            if (!ile && !on && f.key !== "wszystkie") return null;
+            return (
+              <button
+                key={f.key}
+                onClick={() => setFiltr(f.key)}
+                className={`shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] transition-colors ${
+                  on ? "border-ink bg-ink text-tlo" : "border-linia-2 bg-white text-ink hover:border-ink"
+                }`}
+              >
+                {f.label} <span className={on ? "text-tlo/70" : "text-ink-2"}>{ile}</span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[12.5px] text-ink-2">Cenę i stan zmieniasz od razu w tabeli — zapisuje się po kliknięciu obok pola. Zdjęcia, opis i rozmiary: „Edytuj".</p>
+      </div>
 
       {/* Tabela zarządzania */}
-      <div className="overflow-x-auto border border-linia">
-        <table className="w-full min-w-[820px] text-left text-[14px]">
-          <thead className="border-b border-linia bg-szary text-[12px] uppercase tracking-wide text-ink-2">
+      <div className="rounded-xl bg-white overflow-x-auto border border-linia">
+        <table className="w-full text-left text-[14px] md:min-w-[820px]">
+          <thead className="hidden border-b border-linia bg-szary text-[12px] uppercase tracking-wide text-ink-2 md:table-header-group">
             <tr>
               <th className="px-4 py-3 font-semibold">Produkt</th>
               <th className="px-4 py-3 font-semibold">Cena</th>
@@ -126,14 +157,14 @@ export default function AdminProdukty() {
             </tr>
           </thead>
           <tbody className="divide-y divide-linia">
-            {widoczne.slice(0, 60).map((p) => {
+            {widoczne.slice(0, limit).map((p) => {
               const zdj = glowneZdjecie(p);
               return (
                 <Fragment key={p.id}>
-                  <tr className="bg-white align-middle">
-                    <td className="px-4 py-2.5">
+                  <tr className="grid grid-cols-2 items-center gap-x-3 gap-y-2.5 bg-white p-4 align-middle md:table-row md:p-0">
+                    <td className="col-span-2 md:px-4 md:py-2.5">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-szary">
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-szary">
                           {zdj ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={zdj} alt="" className="h-full w-full object-contain p-0.5" />
@@ -141,11 +172,11 @@ export default function AdminProdukty() {
                         </span>
                         <span>
                           <span className="block font-medium leading-tight">{p.nazwa}</span>
-                          <span className="text-[12px] text-ink-2">{p.kategoria}{p.kolor ? ` · ${p.kolor}` : ""}</span>
+                          <span className="text-[12px] text-ink-2">{KATEGORIE_LABEL[p.kategoria] ?? p.kategoria}{p.kolor ? ` · ${p.kolor}` : ""}</span>
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="md:px-4 md:py-2.5">
                       <div className="flex items-center gap-1">
                         <input
                           key={`c-${p.id}-${p.cena}`}
@@ -154,23 +185,23 @@ export default function AdminProdukty() {
                             const v = parseFloat(e.target.value.replace(",", "."));
                             if (Number.isFinite(v) && v !== p.cena) void edytuj(p.id, { cena: v });
                           }}
-                          className="w-20 border border-linia-2 bg-white px-2 py-1 text-[13px] outline-none focus:border-ink"
+                          className="rounded-md w-20 border border-linia-2 bg-white px-2 py-1 text-[13px] outline-none focus:border-ink"
                         />
                         <span className="text-[12px] text-ink-2">zł</span>
                       </div>
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="justify-self-end md:justify-self-auto md:px-4 md:py-2.5">
                       {p.stanRozmiary && p.rozmiary && p.rozmiary.length ? (
                         <button
                           onClick={() => setRozwiniety((r) => (r === p.id ? null : p.id))}
-                          className="flex items-center gap-2 border border-linia-2 px-3 py-1.5 text-[13px] hover:border-ink"
+                          className="flex items-center gap-2 whitespace-nowrap rounded-lg border border-linia-2 bg-white px-3 py-1.5 text-[13px] hover:border-ink"
                         >
                           <span className="font-semibold">{p.stan ?? 0} szt.</span>
                           <span className="text-[12px] text-ink-2">wg rozmiarów {rozwiniety === p.id ? "▲" : "▼"}</span>
                         </button>
                       ) : (
                         <div className="flex items-center">
-                          <button onClick={() => void edytuj(p.id, { stan: Math.max(0, (typeof p.stan === "number" ? p.stan : 0) - 1) })} className="border border-linia-2 px-2 py-1 text-ink-2 hover:text-ink" aria-label="Zmniejsz stan">
+                          <button onClick={() => void edytuj(p.id, { stan: Math.max(0, (typeof p.stan === "number" ? p.stan : 0) - 1) })} className="rounded-lg border border-linia-2 px-2 py-1 text-ink-2 hover:text-ink" aria-label="Zmniejsz stan">
                             −
                           </button>
                           <input
@@ -184,21 +215,22 @@ export default function AdminProdukty() {
                             }}
                             className="w-14 border-y border-linia-2 bg-white px-2 py-1 text-center text-[13px] outline-none focus:border-ink"
                           />
-                          <button onClick={() => void edytuj(p.id, { stan: (typeof p.stan === "number" ? p.stan : 0) + 1 })} className="border border-linia-2 px-2 py-1 text-ink-2 hover:text-ink" aria-label="Zwiększ stan">
+                          <button onClick={() => void edytuj(p.id, { stan: (typeof p.stan === "number" ? p.stan : 0) + 1 })} className="rounded-lg border border-linia-2 px-2 py-1 text-ink-2 hover:text-ink" aria-label="Zwiększ stan">
                             +
                           </button>
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="md:px-4 md:py-2.5">
                       <button
                         onClick={() => void edytuj(p.id, { ukryty: !p.ukryty })}
-                        className={`px-2.5 py-1 text-[11px] font-semibold ${p.ukryty ? "bg-szary text-ink-2" : "bg-[oklch(72%_0.12_150)] text-tlo"}`}
+                        title={p.ukryty ? "Kliknij, aby pokazać w sklepie" : "Kliknij, aby ukryć w sklepie"}
+                        className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${p.ukryty ? "bg-szary text-ink-2" : "bg-[oklch(72%_0.12_150)] text-tlo"}`}
                       >
                         {p.ukryty ? "Wyłączona" : "Aktywna"}
                       </button>
                     </td>
-                    <td className="px-4 py-2.5 text-right">
+                    <td className="text-right md:px-4 md:py-2.5">
                       <div className="flex items-center justify-end gap-3">
                         <button onClick={() => setEdytowany(p)} className="text-[13px] font-medium text-ink underline underline-offset-2 hover:text-akcent">
                           Edytuj
@@ -210,12 +242,12 @@ export default function AdminProdukty() {
                     </td>
                   </tr>
                   {rozwiniety === p.id && p.stanRozmiary && p.rozmiary ? (
-                    <tr className="bg-szary/40">
-                      <td colSpan={5} className="px-4 py-3">
+                    <tr className="block bg-szary/40 md:table-row">
+                      <td colSpan={5} className="block px-4 py-3 md:table-cell">
                         <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-2">Stan wg rozmiarów</p>
                         <div className="flex flex-wrap gap-2.5">
                           {p.rozmiary.map((s) => (
-                            <label key={s} className="flex items-center gap-1.5 border border-linia-2 bg-white px-2.5 py-1.5">
+                            <label key={s} className="rounded-lg flex items-center gap-1.5 border border-linia-2 bg-white px-2.5 py-1.5">
                               <span className="text-[12px] font-semibold text-ink-2">{s}</span>
                               <input
                                 key={`sr-${p.id}-${s}-${p.stanRozmiary?.[s] ?? 0}`}
@@ -227,7 +259,7 @@ export default function AdminProdukty() {
                                   const akt = p.stanRozmiary?.[s] ?? 0;
                                   if (v !== akt) void edytuj(p.id, { stanRozmiary: { ...(p.stanRozmiary ?? {}), [s]: v } });
                                 }}
-                                className="w-14 border border-linia-2 bg-white px-1.5 py-1 text-center text-[13px] outline-none focus:border-ink"
+                                className="rounded-md w-14 border border-linia-2 bg-white px-1.5 py-1 text-center text-[13px] outline-none focus:border-ink"
                               />
                             </label>
                           ))}
@@ -244,8 +276,17 @@ export default function AdminProdukty() {
       </div>
       {ladowanie ? (
         <p className="mt-3 text-[12px] text-ink-2">Wczytywanie…</p>
-      ) : widoczne.length > 60 ? (
-        <p className="mt-3 text-[12px] text-ink-2">Pokazano 60 z {widoczne.length}. Zawęź wyszukiwaniem.</p>
+      ) : widoczne.length === 0 ? (
+        <p className="mt-3 text-[13px] text-ink-2">Brak produktów dla tego filtra.</p>
+      ) : widoczne.length > limit ? (
+        <div className="mt-4 flex items-center gap-4">
+          <button onClick={() => setLimit((l) => l + NA_STRONE)} className="rounded-lg border border-linia-2 bg-white px-4 py-2 text-[13px] font-medium hover:border-ink">
+            Pokaż kolejne
+          </button>
+          <span className="text-[12.5px] text-ink-2">
+            {limit} z {widoczne.length}
+          </span>
+        </div>
       ) : null}
 
       {edytowany ? (
