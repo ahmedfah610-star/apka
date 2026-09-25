@@ -14,6 +14,7 @@ import {
   type FiltrWyroznienie,
   type Sortowanie,
 } from "@/lib/filtrowanie";
+import { porownajRozmiary } from "@/lib/rozmiary";
 import { zwinWarianty } from "@/lib/warianty";
 
 const KATEGORIE: { key: FiltrKategoria; label: string }[] = [
@@ -65,7 +66,7 @@ function Listing() {
       .catch(() => {});
   }, []);
   const DOSTEPNE_ROZMIARY = useMemo(
-    () => Array.from(new Set(wszystkie.flatMap((p) => p.rozmiary ?? []))).sort((a, b) => Number(a) - Number(b)),
+    () => Array.from(new Set(wszystkie.flatMap((p) => p.rozmiary ?? []))).sort(porownajRozmiary),
     [wszystkie],
   );
 

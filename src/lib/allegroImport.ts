@@ -1,6 +1,7 @@
 import { allegroGet } from "@/lib/allegro";
 import { sbService } from "@/lib/supabase";
 import { ladnaNazwa } from "@/lib/nazwa";
+import { porownajRozmiary, rozmiarDorosly } from "@/lib/rozmiary";
 import type { Kategoria, Wiek } from "@/data/produkty";
 
 // Mapowanie ofert z Allegro na produkty sklepu. Wyciąga: nazwę, cenę, wszystkie
@@ -45,6 +46,10 @@ export function bazaNazwy(n: string): string {
     .replace(/\d+/g, " ") // pojedyncze liczby (rozmiary)
     .replace(/[+/,–-]/g, " ")
     .replace(/\s+/g, " ")
+    .trim()
+    // Rozmiary literowe na końcu (odzież dorosła: „M/L", „XXL/XXXL", „2XL" → „XL"),
+    // inaczej każdy rozmiar byłby osobnym produktem.
+    .replace(/(\s+(x{0,4}s|x{0,4}l|m))+$/i, "")
     .trim();
 }
 function hash36(s: string): string {
@@ -144,11 +149,6 @@ function wiekZRozmiaru(min: number): Wiek {
   return min <= 98 ? "0-2" : min <= 128 ? "2-6" : "6-12";
 }
 
-// Rozmiar dorosłego ubrania (litery: S/M/L/XL/XXL/3XL–6XL, także złożenia „M/L").
-// UWAGA: nie mylić z rozmiarami niemowlęcymi w cm/zakresach liczbowych (np. „16-18", „26-30 cm").
-function rozmiarDorosly(r: string): boolean {
-  return /^(x{0,3}s|x{0,3}l|m|[2-6]xl)(\s*\/\s*(x{0,3}s|x{0,3}l|m|[2-6]xl))?$/i.test((r || "").trim());
-}
 // Odzież damska — sklep jej NIE prowadzi; takie oferty są pomijane przy imporcie.
 // (Tylko jednoznaczne słowa — „spódnica" sama w sobie bywa dziewczęca.)
 export function czyDamski(nazwa: string): boolean {
@@ -291,9 +291,7 @@ async function zapiszZgrupowane(sb: any, det: any): Promise<{ ok: boolean; pomin
   if (istn) {
     const sr: Record<string, number> = { ...(istn.stan_rozmiary ?? {}) };
     if (m.rozmiar) sr[m.rozmiar] = m.sztuk; // SET (nie dodawaj) — idempotentne przy duplikatach
-    const rozm = Array.from(new Set([...(istn.rozmiary ?? []), ...(m.rozmiar ? [m.rozmiar] : [])])).sort(
-      (a: string, b: string) => (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0),
-    );
+    const rozm = Array.from(new Set([...(istn.rozmiary ?? []), ...(m.rozmiar ? [m.rozmiar] : [])])).sort(porownajRozmiary);
     const zdj = Array.from(new Set([...((istn.zdjecia as string[]) ?? []), ...((w.zdjecia as string[]) ?? [])]));
     w.stan_rozmiary = Object.keys(sr).length ? sr : null;
     w.stan = Object.values(sr).reduce((s: number, v) => s + (Number(v) || 0), 0);
@@ -374,7 +372,7 @@ export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: 
       if (!opis && p.opis) opis = p.opis;
       if (!opisHtml && p.opis_html) opisHtml = p.opis_html;
     }
-    const rozmiary = [...rozm].sort((a, b) => (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0));
+    const rozmiary = [...rozm].sort(porownajRozmiary);
     // Większość dotychczasowych kategorii w grupie = „obecna" (fallback dla starszaków
     // bez płci w nazwie — niesie płeć z parametru Płeć ustaloną przy imporcie).
     const glosy = new Map<Kategoria, number>();

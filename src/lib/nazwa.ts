@@ -20,7 +20,7 @@ function poprawLiterowki(s: string): string {
   return s
     .replace(/dziwczyn/gi, "dziewczyn")
     .replace(/dzieczyn/gi, "dziewczyn")
-    .replace(/dzieczyn/gi, "dziewczyn");
+    .replace(/męksi/gi, "męski");
 }
 
 /** Schludny tytuł sklepowy z surowej nazwy oferty. */
