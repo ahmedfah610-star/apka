@@ -167,7 +167,30 @@ export default function AdminImport() {
         if (d.koniec || (d.pobrano ?? 0) === 0) break;
       }
       setWynik({ pobrano, zapisano, bledy });
-      setKomunikat(bledy && pierwszyBlad ? `Zakończono, ale ${bledy} z błędem. Pierwszy błąd: ${pierwszyBlad}` : "Import zakończony ✓");
+      // Oferty są zapisane jako ukryte — od razu scalamy je w produkty sklepu.
+      // Zakończone na Allegro usuwamy tylko po imporcie bez błędów.
+      setKomunikat("Łączenie rozmiarów w produkty…");
+      const rs = await fetch("/api/admin/allegro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ akcja: "scal", usunNieaktualne: bledy === 0 }),
+      });
+      const ds = (await rs.json().catch(() => ({}))) as { ok?: boolean; po?: number; usunieteNieaktualne?: number; blad?: string };
+      await fetch("/api/admin/allegro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ akcja: "przeklasyfikuj" }),
+      }).catch(() => {});
+      if (!ds.ok) {
+        setKomunikat(`Import zapisany, ale łączenie się nie powiodło: ${ds.blad || "błąd"} — kliknij „Połącz rozmiary".`);
+      } else {
+        const usun = ds.usunieteNieaktualne ? `, usunięto ${ds.usunieteNieaktualne} zakończonych` : "";
+        setKomunikat(
+          bledy && pierwszyBlad
+            ? `Zakończono (${ds.po ?? 0} produktów), ale ${bledy} ofert z błędem. Pierwszy błąd: ${pierwszyBlad}`
+            : `Import zakończony ✓ — ${ds.po ?? 0} produktów w sklepie${usun}.`,
+        );
+      }
     } catch {
       setKomunikat(`Przerwano połączenie. Zapisano dotąd ${zapisano} ofert — kliknij „Importuj" ponownie, aby dokończyć.`);
       setWynik({ pobrano, zapisano, bledy });

@@ -2,6 +2,8 @@ import { allegroGet } from "@/lib/allegro";
 import { sbService } from "@/lib/supabase";
 import { ladnaNazwa } from "@/lib/nazwa";
 import { porownajRozmiary, rozmiarDorosly } from "@/lib/rozmiary";
+import { oczyscTekstOpisu } from "@/lib/opis";
+import { rodzinaKoloru } from "@/lib/kolory";
 import type { Kategoria, Wiek } from "@/data/produkty";
 
 // Mapowanie ofert z Allegro na produkty sklepu. Wyciąga: nazwę, cenę, wszystkie
@@ -236,10 +238,14 @@ export function mapujOferte(o: any): OfertaZmapowana {
     zdjecia,
     opis: opis || null,
     opis_html: opisHtml || null, // pełny opis w oryginalnym HTML
+    // Opis TEGO rozmiaru (na Allegro każdy rozmiar = osobna oferta z własnymi wymiarami).
+    opis_rozmiary: rozmiar && opisHtml ? { [rozmiar]: opisHtml } : null,
     allegro_surowe: o,           // KOMPLETNA oferta z Allegro (wszystkie dane)
     stan: sztuk,
     stan_rozmiary: rozmiar ? { [rozmiar]: sztuk } : null,
-    ukryty: false,
+    // Surowy wiersz oferty jest ukryty — w sklepie pojawia się dopiero scalony produkt
+    // (inaczej podczas importu bez czyszczenia byłyby widoczne duplikaty).
+    ukryty: true,
     hue: HUE[kategoria],
   };
   return { productId: klucz, rozmiar, sztuk, wiersz };
@@ -284,7 +290,7 @@ async function zapiszZgrupowane(sb: any, det: any): Promise<{ ok: boolean; pomin
 
   const { data: istn } = await sb
     .from("produkty")
-    .select("rozmiary, stan_rozmiary, zdjecia, opis, opis_html, kolor")
+    .select("rozmiary, stan_rozmiary, zdjecia, opis, opis_html, opis_rozmiary, kolor")
     .eq("id", w.id)
     .maybeSingle();
 
@@ -302,6 +308,8 @@ async function zapiszZgrupowane(sb: any, det: any): Promise<{ ok: boolean; pomin
     w.opis = (w.opis as string) || istn.opis || null;
     w.opis_html = (w.opis_html as string) || istn.opis_html || null;
     w.kolor = (w.kolor as string) || istn.kolor || null;
+    const orz = { ...(istn.opis_rozmiary ?? {}), ...((w.opis_rozmiary as Record<string, string>) ?? {}) };
+    w.opis_rozmiary = Object.keys(orz).length ? orz : null;
   }
 
   const { error } = await sb.from("produkty").upsert(w, { onConflict: "id" });
@@ -330,13 +338,60 @@ export async function przeklasyfikuj(): Promise<{ ok: boolean; zmieniono: number
   return { ok: true, zmieniono };
 }
 
-// Scala już zaimportowane produkty (osobne oferty na rozmiar) w jeden produkt
-// po nazwie(bez rozmiaru)+kolor+cena i poprawia kategorie. Bez pobierania z Allegro.
-export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: number; blad?: string }> {
+// Klucz łączenia ofert w jeden produkt: nazwa (bez rozmiarów) + kolor + cena + wzór
+// (początek opisu). Opis bez cyfr i zdań o „aukcjach" — sprzedawca wystawia każdy
+// rozmiar osobno z opisem „WZROST 56 CM…"/„WZROST 62 CM…"; to ten sam produkt.
+// Nazwa przez ladnaNazwa — ta sama postać dla świeżej oferty i już scalonego wiersza.
+export function kluczScalania(p: any): string {
+  const nazwa = ladnaNazwa(bazaNazwy(p.nazwa || "")).toLowerCase();
+  const wzor = (oczyscTekstOpisu(p.opis) || "")
+    .toLowerCase()
+    .replace(/\d+/g, " ")
+    .replace(/[^a-ząćęłńóśźż ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 60);
+  return `${nazwa}|${(p.kolor || "").toLowerCase()}|${Number(p.cena ?? 0).toFixed(2)}|${wzor}`;
+}
+
+// Kolory zdjęć z analizy obrazu (tabela zdjecia_kolory) — brak tabeli = pusta mapa.
+async function koloryZdjec(sb: any): Promise<Map<string, string>> {
+  const m = new Map<string, string>();
+  for (let from = 0; from < 100000; from += 1000) {
+    const { data, error } = await sb.from("zdjecia_kolory").select("url, rodzina").range(from, from + 999);
+    if (error || !data) break;
+    for (const r of data) m.set(r.url, r.rodzina);
+    if (data.length < 1000) break;
+  }
+  return m;
+}
+
+// Zdjęcie w kolorze wariantu na początek (np. „szary" sweterek nie może zaczynać
+// się zdjęciem zielonego). Zmienia kolejność tylko, gdy pierwsze zdjęcie NIE pasuje,
+// a w galerii jest takie, które pasuje.
+function zdjeciaWgKoloru(zdjecia: string[], kolor: string | null, kolory: Map<string, string>): string[] {
+  const cel = rodzinaKoloru(kolor);
+  if (!cel || zdjecia.length < 2 || kolory.get(zdjecia[0]) === cel) return zdjecia;
+  const pasujace = zdjecia.filter((z) => kolory.get(z) === cel);
+  if (!pasujace.length) return zdjecia;
+  return [...pasujace, ...zdjecia.filter((z) => kolory.get(z) !== cel)];
+}
+
+/**
+ * Scala oferty w produkty (osobna oferta na rozmiar → jeden produkt z rozmiarami).
+ * Działa na świeżo zaimportowanych ofertach (al-<id>) i już scalonych produktach
+ * (al-m-…): świeże dane mają pierwszeństwo, scalony wiersz daje stabilne ID i ręczne
+ * ustawienia z panelu (ukrycie, etykieta).
+ * usunNieaktualne — tylko po PEŁNYM imporcie: scalone produkty, dla których nie
+ * przyszła żadna aktywna oferta, są usuwane (oferta zakończona na Allegro).
+ */
+export async function scalProdukty(
+  opcje: { usunNieaktualne?: boolean } = {},
+): Promise<{ ok: boolean; przed: number; po: number; usunieteNieaktualne?: number; blad?: string }> {
   const sb = sbService();
   if (!sb) return { ok: false, przed: 0, po: 0, blad: "Brak bazy." };
 
-  const kolumny = "id, nazwa, kolor, cena, kategoria, rozmiary, stan_rozmiary, zdjecia, zdjecie, opis, opis_html";
+  const kolumny = "id, nazwa, kolor, cena, kategoria, rozmiary, stan_rozmiary, zdjecia, zdjecie, opis, opis_html, opis_rozmiary, badge, ukryty";
   const wszystkie: any[] = [];
   for (let from = 0; from < 30000; from += 1000) {
     const { data, error } = await sb.from("produkty").select(kolumny).like("id", "al-%").order("id").range(from, from + 999);
@@ -346,29 +401,41 @@ export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: 
   }
   const przed = wszystkie.length;
   if (przed === 0) return { ok: true, przed: 0, po: 0 };
+  const kolory = await koloryZdjec(sb);
+  const scalonyWiersz = (p: any) => String(p.id).startsWith("al-m-");
 
   const grupy = new Map<string, any[]>();
   for (const p of wszystkie) {
-    // Klucz zawiera PROJEKT/WZÓR (początek opisu) — inaczej dwa różne wzory o tej
-    // samej nazwie+kolorze+cenie (np. „GOAL" i „miś") zlepiłyby się w jeden produkt.
-    const opisKlucz = (p.opis || "").replace(/\s+/g, " ").trim().toLowerCase().slice(0, 60);
-    const key = bazaNazwy(p.nazwa || "").toLowerCase() + "|" + (p.kolor || "") + "|" + (p.cena ?? "") + "|" + opisKlucz;
-    const arr = grupy.get(key); if (arr) arr.push(p); else grupy.set(key, [p]);
+    const key = kluczScalania(p);
+    const arr = grupy.get(key);
+    if (arr) arr.push(p);
+    else grupy.set(key, [p]);
   }
 
   const scalone: any[] = [];
   const uzyteId = new Set<string>();
   const zbedneScalone: string[] = []; // al-m-… wchłonięte przez inny scalony wiersz tej samej grupy
+  const nieaktualne: string[] = []; // scalone bez żadnej świeżej oferty (przy usunNieaktualne)
   for (const [key, grupa] of grupy) {
-    const first = grupa[0];
+    const stare = grupa.filter(scalonyWiersz);
+    const swieze = grupa.filter((p) => !scalonyWiersz(p));
+    if (opcje.usunNieaktualne && swieze.length === 0) {
+      nieaktualne.push(...stare.map((p) => String(p.id)));
+      continue;
+    }
+    // Dane produktu: ze świeżych ofert, jeśli są (aktualne stany/rozmiary), inaczej ze scalonego.
+    const zrodlo = swieze.length ? swieze : stare;
+    const first = zrodlo[0];
     const sr: Record<string, number> = {};
     const rozm = new Set<string>();
     const zdj = new Set<string>();
+    const opisyRozm: Record<string, string> = {};
     let opis: string | null = null, opisHtml: string | null = null;
-    for (const p of grupa) {
+    for (const p of zrodlo) {
       for (const r of p.rozmiary ?? []) rozm.add(String(r));
-      for (const [s, v] of Object.entries(p.stan_rozmiary ?? {})) sr[s] = Math.max(sr[s] ?? 0, Number(v) || 0);
+      for (const [r, v] of Object.entries(p.stan_rozmiary ?? {})) sr[r] = Math.max(sr[r] ?? 0, Number(v) || 0);
       for (const z of p.zdjecia ?? []) zdj.add(String(z));
+      for (const [r, h] of Object.entries(p.opis_rozmiary ?? {})) if (!opisyRozm[r] && h) opisyRozm[r] = String(h);
       if (!opis && p.opis) opis = p.opis;
       if (!opisHtml && p.opis_html) opisHtml = p.opis_html;
     }
@@ -383,30 +450,40 @@ export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: 
     const obecna: Kategoria = [...glosy.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "niemowleta";
     // Reguła: małe rozmiary (≤92) → niemowlęta; starszaki → płeć z nazwy/obecna.
     const { kategoria, wiek } = kategoriaIWiek(rozmiary, {}, first.nazwa || "", obecna);
-    const zdjecia = [...zdj];
-    const h = hash36(key);
+    const zdjecia = zdjeciaWgKoloru([...zdj], first.kolor ?? null, kolory);
     // Stabilne ID: gdy grupa zawiera już scalony produkt (al-m-…), zachowaj jego ID.
-    // Inaczej każda zmiana nazwy (panel, porządkowanie nazw) dawała nowy wiersz,
-    // a stary zostawał — duplikat produktu i zmiana adresu strony.
-    const kanon = "al-m-" + h;
-    const istniejace = grupa.map((p) => String(p.id)).filter((x) => x.startsWith("al-m-")).sort();
+    // Inaczej każda zmiana nazwy/opisu dawała nowy wiersz i nowy adres strony.
+    const kanon = "al-m-" + hash36(key);
+    const istniejace = stare.map((p) => String(p.id)).sort();
     let id = istniejace.includes(kanon) ? kanon : (istniejace[0] ?? kanon);
     if (uzyteId.has(id)) id = kanon + "-" + uzyteId.size.toString(36);
     uzyteId.add(id);
     zbedneScalone.push(...istniejace.filter((x) => x !== id));
+    const poprzedni = stare.find((p) => String(p.id) === id) ?? stare[0];
     scalone.push({
       id,
       allegro_id: id.slice(3),
       nazwa: ladnaNazwa(bazaNazwy(first.nazwa || "")) || first.nazwa || "Produkt",
       cena: first.cena ?? 0,
-      kategoria, wiek, wiek_label: WIEK_LABEL[wiek], badge: null,
+      kategoria, wiek, wiek_label: WIEK_LABEL[wiek],
+      badge: poprzedni?.badge ?? null, // etykieta ustawiona w panelu zostaje
       rozmiary, kolor: first.kolor ?? null,
       zdjecie: zdjecia[0] ?? first.zdjecie ?? null, zdjecia,
       opis, opis_html: opisHtml,
+      opis_rozmiary: Object.keys(opisyRozm).length ? opisyRozm : null,
       stan: Object.values(sr).reduce((a, b) => a + b, 0),
       stan_rozmiary: Object.keys(sr).length ? sr : null,
-      ukryty: false, hue: HUE[kategoria],
+      ukryty: stare.length > 0 && stare.every((p) => p.ukryty === true), // ukryty w panelu zostaje ukryty
+      hue: HUE[kategoria],
     });
+  }
+
+  // Bezpiecznik: jeśli „nieaktualnych" jest podejrzanie dużo (np. import się urwał),
+  // nie kasujemy ich — zostają jak były.
+  const liczbaScalonych = wszystkie.filter(scalonyWiersz).length;
+  if (nieaktualne.length > liczbaScalonych * 0.3) {
+    for (const id of nieaktualne) uzyteId.add(id); // zostają w bazie bez zmian
+    nieaktualne.length = 0;
   }
 
   for (let i = 0; i < scalone.length; i += 200) {
@@ -415,12 +492,12 @@ export async function scalProdukty(): Promise<{ ok: boolean; przed: number; po: 
   }
   // Usuń pojedyncze oferty (al- ale nie scalone al-m-).
   await sb.from("produkty").delete().like("id", "al-%").not("id", "like", "al-m-%");
-  // Usuń scalone wiersze wchłonięte przez inny w tej samej grupie (ich dane są już w nim).
-  const doUsuniecia = zbedneScalone.filter((x) => !uzyteId.has(x)); // nigdy nie kasuj ID nadanego w tym przebiegu
+  // Usuń scalone wiersze wchłonięte przez inny w tej samej grupie oraz zakończone oferty.
+  const doUsuniecia = [...zbedneScalone, ...nieaktualne].filter((x) => !uzyteId.has(x)); // nigdy nie kasuj ID nadanego w tym przebiegu
   for (let i = 0; i < doUsuniecia.length; i += 200) {
     await sb.from("produkty").delete().in("id", doUsuniecia.slice(i, i + 200));
   }
-  return { ok: true, przed, po: scalone.length };
+  return { ok: true, przed, po: scalone.length, usunieteNieaktualne: nieaktualne.length };
 }
 
 export interface WynikImportu { ok: boolean; pobrano: number; zapisano: number; pominiete?: number; bledy: number; blad?: string }

@@ -4,9 +4,13 @@ import { KartaProduktu } from "@/components/KartaProduktu";
 import { PanelZakupu } from "@/components/PanelZakupu";
 import { OstatnioOgladane } from "@/components/OstatnioOgladane";
 import { Opinie } from "@/components/Opinie";
+import { OpisRozmiarowy } from "@/components/OpisRozmiarowy";
 import { Stopka } from "@/components/Stopka";
 import { KATEGORIE_LABEL, opisProduktu, type Produkt } from "@/data/produkty";
 import { kluczWariantu, zwinWarianty } from "@/lib/warianty";
+
+const OPIS_KLASA =
+  "opis-allegro text-[15px] leading-relaxed text-ink-2 [&_h1]:mb-2 [&_h1]:mt-6 [&_h1]:text-[20px] [&_h1]:font-bold [&_h1]:text-ink [&_h2]:mb-2 [&_h2]:mt-6 [&_h2]:text-[18px] [&_h2]:font-bold [&_h2]:text-ink [&_h3]:mt-4 [&_h3]:font-semibold [&_h3]:text-ink [&_img]:mx-auto [&_img]:my-4 [&_img]:block [&_img]:h-auto [&_img]:w-full [&_img]:max-w-xl [&_img]:rounded-xl [&_img]:border [&_img]:border-linia [&_li]:ml-5 [&_li]:list-disc [&_li]:marker:text-akcent [&_p]:mb-4 [&_strong]:text-ink [&_ul]:mb-4 [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-1.5";
 
 export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wszystkie: Produkt[] }) {
   const kluczTego = kluczWariantu(p);
@@ -41,11 +45,10 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
       <section className="border-t border-linia px-6 py-14 md:px-12">
         <div className="mx-auto max-w-3xl">
           <h2 className="mb-6 text-[22px] font-bold tracking-tight">Opis produktu</h2>
-          {p.opisHtml ? (
-            <div
-              className="opis-allegro text-[15px] leading-relaxed text-ink-2 [&_h1]:mb-2 [&_h1]:mt-6 [&_h1]:text-[20px] [&_h1]:font-bold [&_h1]:text-ink [&_h2]:mb-2 [&_h2]:mt-6 [&_h2]:text-[18px] [&_h2]:font-bold [&_h2]:text-ink [&_h3]:mt-4 [&_h3]:font-semibold [&_h3]:text-ink [&_img]:mx-auto [&_img]:my-4 [&_img]:block [&_img]:h-auto [&_img]:w-full [&_img]:max-w-xl [&_img]:rounded-xl [&_img]:border [&_img]:border-linia [&_li]:ml-5 [&_li]:list-disc [&_li]:marker:text-akcent [&_p]:mb-4 [&_strong]:text-ink [&_ul]:mb-4 [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-1.5"
-              dangerouslySetInnerHTML={{ __html: p.opisHtml }}
-            />
+          {p.opisRozmiary && Object.keys(p.opisRozmiary).length ? (
+            <OpisRozmiarowy opisy={p.opisRozmiary} rozmiary={p.rozmiary ?? []} domyslny={p.opisHtml ?? null} klasa={OPIS_KLASA} />
+          ) : p.opisHtml ? (
+            <div className={OPIS_KLASA} dangerouslySetInnerHTML={{ __html: p.opisHtml }} />
           ) : (
             <p className="text-[15px] leading-relaxed text-ink-2">{opisProduktu(p)}</p>
           )}

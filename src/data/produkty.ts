@@ -23,6 +23,8 @@ export interface Produkt {
   opis?: string;
   /** Pełny opis w HTML (z Allegro: tekst + grafiki). Renderowany na stronie produktu. */
   opisHtml?: string | null;
+  /** Opis HTML każdego rozmiaru osobno (z Allegro: 1 rozmiar = 1 oferta z własnymi wymiarami). */
+  opisRozmiary?: Record<string, string> | null;
   /** Kolor (z parametru Allegro). */
   kolor?: string | null;
   /** Łączny stan magazynowy (suma po rozmiarach). undefined = bez limitu, 0 = brak. */

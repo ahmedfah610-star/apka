@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { ZDARZENIE_ROZMIARU } from "@/components/OpisRozmiarowy";
 import { useKoszyk } from "@/components/KoszykContext";
 import { PowiadomODostepnosci } from "@/components/PowiadomODostepnosci";
 import { TabelaRozmiarow } from "@/components/TabelaRozmiarow";
@@ -87,6 +88,8 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
                   onClick={() => {
                     setRozmiar(s);
                     setBlad(false);
+                    // Opis produktu pokazuje wymiary wybranego rozmiaru.
+                    window.dispatchEvent(new CustomEvent(ZDARZENIE_ROZMIARU, { detail: { rozmiar: s } }));
                   }}
                   className={`relative min-w-[52px] rounded-lg border px-3.5 py-2.5 text-center text-[13px] font-semibold transition-colors ${
                     brak

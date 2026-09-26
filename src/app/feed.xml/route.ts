@@ -1,4 +1,4 @@
-import { katalogWidoczny } from "@/lib/produktyDb";
+import { katalogWidoczny, opisyRozmiarowTekst } from "@/lib/produktyDb";
 import { opisProduktu, KATEGORIE_LABEL, type Produkt } from "@/data/produkty";
 import { BAZA_URL, NAZWA_SKLEPU, OPIS_SKLEPU } from "@/lib/seo";
 
@@ -34,7 +34,7 @@ function opisFeed(p: Produkt): string {
 
 function pozycja(
   p: Produkt,
-  wariant: { id: string; rozmiar?: string; dostepny: boolean; grupa?: string },
+  wariant: { id: string; rozmiar?: string; dostepny: boolean; grupa?: string; opis?: string },
 ): string {
   const link = `${BAZA_URL}/produkty/${p.id}`;
   const zdj = (p.zdjecia?.length ? p.zdjecia : p.zdjecie ? [p.zdjecie] : []).filter(Boolean);
@@ -42,7 +42,7 @@ function pozycja(
   return `  <item>
     <g:id>${txt(wariant.id)}</g:id>
     <g:title>${cdata(p.nazwa)}</g:title>
-    <g:description>${cdata(opisFeed(p))}</g:description>
+    <g:description>${cdata(wariant.opis ? wariant.opis.slice(0, 4900) : opisFeed(p))}</g:description>
     <g:link>${txt(link)}</g:link>
     <g:image_link>${txt(zdj[0]!)}</g:image_link>
 ${dodatkowe ? dodatkowe + "\n" : ""}    <g:availability>${wariant.dostepny ? "in_stock" : "out_of_stock"}</g:availability>
@@ -58,7 +58,7 @@ ${wariant.rozmiar ? `    <g:size>${txt(wariant.rozmiar)}</g:size>\n    <g:item_g
 }
 
 export async function GET() {
-  const katalog = await katalogWidoczny();
+  const [katalog, opisyRozm] = await Promise.all([katalogWidoczny(), opisyRozmiarowTekst()]);
   const pozycje: string[] = [];
 
   for (const p of katalog) {
@@ -70,7 +70,8 @@ export async function GET() {
       for (const r of rozmiary) {
         const stanR = p.stanRozmiary ? p.stanRozmiary[r] ?? 0 : p.stan;
         const dostepny = stanR === undefined || stanR === null || stanR > 0;
-        pozycje.push(pozycja(p, { id: `${p.id}-${r}`, rozmiar: r, dostepny }));
+        // Opis z wymiarami TEGO rozmiaru (jeśli jest), inaczej wspólny opis produktu.
+        pozycje.push(pozycja(p, { id: `${p.id}-${r}`, rozmiar: r, dostepny, opis: opisyRozm.get(p.id)?.[r] }));
       }
     } else {
       const dostepny = p.stan === undefined || p.stan === null || p.stan > 0;

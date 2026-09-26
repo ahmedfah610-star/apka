@@ -2,7 +2,6 @@ import { PRODUKTY, type Produkt } from "@/data/produkty";
 import { sbAnon, sbService, supabaseWlaczony } from "@/lib/supabase";
 import { ladnaNazwa } from "@/lib/nazwa";
 import { oczyscHtmlOpisu, oczyscTekstOpisu } from "@/lib/opis";
-import { HERO_ZDJEC } from "@/data/heroZdjec";
 
 // Warstwa danych produktów. Gdy Supabase jest skonfigurowany — czyta z bazy.
 // Bez konfiguracji — fallback do katalogu z kodu (238 produktów), więc sklep
@@ -10,10 +9,9 @@ import { HERO_ZDJEC } from "@/data/heroZdjec";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function zRzedu(r: any): Produkt {
-  // Zdjęcie najlepiej pasujące do koloru (analiza obrazu) na pierwsze miejsce.
-  let zdjecia: string[] = r.zdjecia ?? [];
-  const hero = HERO_ZDJEC[r.id as string];
-  if (hero && zdjecia.includes(hero)) zdjecia = [hero, ...zdjecia.filter((z: string) => z !== hero)];
+  // Kolejność zdjęć (zdjęcie w kolorze wariantu jako pierwsze) ustala scalanie
+  // na podstawie analizy obrazu (tabela zdjecia_kolory).
+  const zdjecia: string[] = r.zdjecia ?? [];
   return {
     id: r.id,
     nazwa: ladnaNazwa(r.nazwa), // schludny tytuł (bez KRZYKU, „cm", literówek) — spójnie wszędzie
@@ -27,6 +25,9 @@ function zRzedu(r: any): Produkt {
     zdjecia,
     opis: oczyscTekstOpisu(r.opis), // bez „zobacz inne aukcje" i zepsutych znaków
     opisHtml: oczyscHtmlOpisu(r.opis_html),
+    opisRozmiary: r.opis_rozmiary
+      ? Object.fromEntries(Object.entries(r.opis_rozmiary as Record<string, string>).map(([k, v]) => [k, oczyscHtmlOpisu(v) ?? ""]))
+      : null,
     kolor: r.kolor ?? null,
     stan: r.stan ?? undefined,
     stanRozmiary: r.stan_rozmiary ?? null,
@@ -86,6 +87,24 @@ export async function katalogWszystko(): Promise<Produkt[]> {
     }
   }
   return PRODUKTY;
+}
+
+/** Opisy per rozmiar jako czysty tekst (feed Google/Meta: osobna pozycja na rozmiar). */
+export async function opisyRozmiarowTekst(): Promise<Map<string, Record<string, string>>> {
+  const wynik = new Map<string, Record<string, string>>();
+  if (!supabaseWlaczony()) return wynik;
+  const sb = sbService() ?? sbAnon();
+  if (!sb) return wynik;
+  const { data } = await sb.from("produkty").select("id, opis_rozmiary").eq("ukryty", false).not("opis_rozmiary", "is", null).limit(5000);
+  for (const r of data ?? []) {
+    const m: Record<string, string> = {};
+    for (const [roz, html] of Object.entries((r.opis_rozmiary ?? {}) as Record<string, string>)) {
+      const t = (oczyscHtmlOpisu(html) ?? "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+      if (t) m[roz] = t;
+    }
+    if (Object.keys(m).length) wynik.set(r.id, m);
+  }
+  return wynik;
 }
 
 export async function znajdzProduktDb(id: string): Promise<Produkt | null> {

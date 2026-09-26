@@ -163,7 +163,7 @@ export async function GET(req: Request) {
 // Akcje: start (device flow), poll (sprawdź autoryzację), import (pobierz oferty).
 export async function POST(req: Request) {
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
-  const b = (await req.json().catch(() => ({}))) as { akcja?: string; deviceCode?: string; tylkoAktywne?: boolean; offset?: number };
+  const b = (await req.json().catch(() => ({}))) as { akcja?: string; deviceCode?: string; tylkoAktywne?: boolean; offset?: number; usunNieaktualne?: boolean };
 
   if (b.akcja === "start") {
     const r = await rozpocznijDevice();
@@ -205,7 +205,8 @@ export async function POST(req: Request) {
   }
 
   if (b.akcja === "scal") {
-    const r = await scalProdukty();
+    // usunNieaktualne tylko po pełnym imporcie (panel/skrypt) — cron scala bez usuwania.
+    const r = await scalProdukty({ usunNieaktualne: b.usunNieaktualne === true });
     if (r.ok) odswiezPoZmianieStanu();
     return Response.json(r, { status: r.ok ? 200 : 500 });
   }
