@@ -1,6 +1,7 @@
 import { PRODUKTY, type Produkt } from "@/data/produkty";
 import { sbAnon, sbService, supabaseWlaczony } from "@/lib/supabase";
 import { ladnaNazwa } from "@/lib/nazwa";
+import { oczyscHtmlOpisu, oczyscTekstOpisu } from "@/lib/opis";
 import { HERO_ZDJEC } from "@/data/heroZdjec";
 
 // Warstwa danych produktów. Gdy Supabase jest skonfigurowany — czyta z bazy.
@@ -24,8 +25,8 @@ function zRzedu(r: any): Produkt {
     rozmiary: r.rozmiary ?? [],
     zdjecie: zdjecia[0] ?? r.zdjecie ?? null,
     zdjecia,
-    opis: r.opis ?? undefined,
-    opisHtml: r.opis_html ?? null,
+    opis: oczyscTekstOpisu(r.opis), // bez „zobacz inne aukcje" i zepsutych znaków
+    opisHtml: oczyscHtmlOpisu(r.opis_html),
     kolor: r.kolor ?? null,
     stan: r.stan ?? undefined,
     stanRozmiary: r.stan_rozmiary ?? null,

@@ -1,6 +1,6 @@
 import type { Produkt } from "@/data/produkty";
 import { czyAdmin, odmowa } from "@/lib/adminAuth";
-import { doRzedu, katalogWszystko } from "@/lib/produktyDb";
+import { doRzedu, katalogWszystko, znajdzProduktDb } from "@/lib/produktyDb";
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { bazowyUrl } from "@/lib/platnosci";
 import { powiadomOOdblokowaniu } from "@/lib/restock";
@@ -12,9 +12,15 @@ function brakBazy() {
   return Response.json({ ok: false, powod: "brak_bazy" }, { status: 501 });
 }
 
-// Lista wszystkich produktów (także wyłączonych) — panel.
-export async function GET() {
+// Lista wszystkich produktów (także wyłączonych) — panel. Lista pomija ciężki opis
+// HTML; ?id=… zwraca jeden produkt w całości (edytor musi go mieć przed zapisem).
+export async function GET(req: Request) {
   if (!czyAdmin()) return odmowa();
+  const id = new URL(req.url).searchParams.get("id");
+  if (id) {
+    const p = await znajdzProduktDb(id);
+    return p ? Response.json({ ok: true, produkt: p }) : Response.json({ ok: false }, { status: 404 });
+  }
   return Response.json({ items: await katalogWszystko() });
 }
 

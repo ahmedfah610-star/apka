@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type Kategoria, type Produkt, type Wiek } from "@/data/produkty";
 
 const WIEK_LABEL: Record<Wiek, string> = { "0-2": "0-2 lata", "2-6": "2-6 lat", "6-12": "6-12 lat", dorosli: "rozmiar dorosły" };
@@ -38,6 +38,24 @@ export function EdytorProduktu({
   const [kolor, setKolor] = useState(produkt.kolor ?? "");
   const [opis, setOpis] = useState(produkt.opis ?? "");
   const [opisHtml, setOpisHtml] = useState(produkt.opisHtml ?? "");
+  // Lista w panelu nie zawiera opisu HTML (jest ciężki) — dociągamy pełny produkt.
+  // Dopóki się nie wczyta, zapis NIE rusza opisu HTML (inaczej by go skasował).
+  const [opisHtmlWczytany, setOpisHtmlWczytany] = useState(nowy || produkt.opisHtml != null);
+  useEffect(() => {
+    if (nowy || produkt.opisHtml != null) return;
+    let aktywny = true;
+    fetch(`/api/admin/produkty?id=${encodeURIComponent(produkt.id)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!aktywny || !d?.produkt) return;
+        setOpisHtml(d.produkt.opisHtml ?? "");
+        setOpisHtmlWczytany(true);
+      })
+      .catch(() => {});
+    return () => {
+      aktywny = false;
+    };
+  }, [nowy, produkt.id, produkt.opisHtml]);
   const [podglad, setPodglad] = useState(false);
 
   const startZdj = produkt.zdjecia?.length ? produkt.zdjecia : produkt.zdjecie ? [produkt.zdjecie] : [];
@@ -125,7 +143,7 @@ export function EdytorProduktu({
       badge: badge || null,
       kolor: kolor.trim() || null,
       opis: opis.trim() || undefined,
-      opisHtml: opisHtml.trim() ? sanitizeHtml(opisHtml.trim()) : null,
+      ...(opisHtmlWczytany ? { opisHtml: opisHtml.trim() ? sanitizeHtml(opisHtml.trim()) : null } : {}),
       zdjecia,
       zdjecie: zdjecia[0] ?? null,
       hue: HUE[kategoria],
@@ -292,7 +310,8 @@ export function EdytorProduktu({
             ) : (
               <textarea
                 className={`${input} min-h-[160px] font-mono text-[12.5px]`}
-                value={opisHtml}
+                value={opisHtmlWczytany ? opisHtml : "Wczytywanie opisu…"}
+                disabled={!opisHtmlWczytany}
                 onChange={(e) => setOpisHtml(e.target.value)}
                 placeholder={"Rozbudowany opis. Możesz użyć prostego HTML:\n<h2>Nagłówek</h2>\n<p>Akapit opisu…</p>\n<ul><li>Cecha 1</li><li>Cecha 2</li></ul>\n<img src=\"adres-zdjęcia\" />"}
               />
