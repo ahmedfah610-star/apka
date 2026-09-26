@@ -3,8 +3,8 @@ import { sbService } from "@/lib/supabase";
 import { ladnaNazwa } from "@/lib/nazwa";
 import { porownajRozmiary, rozmiarDorosly } from "@/lib/rozmiary";
 import { oczyscTekstOpisu } from "@/lib/opis";
-import { rodzinaKoloru } from "@/lib/kolory";
-import type { Kategoria, Wiek } from "@/data/produkty";
+import { kluczWariantu } from "@/lib/warianty";
+import type { Kategoria, Produkt, Wiek } from "@/data/produkty";
 
 // Mapowanie ofert z Allegro na produkty sklepu. Wyciąga: nazwę, cenę, wszystkie
 // zdjęcia, pełny opis, rozmiary, kolor i stan (ilość sztuk). Zapis do Supabase
@@ -354,27 +354,32 @@ export function kluczScalania(p: any): string {
   return `${nazwa}|${(p.kolor || "").toLowerCase()}|${Number(p.cena ?? 0).toFixed(2)}|${wzor}`;
 }
 
-// Kolory zdjęć z analizy obrazu (tabela zdjecia_kolory) — brak tabeli = pusta mapa.
-async function koloryZdjec(sb: any): Promise<Map<string, string>> {
-  const m = new Map<string, string>();
-  for (let from = 0; from < 100000; from += 1000) {
-    const { data, error } = await sb.from("zdjecia_kolory").select("url, rodzina").range(from, from + 999);
-    if (error || !data) break;
-    for (const r of data) m.set(r.url, r.rodzina);
-    if (data.length < 1000) break;
+// Pierwsze zdjęcie nie może pokazywać INNEGO koloru tego samego modelu: jeśli jest
+// też w galerii wariantu w innym kolorze, a produkt ma zdjęcia tylko swoje — te idą
+// na początek (np. niebieska bluza nie zaczyna się zdjęciem różowej). Rodziny
+// wariantów jak na liście sklepu (kluczWariantu).
+function zdjeciaWlasnegoKoloru(produkty: any[]): void {
+  const barwa = (k: string | null) => (k || "").toLowerCase().split("(")[0].trim();
+  const rodziny = new Map<string, any[]>();
+  for (const p of produkty) {
+    const k = kluczWariantu({ ...p, opis: oczyscTekstOpisu(p.opis) } as Produkt);
+    rodziny.set(k, [...(rodziny.get(k) ?? []), p]);
   }
-  return m;
-}
-
-// Zdjęcie w kolorze wariantu na początek (np. „szary" sweterek nie może zaczynać
-// się zdjęciem zielonego). Zmienia kolejność tylko, gdy pierwsze zdjęcie NIE pasuje,
-// a w galerii jest takie, które pasuje.
-function zdjeciaWgKoloru(zdjecia: string[], kolor: string | null, kolory: Map<string, string>): string[] {
-  const cel = rodzinaKoloru(kolor);
-  if (!cel || zdjecia.length < 2 || kolory.get(zdjecia[0]) === cel) return zdjecia;
-  const pasujace = zdjecia.filter((z) => kolory.get(z) === cel);
-  if (!pasujace.length) return zdjecia;
-  return [...pasujace, ...zdjecia.filter((z) => kolory.get(z) !== cel)];
+  for (const rodzina of rodziny.values()) {
+    if (new Set(rodzina.map((p) => barwa(p.kolor))).size < 2) continue;
+    for (const p of rodzina) {
+      const zdj: string[] = p.zdjecia ?? [];
+      if (zdj.length < 2) continue;
+      const inneKolory = new Set<string>(
+        rodzina.filter((q) => barwa(q.kolor) !== barwa(p.kolor)).flatMap((q) => q.zdjecia ?? []),
+      );
+      if (!inneKolory.has(zdj[0])) continue;
+      const wlasne = zdj.filter((z) => !inneKolory.has(z));
+      if (!wlasne.length) continue; // brak zdjęcia tego koloru — do uzupełnienia na Allegro
+      p.zdjecia = [...wlasne, ...zdj.filter((z) => inneKolory.has(z))];
+      p.zdjecie = p.zdjecia[0];
+    }
+  }
 }
 
 /**
@@ -401,7 +406,6 @@ export async function scalProdukty(
   }
   const przed = wszystkie.length;
   if (przed === 0) return { ok: true, przed: 0, po: 0 };
-  const kolory = await koloryZdjec(sb);
   const scalonyWiersz = (p: any) => String(p.id).startsWith("al-m-");
 
   const grupy = new Map<string, any[]>();
@@ -450,7 +454,7 @@ export async function scalProdukty(
     const obecna: Kategoria = [...glosy.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "niemowleta";
     // Reguła: małe rozmiary (≤92) → niemowlęta; starszaki → płeć z nazwy/obecna.
     const { kategoria, wiek } = kategoriaIWiek(rozmiary, {}, first.nazwa || "", obecna);
-    const zdjecia = zdjeciaWgKoloru([...zdj], first.kolor ?? null, kolory);
+    const zdjecia = [...zdj];
     // Stabilne ID: gdy grupa zawiera już scalony produkt (al-m-…), zachowaj jego ID.
     // Inaczej każda zmiana nazwy/opisu dawała nowy wiersz i nowy adres strony.
     const kanon = "al-m-" + hash36(key);
@@ -477,6 +481,8 @@ export async function scalProdukty(
       hue: HUE[kategoria],
     });
   }
+
+  zdjeciaWlasnegoKoloru(scalone);
 
   // Bezpiecznik: jeśli „nieaktualnych" jest podejrzanie dużo (np. import się urwał),
   // nie kasujemy ich — zostają jak były.

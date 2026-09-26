@@ -9,8 +9,7 @@ import { oczyscHtmlOpisu, oczyscTekstOpisu } from "@/lib/opis";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function zRzedu(r: any): Produkt {
-  // Kolejność zdjęć (zdjęcie w kolorze wariantu jako pierwsze) ustala scalanie
-  // na podstawie analizy obrazu (tabela zdjecia_kolory).
+  // Kolejność zdjęć (własne zdjęcie koloru jako pierwsze) ustala scalanie.
   const zdjecia: string[] = r.zdjecia ?? [];
   return {
     id: r.id,
