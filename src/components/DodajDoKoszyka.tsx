@@ -22,7 +22,10 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
   const wszystkoZero = sr && maRozmiary ? produkt.rozmiary!.every((s) => (sr[s] ?? 0) === 0) : false;
   const niedostepny = produkt.stan === 0 || wszystkoZero;
 
-  const [rozmiar, setRozmiar] = useState<string | undefined>(undefined);
+  // Jedyny dostępny rozmiar wybieramy od razu — bez zbędnego klikania.
+  const [rozmiar, setRozmiar] = useState<string | undefined>(() =>
+    produkt.rozmiary?.length === 1 && (stanDla(produkt.rozmiary[0]) ?? 1) > 0 ? produkt.rozmiary[0] : undefined,
+  );
   const [dodano, setDodano] = useState(false);
   const [blad, setBlad] = useState(false);
 

@@ -60,7 +60,7 @@ export function Galeria({
         </div>
         {zdjecia.length > 1 ? (
           <>
-            <span className="absolute right-3 top-3 rounded-full bg-ink/75 px-2.5 py-1 text-[12px] font-bold text-white">
+            <span className="absolute right-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-[12px] font-bold text-white">
               {idx + 1} / {zdjecia.length}
             </span>
             <div className="absolute inset-x-0 bottom-2.5 flex justify-center gap-1.5">
@@ -69,7 +69,7 @@ export function Galeria({
                   key={i}
                   onClick={() => pokaz(i)}
                   aria-label={`Zdjęcie ${i + 1}`}
-                  className={`h-2 rounded-full transition-all ${i === idx ? "w-5 bg-ink" : "w-2 bg-ink/25"}`}
+                  className={`h-2 rounded-full transition-all ${i === idx ? "w-5 bg-ink" : "w-2 bg-black/20"}`}
                 />
               ))}
             </div>

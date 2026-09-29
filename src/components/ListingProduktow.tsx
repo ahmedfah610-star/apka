@@ -377,7 +377,7 @@ function Listing() {
               }}
               className="w-full rounded-lg bg-ink px-6 py-3.5 text-[14.5px] font-bold text-white"
             >
-              Pokaż {zwiniete.length} {zwiniete.length === 1 ? "produkt" : "produktów"}
+              Pokaż {produktow(zwiniete.length)}
             </button>
           </div>
         </aside>
