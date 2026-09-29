@@ -32,36 +32,38 @@ export function Newsletter() {
   }
 
   return (
-    <section className="bg-szary px-6 py-20 text-center md:px-12">
-      <h2 className="mb-3 text-[26px] font-bold tracking-tight">Bądź na bieżąco</h2>
-      <p className="mx-auto mb-8 max-w-md text-sm text-ink-2">
-        Zapisz się i dostań info o nowych kolekcjach i wyprzedażach jako pierwszy.
-      </p>
+    <section className="border-t border-linia bg-white px-5 py-10 md:px-10 md:py-12">
+      <div className="mx-auto flex max-w-content flex-col gap-5 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h2 className="text-[20px] font-extrabold tracking-tight">Nowości na e-mail</h2>
+        <p className="text-[14px] text-ink-2">Raz w tygodniu, w czwartek — nowe produkty ze sklepu. Wypiszesz się jednym kliknięciem.</p>
+      </div>
 
       {stan === "ok" ? (
-        <p className="mx-auto max-w-sm text-[15px] font-semibold text-[oklch(48%_0.13_150)]">
+        <p className="text-[15px] font-semibold text-akcent">
           ✓ Dzięki! Zapisaliśmy Twój e-mail.
         </p>
       ) : (
-        <form onSubmit={onSubmit} className="mx-auto flex max-w-sm items-center gap-3 border-b-[1.5px] border-ink">
+        <form onSubmit={onSubmit} className="flex w-full max-w-md overflow-hidden rounded-lg border-2 border-ink md:w-[420px]">
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Twój e-mail"
-            className="w-full border-none bg-transparent py-2 text-[16px] outline-none placeholder:text-ink-2 md:text-sm"
+            className="w-full border-none bg-transparent px-3.5 py-2.5 text-[16px] outline-none placeholder:text-ink-2 md:text-sm"
           />
           <button
             type="submit"
             disabled={stan === "wysylanie"}
-            className="whitespace-nowrap py-2 text-sm font-semibold tracking-wide disabled:opacity-60"
+            className="whitespace-nowrap bg-ink px-5 text-[13.5px] font-bold text-white transition-colors hover:bg-akcent disabled:opacity-60"
           >
-            {stan === "wysylanie" ? "…" : "ZAPISZ SIĘ"}
+            {stan === "wysylanie" ? "…" : "Zapisz się"}
           </button>
         </form>
       )}
-      {stan === "blad" ? <p className="mt-3 text-[13px] text-akcent">{blad}</p> : null}
+      </div>
+      {stan === "blad" ? <p className="mx-auto mt-3 max-w-content text-[13px] text-cena">{blad}</p> : null}
     </section>
   );
 }

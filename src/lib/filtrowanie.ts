@@ -85,20 +85,21 @@ export function pasujeFraza(p: Produkt, fraza: string): boolean {
 
 export type FiltrKategoria = Kategoria | "wszystkie";
 export type FiltrWiek = Wiek | "wszystkie";
-export type Sortowanie = "domyslnie" | "cena-rosnaco" | "cena-malejaco";
+export type Sortowanie = "domyslnie" | "nowosci" | "cena-rosnaco" | "cena-malejaco";
 export type FiltrWyroznienie = "wszystkie" | "NOWOŚĆ" | "BESTSELLER" | "promocja";
 
 export interface ZakresCeny {
+  slug: string; // w adresie: /produkty?cena=do-20
   label: string;
   min: number;
   max: number;
 }
 
 export const ZAKRESY_CENY: ZakresCeny[] = [
-  { label: "do 20 zł", min: 0, max: 20 },
-  { label: "20–40 zł", min: 20, max: 40 },
-  { label: "40–60 zł", min: 40, max: 60 },
-  { label: "powyżej 60 zł", min: 60, max: Infinity },
+  { slug: "do-20", label: "do 20 zł", min: 0, max: 20 },
+  { slug: "20-40", label: "20–40 zł", min: 20, max: 40 },
+  { slug: "40-60", label: "40–60 zł", min: 40, max: 60 },
+  { slug: "od-60", label: "powyżej 60 zł", min: 60, max: Infinity },
 ];
 
 export interface Filtry {
@@ -135,6 +136,7 @@ export function filtrujProdukty(
     return true;
   });
 
+  if (sortBy === "nowosci") return [...lista].reverse(); // katalog jest od najstarszego
   if (sortBy === "cena-rosnaco") return [...lista].sort((a, b) => a.cena - b.cena);
   if (sortBy === "cena-malejaco") return [...lista].sort((a, b) => b.cena - a.cena);
   // Domyślnie przy wyszukiwaniu: sortuj wg trafności (sama rzecz przed kompletem z tą rzeczą).

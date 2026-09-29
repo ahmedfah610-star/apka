@@ -2,13 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Tokeny kolorów projektu Fasolka (edytorialny, terakota jako akcent) */
+/* Tokeny kolorów: sprawny sklep — turkus jako akcent, pomarańcz dla cen */
 :root {
   --tlo: oklch(99% 0.003 90);
   --ink: oklch(18% 0.005 90);
   --ink-2: oklch(45% 0.01 90);
   --ink-3: oklch(35% 0.01 90);
-  --akcent: oklch(58% 0.13 40);
+  --akcent: oklch(52% 0.1 170);
+  --akcent-2: oklch(95.5% 0.02 175);
+  --cena: oklch(55% 0.17 42);
+  --strona: oklch(97.6% 0.002 250);
   --linia: oklch(90% 0.005 90);
   --linia-2: oklch(85% 0.005 90);
   --szary: oklch(95% 0.005 90);

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans } from "next/font/google";
+import { Manrope } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthContext";
 import { KoszykProvider } from "@/components/KoszykContext";
@@ -10,11 +10,11 @@ import { BAZA_URL, NAZWA_SKLEPU, OPIS_SKLEPU, jsonLd } from "@/lib/seo";
 
 // Self-hosting fontu przez next/font — bez blokującego zapytania do Google
 // i bez przesunięć układu (CLS). latin-ext obejmuje polskie znaki.
-const dmSans = DM_Sans({
+const fontSans = Manrope({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
-  variable: "--font-dm-sans",
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
@@ -115,7 +115,7 @@ const daneStrukturalne = [
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pl" className={dmSans.variable}>
+    <html lang="pl" className={fontSans.variable}>
       <body className="min-h-screen bg-tlo font-sans text-ink antialiased">
         <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(daneStrukturalne)} />
         <AuthProvider>

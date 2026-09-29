@@ -60,13 +60,13 @@ export function Szukajka({ mobilna = false }: { mobilna?: boolean }) {
   const brakWynikow = fraza.length >= 1 && podpowiedzi.length === 0;
 
   return (
-    <div className={`relative ${mobilna ? "w-full" : "w-full max-w-md"}`}>
+    <div className="relative w-full">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           idzDoWynikow(q);
         }}
-        className="flex items-center border border-linia-2 bg-white transition-colors focus-within:border-ink"
+        className="flex items-center overflow-hidden rounded-lg border-2 border-ink bg-white"
       >
         <input
           value={q}
@@ -78,7 +78,7 @@ export function Szukajka({ mobilna = false }: { mobilna?: boolean }) {
           onBlur={() => {
             zamkniecie.current = setTimeout(() => setOtwarte(false), 160);
           }}
-          placeholder={mobilna ? "Czego szukasz?" : "Czego szukasz? np. body, komplet, spodnie"}
+          placeholder={mobilna ? "Czego szukasz?" : "Czego szukasz? np. body 68, dres chłopięcy, legginsy"}
           aria-label="Szukaj produktów"
           enterKeyHint="search"
           className="w-full bg-transparent px-3.5 py-2.5 text-[16px] outline-none placeholder:text-ink-2 md:text-[13.5px]"
@@ -96,11 +96,12 @@ export function Szukajka({ mobilna = false }: { mobilna?: boolean }) {
             </svg>
           </button>
         ) : null}
-        <button type="submit" aria-label="Szukaj" className="flex items-center gap-1 bg-ink px-3.5 py-2.5 text-tlo transition-colors hover:bg-akcent">
+        <button type="submit" aria-label="Szukaj" className="flex items-center gap-2 self-stretch bg-ink px-4 text-[13.5px] font-bold text-tlo transition-colors hover:bg-akcent md:px-5">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <circle cx="11" cy="11" r="7" />
             <path d="m20 20-3.2-3.2" />
           </svg>
+          {mobilna ? null : <span className="hidden md:inline">Szukaj</span>}
         </button>
       </form>
 

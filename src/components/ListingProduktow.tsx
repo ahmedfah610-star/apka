@@ -40,7 +40,7 @@ const WYROZNIENIA: { key: FiltrWyroznienie; label: string }[] = [
 // Opisy kategorii (SEO) — widoczne pod nagłówkiem strony kategorii.
 const OPISY_KATEGORII: Record<string, string> = {
   wszystkie:
-    "Pełna oferta ubranek dla dzieci 0–12 lat — od body i pajacyków dla niemowląt, po dresy, bluzy i sukienki dla starszaków. Miękkie, bezpieczne materiały i wygodne kroje na co dzień. Wysyłka InPost, 14 dni na zwrot.",
+    "Ubranka dla dzieci 0–12 lat — od body i pajacyków dla niemowląt po dresy, bluzy i legginsy dla starszaków — oraz odzież męska. Przy każdym rozmiarze wymiary w centymetrach. Darmowa dostawa od 150 zł, 14 dni na zwrot.",
   dziewczynki:
     "Ubranka dla dziewczynek 0–12 lat: sukienki, legginsy, bluzy, komplety i body. Miękkie tkaniny i wygodne fasony — na przedszkole, spacer i wyjątkowe okazje.",
   chlopcy:
@@ -88,11 +88,12 @@ function Listing() {
   const [kategoria, setKategoria] = useState<FiltrKategoria>(poczatkowa);
   const [wiek, setWiek] = useState<FiltrWiek>("wszystkie");
   const [rozmiary, setRozmiary] = useState<string[]>([]);
-  const [cenaIdx, setCenaIdx] = useState<number | null>(null);
+  const startCena = ZAKRESY_CENY.findIndex((z) => z.slug === params.get("cena"));
+  const [cenaIdx, setCenaIdx] = useState<number | null>(startCena >= 0 ? startCena : null);
   const [wyroznienie, setWyroznienie] = useState<FiltrWyroznienie>("wszystkie");
   const startSort = params.get("sort");
   const [sortBy, setSortBy] = useState<Sortowanie>(
-    startSort === "cena-rosnaco" || startSort === "cena-malejaco" ? startSort : "domyslnie",
+    startSort === "nowosci" || startSort === "cena-rosnaco" || startSort === "cena-malejaco" ? startSort : "domyslnie",
   );
   const [filtryOtwarte, setFiltryOtwarte] = useState(false);
 
@@ -140,7 +141,17 @@ function Listing() {
 
       <div className="mx-auto max-w-content px-6 pb-2 pt-11 md:px-12">
         <h1 className="mb-1.5 text-[32px] font-bold tracking-tight">
-          {fraza ? <>Wyniki: „{fraza}"</> : tylkoDzieci && kategoria === "wszystkie" ? "Dla dzieci" : KATEGORIE_LABEL[kategoria]}
+          {fraza ? (
+            <>Wyniki: „{fraza}"</>
+          ) : kategoria === "wszystkie" && cenaIdx !== null ? (
+            `Ceny ${ZAKRESY_CENY[cenaIdx].label}`
+          ) : kategoria === "wszystkie" && sortBy === "nowosci" ? (
+            "Nowości"
+          ) : tylkoDzieci && kategoria === "wszystkie" ? (
+            "Dla dzieci"
+          ) : (
+            KATEGORIE_LABEL[kategoria]
+          )}
         </h1>
         <p className={`text-[15px] text-ink-2 ${!fraza && OPISY_KATEGORII[kategoria] ? "mb-3" : "mb-7"}`}>
           {zwiniete.length} {zwiniete.length === 1 ? "produkt" : "produktów"}
@@ -168,6 +179,7 @@ function Listing() {
           className="flex-1 rounded-lg border border-linia-2 bg-white px-3 py-2.5 text-[13px] text-ink"
         >
           <option value="domyslnie">Polecane</option>
+          <option value="nowosci">Najnowsze</option>
           <option value="cena-rosnaco">Cena: od najniższej</option>
           <option value="cena-malejaco">Cena: od najwyższej</option>
         </select>
@@ -296,6 +308,7 @@ function Listing() {
               className="rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[13.5px] text-ink"
             >
               <option value="domyslnie">Sortuj: polecane</option>
+              <option value="nowosci">Najnowsze</option>
               <option value="cena-rosnaco">Cena: od najniższej</option>
               <option value="cena-malejaco">Cena: od najwyższej</option>
             </select>
