@@ -7,18 +7,18 @@ import { Stopka } from "@/components/Stopka";
 import { KartaProduktu } from "@/components/KartaProduktu";
 import { useUlubione } from "@/components/UlubioneContext";
 import { PRODUKTY, type Produkt } from "@/data/produkty";
+import { pobierzKatalog } from "@/lib/katalogKlient";
 
 export default function StronaUlubionych() {
   const { ids } = useUlubione();
   const [katalog, setKatalog] = useState<Produkt[]>(PRODUKTY);
 
   useEffect(() => {
-    fetch("/api/katalog")
-      .then((r) => r.json())
-      .then((d) => {
-        if (Array.isArray(d.items) && d.items.length) setKatalog(d.items);
-      })
-      .catch(() => {});
+    pobierzKatalog().then((k) => {
+      if (k) {
+        setKatalog(k);
+      }
+    });
   }, []);
 
   const produkty = useMemo(() => {

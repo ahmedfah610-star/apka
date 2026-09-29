@@ -17,6 +17,7 @@ import {
 } from "@/lib/filtrowanie";
 import { porownajRozmiary } from "@/lib/rozmiary";
 import { zwinWarianty } from "@/lib/warianty";
+import { pobierzKatalog } from "@/lib/katalogKlient";
 
 const KATEGORIE: { key: FiltrKategoria; label: string }[] = [
   { key: "wszystkie", label: "Wszystkie" },
@@ -67,13 +68,11 @@ function Listing() {
   // Katalog z kodu + produkty dodane w panelu (localStorage).
   const [wszystkie, setWszystkie] = useState<Produkt[]>(PRODUKTY);
   useEffect(() => {
-    fetch("/api/katalog")
-      .then((r) => r.json())
-      .then((d) => {
-        // Nie nadpisuj działającego katalogu pustą odpowiedzią (ochrona wyszukiwarki i listy).
-        if (Array.isArray(d.items) && d.items.length) setWszystkie(d.items);
-      })
-      .catch(() => {});
+    pobierzKatalog().then((k) => {
+      if (k) {
+        setWszystkie(k);
+      }
+    });
   }, []);
   const DOSTEPNE_ROZMIARY = useMemo(
     () => Array.from(new Set(wszystkie.flatMap((p) => p.rozmiary ?? []))).sort(porownajRozmiary),

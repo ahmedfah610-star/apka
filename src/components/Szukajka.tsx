@@ -7,6 +7,7 @@ import { KATEGORIE_LABEL, PRODUKTY, type Kategoria, type Produkt } from "@/data/
 import { KOLEKCJE, produktyKolekcji } from "@/data/kolekcje";
 import { formatCena, normalizujTekst, pasujeTekst, slowaFrazy, trafnoscFrazy, wyszukaj } from "@/lib/filtrowanie";
 import { zwinWarianty } from "@/lib/warianty";
+import { pobierzKatalog } from "@/lib/katalogKlient";
 
 // Katalog do podpowiedzi — współdzielony między instancjami (nagłówek komputer + telefon).
 let KATALOG_CACHE: Produkt[] | null = null;
@@ -115,15 +116,12 @@ export function Szukajka({ mobilna = false }: { mobilna?: boolean }) {
   useEffect(() => {
     setHistoria(czytajHistorie());
     if (KATALOG_CACHE) return;
-    fetch("/api/katalog")
-      .then((r) => r.json())
-      .then((d) => {
-        if (Array.isArray(d.items) && d.items.length) {
-          KATALOG_CACHE = d.items;
-          setKatalog(d.items);
-        }
-      })
-      .catch(() => {});
+    pobierzKatalog().then((k) => {
+      if (k) {
+        KATALOG_CACHE = k;
+        setKatalog(k);
+      }
+    });
   }, []);
 
   // W polu zostaje to, czego szukano (na stronie wyników); po przejściu gdzie indziej — czyste.

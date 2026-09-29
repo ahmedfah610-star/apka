@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { znajdzProdukt } from "@/data/produkty";
+import type { Produkt } from "@/data/produkty";
+import { pobierzKatalog } from "@/lib/katalogKlient";
 import { useAuth } from "@/components/AuthContext";
 import { sbBrowser } from "@/lib/supabaseBrowser";
 
@@ -20,6 +21,7 @@ interface KoszykCtx {
   wyczysc: () => void;
   liczbaSztuk: number;
   suma: number;
+  usunieteNiedostepne: number; // ile pozycji zniknęło, bo produktu nie ma już w sklepie
 }
 
 const Kontekst = createContext<KoszykCtx | null>(null);
@@ -46,6 +48,22 @@ export function KoszykProvider({ children }: { children: React.ReactNode }) {
   const [pozycje, setPozycje] = useState<PozycjaKoszyka[]>([]);
   const [gotowe, setGotowe] = useState(false);
   const zaladowanyUser = useRef<string | null>(null);
+  const [katalog, setKatalog] = useState<Map<string, Produkt> | null>(null);
+  const [usunieteNiedostepne, setUsunieteNiedostepne] = useState(0);
+
+  useEffect(() => {
+    pobierzKatalog().then((k) => k && setKatalog(new Map(k.map((p) => [p.id, p]))));
+  }, []);
+
+  // Produkty, których już nie ma w sklepie (zakończone/scalone oferty), wypadają z koszyka —
+  // inaczej licznik pokazywał sztuki, których klient nie widzi i nie może kupić.
+  useEffect(() => {
+    if (!gotowe || !katalog) return;
+    const zostaja = pozycje.filter((p) => katalog.has(p.id));
+    if (zostaja.length === pozycje.length) return;
+    setUsunieteNiedostepne((n) => n + pozycje.length - zostaja.length);
+    setPozycje(zostaja);
+  }, [pozycje, katalog, gotowe]);
 
   // Wczytanie z localStorage po zamontowaniu (unikamy niezgodności SSR).
   useEffect(() => {
@@ -123,14 +141,15 @@ export function KoszykProvider({ children }: { children: React.ReactNode }) {
     let szt = 0;
     let s = 0;
     for (const poz of pozycje) {
+      const prod = katalog?.get(poz.id);
+      if (katalog && !prod) continue; // za chwilę wypadnie z koszyka
       szt += poz.ilosc;
-      const prod = znajdzProdukt(poz.id);
       if (prod) s += prod.cena * poz.ilosc;
     }
     return { liczbaSztuk: szt, suma: s };
-  }, [pozycje]);
+  }, [pozycje, katalog]);
 
-  const wartosc: KoszykCtx = { pozycje, gotowy: gotowe, dodaj, usun, ustawIlosc, wyczysc, liczbaSztuk, suma };
+  const wartosc: KoszykCtx = { pozycje, gotowy: gotowe, dodaj, usun, ustawIlosc, wyczysc, liczbaSztuk, suma, usunieteNiedostepne };
   return <Kontekst.Provider value={wartosc}>{children}</Kontekst.Provider>;
 }
 

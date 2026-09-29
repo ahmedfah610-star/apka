@@ -10,6 +10,7 @@ import { formatCena } from "@/lib/filtrowanie";
 import { DARMOWA_DOSTAWA_OD } from "@/lib/dostawa";
 import { ZAMOWIENIA_WYLACZONE } from "@/lib/sklep";
 import { PrzerwaTechniczna } from "@/components/PrzerwaTechniczna";
+import { pobierzKatalog } from "@/lib/katalogKlient";
 
 const ZAUFANIE = [
   { t: "Wysyłka InPost", o: "Paczkomaty i kurier" },
@@ -18,16 +19,15 @@ const ZAUFANIE = [
 ];
 
 export default function StronaKoszyka() {
-  const { pozycje, usun, ustawIlosc, liczbaSztuk } = useKoszyk();
+  const { pozycje, usun, ustawIlosc, usunieteNiedostepne } = useKoszyk();
   const [katalog, setKatalog] = useState<Produkt[]>(PRODUKTY);
 
   useEffect(() => {
-    fetch("/api/katalog")
-      .then((r) => r.json())
-      .then((d) => {
-        if (Array.isArray(d.items) && d.items.length) setKatalog(d.items);
-      })
-      .catch(() => {});
+    pobierzKatalog().then((k) => {
+      if (k) {
+        setKatalog(k);
+      }
+    });
   }, []);
 
   const znajdz = useMemo(() => {
@@ -37,6 +37,8 @@ export default function StronaKoszyka() {
 
   const pozycjeZDanymi = pozycje.map((poz) => ({ poz, produkt: znajdz(poz.id) })).filter((x) => x.produkt);
   const suma = pozycjeZDanymi.reduce((s, { poz, produkt }) => s + produkt!.cena * poz.ilosc, 0);
+  // Liczone z tego, co widać na liście (nie z surowego zapisu koszyka).
+  const sztuk = pozycjeZDanymi.reduce((s, { poz }) => s + poz.ilosc, 0);
 
   const doDarmowej = Math.max(0, DARMOWA_DOSTAWA_OD - suma);
   const procent = Math.min(100, (suma / DARMOWA_DOSTAWA_OD) * 100);
@@ -53,11 +55,18 @@ export default function StronaKoszyka() {
           / <span className="text-ink">Koszyk</span>
         </nav>
         <h1 className="mb-8 text-[28px] font-extrabold tracking-tight md:text-[34px]">
-          Twój koszyk {pozycjeZDanymi.length > 0 ? <span className="font-medium text-ink-2">· {liczbaSztuk} szt.</span> : null}
+          Twój koszyk {pozycjeZDanymi.length > 0 ? <span className="font-medium text-ink-2">· {sztuk} szt.</span> : null}
         </h1>
+        {usunieteNiedostepne > 0 ? (
+          <p className="-mt-5 mb-6 rounded-lg bg-akcent-2 px-4 py-3 text-[14px] text-ink">
+            {usunieteNiedostepne === 1
+              ? "Jeden produkt nie jest już dostępny w sklepie — usunęliśmy go z koszyka."
+              : `${usunieteNiedostepne} produkty nie są już dostępne w sklepie — usunęliśmy je z koszyka.`}
+          </p>
+        ) : null}
 
         {pozycjeZDanymi.length === 0 ? (
-          <div className="mx-auto max-w-md border border-linia bg-white px-6 py-16 text-center">
+          <div className="mx-auto max-w-md rounded-2xl border border-linia bg-white px-6 py-16 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-szary">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-ink-2">
                 <path d="M6 7h12l-1 13H7L6 7Z" />
@@ -75,7 +84,7 @@ export default function StronaKoszyka() {
             {/* Lista pozycji */}
             <div>
               {/* Pasek darmowej dostawy */}
-              <div className="mb-4 border border-linia bg-white p-4 sm:p-5">
+              <div className="mb-4 rounded-2xl border border-linia bg-white p-4 sm:p-5">
                 {doDarmowej > 0 ? (
                   <p className="mb-2.5 text-[13.5px] text-ink-2">
                     Dodaj jeszcze <strong className="text-ink">{formatCena(doDarmowej)} zł</strong>, aby mieć{" "}

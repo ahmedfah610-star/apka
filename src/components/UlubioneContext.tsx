@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/components/AuthContext";
 import { sbBrowser } from "@/lib/supabaseBrowser";
+import { pobierzKatalog } from "@/lib/katalogKlient";
 
 interface UlubioneCtx {
   ids: string[];
@@ -19,6 +20,17 @@ export function UlubioneProvider({ children }: { children: React.ReactNode }) {
   const [ids, setIds] = useState<string[]>([]);
   const [gotowe, setGotowe] = useState(false);
   const zaladowanyUser = useRef<string | null>(null);
+  const [znane, setZnane] = useState<Set<string> | null>(null);
+
+  useEffect(() => {
+    pobierzKatalog().then((k) => k && setZnane(new Set(k.map((p) => p.id))));
+  }, []);
+
+  // Produkty, których nie ma już w sklepie, znikają z ulubionych (licznik = to, co widać).
+  useEffect(() => {
+    if (!gotowe || !znane) return;
+    if (ids.some((id) => !znane.has(id))) setIds((prev) => prev.filter((id) => znane.has(id)));
+  }, [ids, znane, gotowe]);
 
   useEffect(() => {
     try {

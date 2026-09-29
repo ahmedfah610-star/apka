@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { KartaProduktu } from "@/components/KartaProduktu";
 import { PRODUKTY, type Produkt } from "@/data/produkty";
+import { pobierzKatalog } from "@/lib/katalogKlient";
 
 const KLUCZ = "fasolka-ostatnio";
 const LIMIT = 12;
@@ -29,12 +30,11 @@ export function OstatnioOgladane({ aktualnyId }: { aktualnyId: string }) {
   }, [aktualnyId]);
 
   useEffect(() => {
-    fetch("/api/katalog")
-      .then((r) => r.json())
-      .then((d) => {
-        if (Array.isArray(d.items) && d.items.length) setKatalog(d.items);
-      })
-      .catch(() => {});
+    pobierzKatalog().then((k) => {
+      if (k) {
+        setKatalog(k);
+      }
+    });
   }, []);
 
   const produkty = useMemo(() => {

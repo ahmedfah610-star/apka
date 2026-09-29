@@ -17,6 +17,7 @@ import { PrzerwaTechniczna } from "@/components/PrzerwaTechniczna";
 import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { METODY_DOSTAWY, kosztDostawy } from "@/lib/dostawa";
+import { pobierzKatalog } from "@/lib/katalogKlient";
 
 // Płatności obsługuje w całości Przelewy24 — to na jego bezpiecznej stronie
 // klient wybiera BLIK / przelew / kartę. Nie dublujemy tu tego wyboru.
@@ -44,12 +45,11 @@ export default function StronaZamowienia() {
   const [kodSprawdzanie, setKodSprawdzanie] = useState(false);
 
   useEffect(() => {
-    fetch("/api/katalog")
-      .then((r) => r.json())
-      .then((d) => {
-        if (Array.isArray(d.items) && d.items.length) setKatalog(d.items);
-      })
-      .catch(() => {});
+    pobierzKatalog().then((k) => {
+      if (k) {
+        setKatalog(k);
+      }
+    });
     fetch("/api/konfiguracja")
       .then((r) => r.json())
       .then((d) => setPlatnosciOnline(!!d.platnosci))

@@ -10,6 +10,7 @@ import { useAuth } from "@/components/AuthContext";
 import { useKoszyk } from "@/components/KoszykContext";
 import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
+import { pobierzKatalog } from "@/lib/katalogKlient";
 
 type Tryb = "login" | "rejestr";
 
@@ -24,10 +25,11 @@ export function BramkaZamowienia() {
 
   // Katalog z bazy (ceny/nazwy/zdjęcia) do podsumowania koszyka.
   useEffect(() => {
-    fetch("/api/katalog")
-      .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d.items) && d.items.length) setKatalog(d.items); })
-      .catch(() => {});
+    pobierzKatalog().then((k) => {
+      if (k) {
+        setKatalog(k);
+      }
+    });
   }, []);
 
   const { pozycjeZDanymi, suma } = useMemo(() => {
