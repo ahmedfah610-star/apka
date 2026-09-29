@@ -22,7 +22,7 @@ export function Stopka() {
         <div>
           <span className="text-xl font-bold tracking-tight">bobas-shopping</span>
           <p className="mt-3 max-w-[220px] text-sm text-ink-2">
-            Ubrania dla dzieci 0-12 lat. Miękkie, bezpieczne i gotowe do zabawy.
+            Ubranka dla dzieci od 0 do 12 lat i odzież męska. Wysyłka InPost, ORLEN, DPD, Pocztex i kurierami.
           </p>
           <div className="mt-4 flex items-center gap-2.5">
             <a
@@ -53,6 +53,7 @@ export function Stopka() {
             <li><Link href="/produkty?kategoria=dziewczynki" className="no-underline hover:text-akcent">Dziewczynki</Link></li>
             <li><Link href="/produkty?kategoria=chlopcy" className="no-underline hover:text-akcent">Chłopcy</Link></li>
             <li><Link href="/produkty?kategoria=niemowleta" className="no-underline hover:text-akcent">Niemowlęta</Link></li>
+            <li><Link href="/produkty?kategoria=dorosli" className="no-underline hover:text-akcent">Męskie</Link></li>
             <li><Link href="/produkty" className="no-underline hover:text-akcent">Wszystkie produkty</Link></li>
           </ul>
         </div>

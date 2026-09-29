@@ -90,7 +90,10 @@ function Listing() {
   const [rozmiary, setRozmiary] = useState<string[]>([]);
   const [cenaIdx, setCenaIdx] = useState<number | null>(null);
   const [wyroznienie, setWyroznienie] = useState<FiltrWyroznienie>("wszystkie");
-  const [sortBy, setSortBy] = useState<Sortowanie>("domyslnie");
+  const startSort = params.get("sort");
+  const [sortBy, setSortBy] = useState<Sortowanie>(
+    startSort === "cena-rosnaco" || startSort === "cena-malejaco" ? startSort : "domyslnie",
+  );
   const [filtryOtwarte, setFiltryOtwarte] = useState(false);
 
   const produkty = useMemo(
