@@ -41,17 +41,17 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
   const kolorStanu = et?.ton === "brak" ? "text-ink-2" : et?.ton === "malo" ? "text-akcent" : "text-[oklch(52%_0.13_150)]";
 
   return (
-    <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-12">
       {/* key = remount galerii przy zmianie koloru → reset do 1. zdjęcia wybranego wariantu */}
       <Galeria key={p.id} zdjecia={zdjecia} alt={p.nazwa} placeholder={placeholder} />
 
-      <div className="flex flex-col">
-        <p className="mb-2 text-[13px] uppercase tracking-wide text-ink-2">
+      <div className="flex flex-col px-4 md:px-0">
+        <p className="mb-1.5 text-[12px] uppercase tracking-wide text-ink-2 md:mb-2 md:text-[13px]">
           {KATEGORIE_LABEL[p.kategoria]} · {p.wiekLabel}
           {p.kolor ? <span> · {p.kolor}</span> : null}
         </p>
-        <h1 className="mb-3 text-[30px] font-bold leading-tight tracking-tight md:text-[36px]">{p.nazwa}</h1>
-        <p className="mb-2 text-[26px] font-bold text-ink">{formatCena(p.cena)} zł</p>
+        <h1 className="mb-2 text-[21px] font-extrabold leading-tight tracking-tight md:mb-3 md:text-[36px]">{p.nazwa}</h1>
+        <p className="mb-2 text-[26px] font-extrabold text-ink">{formatCena(p.cena)} zł</p>
         {et ? (
           <p className={`mb-3 flex items-center gap-1.5 text-[13.5px] font-semibold ${kolorStanu}`}>
             {et.ton === "malo" ? (
@@ -69,10 +69,10 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
           <div className="mb-3" />
         )}
 
-        {p.stan !== 0 ? <TerminDostawy klasa="mb-6 flex items-center gap-2 text-[13.5px] text-ink-2" /> : <div className="mb-6" />}
+        {p.stan !== 0 ? <TerminDostawy klasa="mb-5 flex items-center gap-2 text-[13.5px] text-ink-2 md:mb-6" /> : <div className="mb-5 md:mb-6" />}
 
         {kolory.length > 1 ? (
-          <div className="mb-6">
+          <div className="mb-5 md:mb-6">
             <p className="mb-2.5 text-[13.5px] font-semibold text-ink">
               Kolor: <span className="font-normal text-ink-2">{p.kolor ?? "—"}</span>
               <span className="ml-1 text-ink-2">({kolory.length} do wyboru)</span>
@@ -104,7 +104,7 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
         {/* key = świeży stan wyboru rozmiaru przy zmianie koloru */}
         <DodajDoKoszyka key={p.id} produkt={p} />
 
-        <ul className="mt-6 flex flex-col gap-2 border-t border-linia pt-6">
+        <ul className="mt-2 flex flex-col gap-2 border-t border-linia pt-5 md:mt-6 md:pt-6">
           {(CECHY[p.kategoria] ?? []).map((c) => (
             <li key={c} className="flex items-start gap-2 text-[14px] text-ink-2">
               <span className="mt-2 h-1 w-1 shrink-0 bg-akcent" />

@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ZDARZENIE_ROZMIARU } from "@/components/OpisRozmiarowy";
 import { useKoszyk } from "@/components/KoszykContext";
 import { PowiadomODostepnosci } from "@/components/PowiadomODostepnosci";
 import { TabelaRozmiarow } from "@/components/TabelaRozmiarow";
 import { PrzyciskUlubione } from "@/components/PrzyciskUlubione";
 import type { Produkt } from "@/data/produkty";
+import { formatCena } from "@/lib/filtrowanie";
 
 export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
   const { dodaj } = useKoszyk();
@@ -25,6 +26,18 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
   const [dodano, setDodano] = useState(false);
   const [blad, setBlad] = useState(false);
 
+  // Telefon: gdy główny przycisk jest poza ekranem, na dole wisi pasek z ceną i „Dodaj do koszyka".
+  const przyciski = useRef<HTMLDivElement>(null);
+  const sekcjaRozmiarow = useRef<HTMLDivElement>(null);
+  const [pasekWidoczny, setPasekWidoczny] = useState(false);
+  useEffect(() => {
+    const el = przyciski.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const obs = new IntersectionObserver(([w]) => setPasekWidoczny(!w.isIntersecting), { threshold: 0 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   // Dostępna ilość dla aktualnego wyboru.
   const dostepneTeraz = useMemo(() => {
     if (maRozmiary && rozmiar && sr) return sr[rozmiar] ?? 0;
@@ -37,6 +50,7 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
   function handleDodaj() {
     if (maRozmiary && !rozmiar) {
       setBlad(true);
+      sekcjaRozmiarow.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
     if (typeof dostepneTeraz === "number" && dostepneTeraz <= 0) return;
@@ -49,8 +63,8 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
   if (niedostepny) {
     return (
       <div>
-        <button disabled className="mb-4 w-full cursor-not-allowed rounded-xl bg-szary px-8 py-4 text-[13px] font-semibold tracking-wide text-ink-2 sm:w-auto sm:min-w-[280px]">
-          PRODUKT NIEDOSTĘPNY
+        <button disabled className="mb-4 w-full cursor-not-allowed rounded-xl bg-szary px-8 py-4 text-[14px] font-bold text-ink-2 sm:w-auto sm:min-w-[280px]">
+          Produkt niedostępny
         </button>
         <PowiadomODostepnosci produktId={produkt.id} rozmiar={null} />
       </div>
@@ -68,11 +82,10 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
         </p>
       ) : null}
       {maRozmiary ? (
-        <div className="mb-7">
+        <div ref={sekcjaRozmiarow} className="mb-6 scroll-mt-40 md:mb-7">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-[13px] font-semibold tracking-wide text-ink-2">
-              WYBIERZ ROZMIAR
-              {blad ? <span className="ml-2 font-normal text-akcent">— wybierz rozmiar</span> : null}
+            <h3 className={`text-[14px] font-bold ${blad ? "text-cena" : "text-ink"}`}>
+              {blad ? "Najpierw wybierz rozmiar" : "Rozmiar"}
             </h3>
             <TabelaRozmiarow />
           </div>
@@ -91,14 +104,14 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
                     // Opis produktu pokazuje wymiary wybranego rozmiaru.
                     window.dispatchEvent(new CustomEvent(ZDARZENIE_ROZMIARU, { detail: { rozmiar: s } }));
                   }}
-                  className={`relative min-w-[52px] rounded-lg border px-3.5 py-2.5 text-center text-[13px] font-semibold transition-colors ${
+                  className={`relative min-w-[52px] rounded-lg border px-3.5 py-2.5 text-center text-[14px] font-bold transition-colors ${
                     brak
                       ? on
                         ? "border-ink bg-szary text-ink-2 line-through"
                         : "border-linia bg-szary/50 text-ink-2 line-through hover:border-ink-2"
                       : on
                         ? "border-ink bg-ink text-tlo"
-                        : "border-linia-2 hover:border-ink"
+                        : `${blad ? "border-cena" : "border-linia-2"} bg-white hover:border-ink`
                   }`}
                 >
                   {s}
@@ -114,19 +127,21 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
         </div>
       ) : null}
 
+      <div ref={przyciski}>
       {wybranyWyprzedany ? (
         <PowiadomODostepnosci key={rozmiar} produktId={produkt.id} rozmiar={rozmiar} />
       ) : (
-        <div className="mb-3 flex flex-col gap-2.5 sm:flex-row">
+        <div className="mb-3 flex gap-2.5">
           <button
             onClick={handleDodaj}
-            className="w-full rounded-xl bg-ink px-8 py-4 text-[13px] font-semibold tracking-wide text-tlo shadow-sm transition-all hover:-translate-y-0.5 hover:bg-akcent hover:shadow-lg sm:w-auto sm:min-w-[280px]"
+            className="flex-1 rounded-xl bg-ink px-6 py-3.5 text-[15px] font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-akcent hover:shadow-lg sm:min-w-[280px] sm:flex-none sm:px-8"
           >
-            DODAJ DO KOSZYKA
+            Dodaj do koszyka
           </button>
           <PrzyciskUlubione id={produkt.id} wariant="produkt" />
         </div>
       )}
+      </div>
 
       {dodano ? (
         <p className="mb-8 text-[14px] text-ink-2">
@@ -138,6 +153,36 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
       ) : (
         <div className="mb-8" />
       )}
+
+      {/* Pasek zakupu na telefonie */}
+      <div
+        className={`fixed inset-x-0 bottom-0 z-40 border-t border-linia bg-white px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-8px_24px_-16px_rgba(0,0,0,0.35)] transition-transform duration-200 md:hidden ${
+          pasekWidoczny ? "translate-y-0" : "pointer-events-none translate-y-full"
+        }`}
+        aria-hidden={!pasekWidoczny}
+      >
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[18px] font-extrabold leading-tight text-ink">{formatCena(produkt.cena)} zł</p>
+            <p className="truncate text-[12px] text-ink-2">
+              {dodano ? "✓ Dodano do koszyka" : maRozmiary ? (rozmiar ? `Rozmiar ${rozmiar}` : "Wybierz rozmiar") : produkt.wiekLabel}
+            </p>
+          </div>
+          {dodano ? (
+            <Link href="/koszyk" tabIndex={pasekWidoczny ? 0 : -1} className="rounded-xl bg-akcent px-5 py-3 text-[14.5px] font-bold text-white no-underline">
+              Przejdź do koszyka
+            </Link>
+          ) : (
+            <button
+              onClick={wybranyWyprzedany ? () => sekcjaRozmiarow.current?.scrollIntoView({ behavior: "smooth", block: "center" }) : handleDodaj}
+              tabIndex={pasekWidoczny ? 0 : -1}
+              className="rounded-xl bg-ink px-5 py-3 text-[14.5px] font-bold text-white"
+            >
+              {wybranyWyprzedany ? "Powiadom mnie" : maRozmiary && !rozmiar ? "Wybierz rozmiar" : "Dodaj do koszyka"}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

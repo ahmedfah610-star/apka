@@ -83,7 +83,7 @@ export function BramkaZamowienia() {
   // Widok skupiony: logowanie / zakładanie konta (osobna „karta").
   if (pokazFormularz && wlaczone) {
     return (
-      <div className="flex min-h-screen flex-col overflow-x-hidden bg-szary/25">
+      <div className="flex min-h-screen flex-col overflow-x-clip bg-szary/25">
         <Nawigacja />
         <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-5 py-10 sm:px-6 md:py-14">
           <button
@@ -95,7 +95,7 @@ export function BramkaZamowienia() {
 
           <div className="rounded-2xl border border-linia bg-white p-6 shadow-[0_10px_40px_-24px_rgba(0,0,0,0.35)] sm:p-8">
             <div className="mb-5 text-center">
-              <h1 className="text-[23px] font-bold tracking-tight">
+              <h1 className="text-[23px] font-extrabold tracking-tight">
                 {tryb === "login" ? "Zaloguj się" : "Załóż konto"}
               </h1>
               <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-2">
@@ -125,8 +125,8 @@ export function BramkaZamowienia() {
               {blad ? <p className="rounded-lg bg-akcent/5 px-3 py-2 text-[13px] text-akcent">{blad}</p> : null}
               {info ? <p className="rounded-lg bg-[oklch(95%_0.05_150)] px-3 py-2 text-[13px] text-[oklch(40%_0.12_150)]">{info}</p> : null}
 
-              <button type="submit" disabled={wysylka} className="mt-1 rounded-lg bg-ink px-6 py-3.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
-                {wysylka ? "CHWILA…" : tryb === "login" ? "ZALOGUJ SIĘ I PRZEJDŹ DALEJ" : "ZAŁÓŻ KONTO I PRZEJDŹ DALEJ"}
+              <button type="submit" disabled={wysylka} className="mt-1 rounded-lg bg-ink px-6 py-3.5 text-[14.5px] font-bold text-white transition-colors hover:bg-akcent disabled:opacity-60">
+                {wysylka ? "Chwila…" : tryb === "login" ? "Zaloguj się i przejdź dalej" : "Załóż konto i przejdź dalej"}
               </button>
             </form>
 
@@ -160,11 +160,11 @@ export function BramkaZamowienia() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-szary/25">
+    <div className="flex min-h-screen flex-col overflow-x-clip bg-szary/25">
       <Nawigacja />
       <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-8 sm:px-6 md:py-12">
         <KrokiZamowienia aktywny={1} />
-        <h1 className="mb-2 text-[26px] font-bold tracking-tight md:text-[31px]">Jak chcesz złożyć zamówienie?</h1>
+        <h1 className="mb-2 text-[26px] font-extrabold tracking-tight md:text-[31px]">Jak chcesz złożyć zamówienie?</h1>
         <p className="mb-6 text-[14.5px] leading-relaxed text-ink-2">
           Twój koszyk jest zapisany i zostanie zachowany niezależnie od wyboru. Możesz zamówić bez konta albo się zalogować.
         </p>

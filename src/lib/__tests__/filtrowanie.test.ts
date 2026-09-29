@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filtrujProdukty, formatCena, pasujeFraza } from "@/lib/filtrowanie";
+import { filtrujProdukty, formatCena, pasujeFraza, wyszukaj } from "@/lib/filtrowanie";
 import type { Produkt } from "@/data/produkty";
 
 const p = (over: Partial<Produkt>): Produkt => ({
@@ -70,6 +70,32 @@ describe("pasujeFraza (wyszukiwarka)", () => {
 
   it("pusta fraza pasuje do wszystkiego", () => {
     expect(pasujeFraza(spodnieChl, "   ")).toBe(true);
+  });
+});
+
+describe("wyszukaj — nazwa, rozmiar, literówki, opis awaryjnie", () => {
+  const body = p({ id: "body", nazwa: "Body niemowlęce długi rękaw", kategoria: "niemowleta", rozmiary: ["62", "68"] });
+  const leg = p({ id: "leg", nazwa: "Legginsy prążkowane", kategoria: "dziewczynki", kolor: "czarny", rozmiary: ["104", "110"] });
+  const pajac = p({ id: "pajac", nazwa: "Pajac ocieplany", kategoria: "niemowleta", opis: "Ciepły jak kurtka na spacer" });
+  const bluzka = p({ id: "bluzka", nazwa: "Bluzka z długim rękawem", kategoria: "chlopcy" });
+  const wszystkie = [body, leg, pajac, bluzka];
+  const ids = (f: string) => wyszukaj(wszystkie, f).lista.map((x) => x.id);
+
+  it("rozmiar musi pasować dokładnie", () => {
+    expect(ids("body 68")).toEqual(["body"]);
+    expect(ids("body 74")).toEqual([]);
+  });
+  it("wybacza literówkę i odmianę", () => {
+    expect(ids("leginsy")).toEqual(["leg"]);
+    expect(ids("bodi")).toEqual(["body"]);
+    expect(ids("czarne legginsy")).toEqual(["leg"]);
+  });
+  it("bluza ≠ bluzka", () => {
+    expect(ids("bluza")).toEqual([]);
+  });
+  it("opis tylko gdy nic nie pasuje po nazwie", () => {
+    expect(wyszukaj(wszystkie, "kurtka")).toEqual({ lista: [pajac], zOpisu: true });
+    expect(wyszukaj(wszystkie, "pajac").zOpisu).toBe(false);
   });
 });
 

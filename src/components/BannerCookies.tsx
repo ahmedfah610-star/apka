@@ -57,7 +57,7 @@ export function BannerCookies() {
           </button>
           <button
             onClick={() => zapisz("wszystkie")}
-            className="order-1 bg-ink px-5 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent sm:order-2"
+            className="rounded-lg order-1 bg-ink px-5 py-2.5 text-[14.5px] font-bold text-white transition-colors hover:bg-akcent sm:order-2"
           >
             Akceptuję wszystkie
           </button>

@@ -12,12 +12,13 @@ export function PrzyciskUlubione({ id, wariant = "karta" }: { id: string; warian
         type="button"
         onClick={() => przelacz(id)}
         aria-pressed={aktywne}
-        className={`flex items-center justify-center gap-2 border px-5 py-4 text-[13px] font-semibold tracking-wide transition-all ${
-          aktywne ? "border-akcent bg-akcent/[0.06] text-akcent" : "border-linia-2 text-ink hover:border-ink"
+        aria-label={aktywne ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+        className={`flex shrink-0 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3.5 text-[14px] font-bold transition-all sm:px-5 ${
+          aktywne ? "border-akcent bg-akcent/[0.06] text-akcent" : "border-linia-2 bg-white text-ink hover:border-ink"
         }`}
       >
         <Serce pelne={aktywne} />
-        {aktywne ? "W ULUBIONYCH" : "DO ULUBIONYCH"}
+        <span className="hidden sm:inline">{aktywne ? "W ulubionych" : "Do ulubionych"}</span>
       </button>
     );
   }

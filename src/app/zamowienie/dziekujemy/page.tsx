@@ -7,11 +7,11 @@ export const metadata = { title: "Dziękujemy za zamówienie" };
 export default function StronaDziekujemy({ searchParams }: { searchParams: { zamowienie?: string } }) {
   const nr = searchParams.zamowienie ? searchParams.zamowienie.slice(0, 8) : null;
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-clip">
       <Nawigacja />
       <div className="mx-auto max-w-content px-6 py-24 text-center md:px-12">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[oklch(66%_0.13_150)] text-2xl text-tlo">✓</div>
-        <h1 className="mb-3 text-[30px] font-bold tracking-tight md:text-[34px]">Dziękujemy za zamówienie!</h1>
+        <h1 className="mb-3 text-[30px] font-extrabold tracking-tight md:text-[34px]">Dziękujemy za zamówienie!</h1>
         {nr ? (
           <p className="mb-2 text-[14px] text-ink-2">
             Numer zamówienia: <strong className="text-ink">#{nr}</strong>
@@ -22,9 +22,9 @@ export default function StronaDziekujemy({ searchParams }: { searchParams: { zam
         </p>
         <Link
           href="/produkty"
-          className="inline-block bg-ink px-8 py-3.5 text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
+          className="rounded-lg inline-block bg-ink px-8 py-3.5 text-[14.5px] font-bold text-white no-underline transition-colors hover:bg-akcent"
         >
-          WRÓĆ DO SKLEPU
+          Wróć do sklepu
         </Link>
       </div>
       <Stopka />

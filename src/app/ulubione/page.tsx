@@ -27,11 +27,11 @@ export default function StronaUlubionych() {
   }, [ids, katalog]);
 
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-clip">
       <Nawigacja />
 
       <div className="mx-auto max-w-content px-4 py-10 sm:px-6 md:px-12">
-        <h1 className="mb-2 text-[28px] font-bold tracking-tight md:text-[34px]">Ulubione</h1>
+        <h1 className="mb-2 text-[28px] font-extrabold tracking-tight md:text-[34px]">Ulubione</h1>
         <p className="mb-8 text-[15px] text-ink-2">
           {produkty.length > 0
             ? `${produkty.length} ${produkty.length === 1 ? "produkt" : "produktów"} zapisanych`
@@ -53,8 +53,8 @@ export default function StronaUlubionych() {
             </div>
             <p className="mb-2 text-[18px] font-semibold">Brak ulubionych</p>
             <p className="mb-6 text-sm text-ink-2">Klikaj serduszko przy produktach, aby zapisać je na później.</p>
-            <Link href="/produkty" className="inline-block bg-ink px-8 py-3.5 text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent">
-              PRZEGLĄDAJ PRODUKTY
+            <Link href="/produkty" className="rounded-lg inline-block bg-ink px-8 py-3.5 text-[14.5px] font-bold text-white no-underline transition-colors hover:bg-akcent">
+              Przeglądaj produkty
             </Link>
           </div>
         )}

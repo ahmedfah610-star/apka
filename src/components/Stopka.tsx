@@ -17,11 +17,11 @@ const POPULARNE = [
 
 export function Stopka() {
   return (
-    <footer className="border-t border-linia px-6 py-14 md:px-12">
-      <div className="mx-auto grid max-w-content grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4">
-        <div>
-          <span className="text-xl font-bold tracking-tight">bobas-shopping</span>
-          <p className="mt-3 max-w-[220px] text-sm text-ink-2">
+    <footer className="border-t border-linia bg-white px-4 pb-8 pt-10 md:px-12 md:py-14">
+      <div className="mx-auto grid max-w-content grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4 md:gap-10">
+        <div className="col-span-2 md:col-span-1">
+          <span className="text-xl font-extrabold tracking-tight">bobas-shopping</span>
+          <p className="mt-2 max-w-[300px] text-sm text-ink-2 md:mt-3 md:max-w-[220px]">
             Ubranka dla dzieci od 0 do 12 lat i odzież męska. Wysyłka InPost, ORLEN, DPD, Pocztex i kurierami.
           </p>
           <div className="mt-4 flex items-center gap-2.5">
@@ -48,8 +48,8 @@ export function Stopka() {
           </div>
         </div>
         <div>
-          <h4 className="mb-3 text-[13px] font-semibold tracking-wide text-ink-2">SKLEP</h4>
-          <ul className="flex flex-col gap-2 text-sm text-ink-2">
+          <h4 className="mb-3 text-[14.5px] font-bold text-ink">Sklep</h4>
+          <ul className="flex flex-col gap-2.5 text-sm text-ink-2 md:gap-2">
             <li><Link href="/produkty?kategoria=dziewczynki" className="no-underline hover:text-akcent">Dziewczynki</Link></li>
             <li><Link href="/produkty?kategoria=chlopcy" className="no-underline hover:text-akcent">Chłopcy</Link></li>
             <li><Link href="/produkty?kategoria=niemowleta" className="no-underline hover:text-akcent">Niemowlęta</Link></li>
@@ -58,8 +58,8 @@ export function Stopka() {
           </ul>
         </div>
         <div>
-          <h4 className="mb-3 text-[13px] font-semibold tracking-wide text-ink-2">OBSŁUGA</h4>
-          <ul className="flex flex-col gap-2 text-sm text-ink-2">
+          <h4 className="mb-3 text-[14.5px] font-bold text-ink">Obsługa</h4>
+          <ul className="flex flex-col gap-2.5 text-sm text-ink-2 md:gap-2">
             <li><Link href="/status-zamowienia" className="no-underline hover:text-akcent">Status zamówienia</Link></li>
             <li><Link href="/dostawa-i-zwroty" className="no-underline hover:text-akcent">Dostawa i zwroty</Link></li>
             <li><Link href="/rozmiary" className="no-underline hover:text-akcent">Tabela rozmiarów</Link></li>
@@ -69,8 +69,8 @@ export function Stopka() {
           </ul>
         </div>
         <div>
-          <h4 className="mb-3 text-[13px] font-semibold tracking-wide text-ink-2">INFORMACJE</h4>
-          <ul className="flex flex-col gap-2 text-sm text-ink-2">
+          <h4 className="mb-3 text-[14.5px] font-bold text-ink">Informacje</h4>
+          <ul className="flex flex-col gap-2.5 text-sm text-ink-2 md:gap-2">
             <li><Link href="/o-nas" className="no-underline hover:text-akcent">O nas</Link></li>
             <li><Link href="/regulamin" className="no-underline hover:text-akcent">Regulamin</Link></li>
             <li><Link href="/polityka-prywatnosci" className="no-underline hover:text-akcent">Polityka prywatności</Link></li>
@@ -79,8 +79,8 @@ export function Stopka() {
         </div>
       </div>
 
-      <div className="mx-auto mt-10 max-w-content border-t border-linia pt-6">
-        <h4 className="mb-3 text-[13px] font-semibold tracking-wide text-ink-2">POPULARNE KATEGORIE</h4>
+      <div className="mx-auto mt-8 max-w-content border-t border-linia pt-6 md:mt-10">
+        <h4 className="mb-3 text-[14.5px] font-bold text-ink">Popularne kategorie</h4>
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-ink-2">
           {POPULARNE.map((k) => (
             <Link key={k.slug} href={`/kolekcje/${k.slug}`} className="no-underline hover:text-akcent">

@@ -42,7 +42,7 @@ export default function StronaKoszyka() {
   const procent = Math.min(100, (suma / DARMOWA_DOSTAWA_OD) * 100);
 
   return (
-    <div className="overflow-x-hidden bg-szary/30">
+    <div className="overflow-x-clip bg-szary/30">
       <Nawigacja />
 
       <div className="mx-auto max-w-content px-4 py-8 sm:px-6 md:px-12 md:py-12">
@@ -52,7 +52,7 @@ export default function StronaKoszyka() {
           </Link>{" "}
           / <span className="text-ink">Koszyk</span>
         </nav>
-        <h1 className="mb-8 text-[28px] font-bold tracking-tight md:text-[34px]">
+        <h1 className="mb-8 text-[28px] font-extrabold tracking-tight md:text-[34px]">
           Twój koszyk {pozycjeZDanymi.length > 0 ? <span className="font-medium text-ink-2">· {liczbaSztuk} szt.</span> : null}
         </h1>
 
@@ -66,8 +66,8 @@ export default function StronaKoszyka() {
             </div>
             <p className="mb-2 text-[18px] font-semibold">Twój koszyk jest pusty</p>
             <p className="mb-6 text-sm text-ink-2">Dodaj coś z naszej kolekcji — poczekają tu na Ciebie.</p>
-            <Link href="/produkty" className="inline-block bg-ink px-8 py-3.5 text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent">
-              PRZEGLĄDAJ PRODUKTY
+            <Link href="/produkty" className="rounded-lg inline-block bg-ink px-8 py-3.5 text-[14.5px] font-bold text-white no-underline transition-colors hover:bg-akcent">
+              Przeglądaj produkty
             </Link>
           </div>
         ) : (
@@ -178,17 +178,17 @@ export default function StronaKoszyka() {
                   <PrzerwaTechniczna className="mt-5" />
                   <button
                     disabled
-                    className="mt-3 block w-full cursor-not-allowed rounded-lg bg-szary px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-ink-2"
+                    className="mt-3 block w-full cursor-not-allowed rounded-lg bg-szary px-8 py-4 text-center text-[14.5px] font-bold text-ink-2"
                   >
-                    ZAMÓWIENIA CHWILOWO WYŁĄCZONE
+                    Zamówienia chwilowo wyłączone
                   </button>
                 </>
               ) : (
                 <Link
                   href="/zamowienie/konto"
-                  className="mt-5 block rounded-lg bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
+                  className="mt-5 block rounded-lg bg-ink px-8 py-4 text-center text-[14.5px] font-bold text-white no-underline transition-colors hover:bg-akcent"
                 >
-                  PRZEJDŹ DO ZAMÓWIENIA →
+                  Przejdź do zamówienia →
                 </Link>
               )}
               <p className="mt-3 text-center text-[11.5px] leading-relaxed text-ink-2">

@@ -106,11 +106,11 @@ export function Opinie({ produktId }: { produktId: string }) {
   }
 
   return (
-    <section id="opinie" className="scroll-mt-24 px-6 pb-20 md:px-12">
-      <div className="mx-auto max-w-content border-t border-linia pt-12">
+    <section id="opinie" className="scroll-mt-24 px-4 pb-10 md:px-12 md:pb-20">
+      <div className="mx-auto max-w-content border-t border-linia pt-8 md:pt-12">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-[22px] font-bold tracking-tight">Opinie klientów</h2>
+            <h2 className="text-[20px] font-extrabold md:text-[22px] tracking-tight">Opinie klientów</h2>
             {liczba > 0 ? (
               <div className="mt-1.5 flex items-center gap-2 text-[14px] text-ink-2">
                 <Gwiazdki ocena={srednia} rozmiar={18} />
@@ -126,7 +126,7 @@ export function Opinie({ produktId }: { produktId: string }) {
               setFormOtwarty((o) => !o);
               setSukces(false);
             }}
-            className="shrink-0 border border-ink px-5 py-2.5 text-[13px] font-semibold tracking-wide text-ink transition-colors hover:bg-ink hover:text-tlo"
+            className="rounded-lg shrink-0 border border-ink px-5 py-2.5 text-[14.5px] font-bold text-ink transition-colors hover:bg-ink hover:text-white"
           >
             {formOtwarty ? "Anuluj" : "Napisz opinię"}
           </button>
@@ -169,14 +169,14 @@ export function Opinie({ produktId }: { produktId: string }) {
                 onChange={(e) => setImie(e.target.value)}
                 placeholder="Imię"
                 maxLength={40}
-                className="w-full border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-ink"
+                className="w-full rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-ink"
               />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="E-mail z zamówienia"
-                className="w-full border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-ink"
+                className="w-full rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-ink"
               />
             </div>
             <textarea
@@ -185,7 +185,7 @@ export function Opinie({ produktId }: { produktId: string }) {
               placeholder="Twoja opinia (opcjonalnie)"
               rows={3}
               maxLength={1000}
-              className="mb-3 w-full resize-y border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-ink"
+              className="mb-3 w-full resize-y rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-ink"
             />
             {/* honeypot — ukryte przed użytkownikiem */}
             <input
@@ -200,9 +200,9 @@ export function Opinie({ produktId }: { produktId: string }) {
             <button
               type="submit"
               disabled={wysylka}
-              className="bg-ink px-6 py-3 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60"
+              className="rounded-lg bg-ink px-6 py-3 text-[14.5px] font-bold text-white transition-colors hover:bg-akcent disabled:opacity-60"
             >
-              {wysylka ? "WYSYŁANIE…" : "DODAJ OPINIĘ"}
+              {wysylka ? "Wysyłanie…" : "Dodaj opinię"}
             </button>
           </form>
         ) : null}

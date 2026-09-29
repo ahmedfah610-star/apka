@@ -45,10 +45,10 @@ export function OstatnioOgladane({ aktualnyId }: { aktualnyId: string }) {
   if (produkty.length === 0) return null;
 
   return (
-    <section className="px-6 pb-20 md:px-12">
+    <section className="px-4 pb-12 md:px-12 md:pb-20">
       <div className="mx-auto max-w-content">
-        <h2 className="mb-8 text-[22px] font-bold tracking-tight">Ostatnio oglądane</h2>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
+        <h2 className="mb-4 text-[20px] font-extrabold md:mb-8 md:text-[22px] tracking-tight">Ostatnio oglądane</h2>
+        <div className="grid grid-cols-2 gap-x-2.5 gap-y-5 md:grid-cols-4 md:gap-x-6 md:gap-y-8">
           {produkty.map((p) => (
             <KartaProduktu key={p.id} produkt={p} />
           ))}

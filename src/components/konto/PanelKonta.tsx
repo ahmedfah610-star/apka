@@ -134,7 +134,7 @@ export function PanelKonta() {
 
       {/* Nagłówek */}
       <div className="mb-6">
-        <h1 className="text-[26px] font-bold tracking-tight md:text-[31px]">Twoje konto</h1>
+        <h1 className="text-[26px] font-extrabold tracking-tight md:text-[31px]">Twoje konto</h1>
         <p className="mt-1.5 max-w-lg text-[14.5px] leading-relaxed text-ink-2">
           Witaj w swoim profilu bobas — tutaj zarządzasz zamówieniami, ulubionymi produktami oraz danymi do wysyłki.
         </p>
@@ -153,9 +153,9 @@ export function PanelKonta() {
         </p>
         <Link
           href="/konto/zamowienia"
-          className="mt-5 rounded-lg bg-ink px-6 py-3 text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
+          className="mt-5 rounded-lg bg-ink px-6 py-3 text-[14.5px] font-bold text-white no-underline transition-colors hover:bg-akcent"
         >
-          ZOBACZ ZAMÓWIENIA
+          Zobacz zamówienia
         </Link>
       </div>
 
@@ -199,8 +199,8 @@ export function PanelKonta() {
               <p className="text-[12.5px] text-ink-3 sm:col-span-2">Wolisz paczkomat? Wybierzesz go w koszyku — adres tutaj jest do dostawy kurierem.</p>
               {info ? <p className="text-[13px] text-akcent sm:col-span-2">{info}</p> : null}
               <div className="flex gap-2 sm:col-span-2">
-                <button type="submit" disabled={zapis} className="rounded-lg bg-ink px-5 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
-                  {zapis ? "ZAPISYWANIE…" : "ZAPISZ"}
+                <button type="submit" disabled={zapis} className="rounded-lg bg-ink px-5 py-2.5 text-[14.5px] font-bold text-white transition-colors hover:bg-akcent disabled:opacity-60">
+                  {zapis ? "Zapisywanie…" : "Zapisz"}
                 </button>
                 <button type="button" onClick={() => { setEdycja(false); setInfo(""); }} className="rounded-lg border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink-2 hover:border-ink hover:text-ink">
                   Anuluj
@@ -224,8 +224,8 @@ export function PanelKonta() {
             <form onSubmit={zapiszEmail} className="mt-4 flex flex-col gap-3">
               <input className={input} type="email" placeholder="Nowy adres e-mail" autoComplete="email" value={nowyEmail} onChange={(e) => setNowyEmail(e.target.value)} />
               <div className="flex gap-2">
-                <button type="submit" disabled={emailBusy} className="rounded-lg bg-ink px-5 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
-                  {emailBusy ? "WYSYŁANIE…" : "ZMIEŃ E-MAIL"}
+                <button type="submit" disabled={emailBusy} className="rounded-lg bg-ink px-5 py-2.5 text-[14.5px] font-bold text-white transition-colors hover:bg-akcent disabled:opacity-60">
+                  {emailBusy ? "Wysyłanie…" : "ZMIEŃ E-MAIL"}
                 </button>
                 <button type="button" onClick={() => { setEdytujEmail(false); setEmailKom(""); }} className="rounded-lg border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink-2 hover:border-ink hover:text-ink">
                   Anuluj
@@ -250,8 +250,8 @@ export function PanelKonta() {
             <form onSubmit={zapiszHaslo} className="mt-4 flex flex-col gap-3">
               <input className={input} type="password" placeholder="Nowe hasło (min. 6 znaków)" autoComplete="new-password" value={noweHaslo} onChange={(e) => setNoweHaslo(e.target.value)} />
               <div className="flex gap-2">
-                <button type="submit" disabled={hasloBusy} className="rounded-lg bg-ink px-5 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
-                  {hasloBusy ? "ZAPISYWANIE…" : "ZAPISZ HASŁO"}
+                <button type="submit" disabled={hasloBusy} className="rounded-lg bg-ink px-5 py-2.5 text-[14.5px] font-bold text-white transition-colors hover:bg-akcent disabled:opacity-60">
+                  {hasloBusy ? "Zapisywanie…" : "Zapisz hasło"}
                 </button>
                 <button type="button" onClick={() => { setEdytujHaslo(false); setHasloKom(""); }} className="rounded-lg border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink-2 hover:border-ink hover:text-ink">
                   Anuluj

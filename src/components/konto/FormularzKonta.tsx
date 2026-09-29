@@ -75,7 +75,7 @@ export function FormularzKonta() {
   return (
     <div className="w-full">
       <div className="rounded-2xl border border-linia bg-white p-6 shadow-[0_2px_28px_-16px_rgba(0,0,0,0.35)] sm:p-8">
-        <h1 className="text-center text-[24px] font-bold tracking-tight md:text-[27px]">{naglowek}</h1>
+        <h1 className="text-center text-[24px] font-extrabold tracking-tight md:text-[27px]">{naglowek}</h1>
         <p className="mx-auto mt-1.5 max-w-xs text-center text-[13.5px] leading-relaxed text-ink-2">{podtytul}</p>
 
         {tryb !== "reset" ? (
@@ -122,9 +122,9 @@ export function FormularzKonta() {
           <button
             type="submit"
             disabled={wysylka}
-            className="mt-1 rounded-lg bg-ink px-6 py-3.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60"
+            className="mt-1 rounded-lg bg-ink px-6 py-3.5 text-[14.5px] font-bold text-white transition-colors hover:bg-akcent disabled:opacity-60"
           >
-            {wysylka ? "CHWILA…" : tryb === "login" ? "ZALOGUJ SIĘ" : tryb === "rejestr" ? "ZAŁÓŻ KONTO" : "WYŚLIJ LINK"}
+            {wysylka ? "Chwila…" : tryb === "login" ? "Zaloguj się" : tryb === "rejestr" ? "Załóż konto" : "Wyślij link"}
           </button>
         </form>
 

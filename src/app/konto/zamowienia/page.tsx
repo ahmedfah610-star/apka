@@ -9,7 +9,7 @@ export default function StronaZamowienKonta() {
   return (
     <UkladKonta>
       <ZakladkiKonta />
-      <h1 className="text-[26px] font-bold tracking-tight md:text-[31px]">Moje zamówienia</h1>
+      <h1 className="text-[26px] font-extrabold tracking-tight md:text-[31px]">Moje zamówienia</h1>
       <p className="mb-8 mt-1 text-[14px] text-ink-2">Historia i status Twoich zamówień.</p>
       <HistoriaZamowien />
     </UkladKonta>

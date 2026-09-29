@@ -95,7 +95,7 @@ export default function Artykul({ params }: { params: { slug: string } }) {
   ];
 
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-clip">
       <Nawigacja />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ld)} />
 
@@ -103,7 +103,7 @@ export default function Artykul({ params }: { params: { slug: string } }) {
         <nav className="mb-4 text-[12.5px] text-ink-2">
           <Link href="/blog" className="no-underline hover:text-akcent">Blog</Link> / <span className="text-ink">{a.kategoria}</span>
         </nav>
-        <h1 className="mb-3 text-[30px] font-bold leading-tight tracking-tight md:text-[40px]">{a.tytul}</h1>
+        <h1 className="mb-3 text-[30px] font-extrabold leading-tight tracking-tight md:text-[40px]">{a.tytul}</h1>
         <p className="mb-6 text-[13px] text-ink-2">
           {DATA_PL(a.data)} · {a.czasCzytania} min czytania
         </p>
@@ -146,8 +146,8 @@ export default function Artykul({ params }: { params: { slug: string } }) {
         <UdostepnijWpis url={`${BAZA_URL}/blog/${a.slug}`} tytul={a.tytul} />
 
         <div className="mt-8 border-t border-linia pt-8">
-          <Link href="/produkty" className="inline-block rounded-lg bg-ink px-8 py-3.5 text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent">
-            PRZEGLĄDAJ UBRANKA
+          <Link href="/produkty" className="inline-block rounded-lg bg-ink px-8 py-3.5 text-[14.5px] font-bold text-white no-underline transition-colors hover:bg-akcent">
+            Przeglądaj ubranka
           </Link>
         </div>
       </article>

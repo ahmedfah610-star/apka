@@ -41,7 +41,7 @@ export const KATEGORIE_LABEL: Record<Kategoria | "wszystkie", string> = {
   dziewczynki: "Dziewczynki",
   chlopcy: "Chłopcy",
   niemowleta: "Niemowlęta",
-  dorosli: "Dla dorosłych",
+  dorosli: "Męskie",
 };
 
 export const WSZYSTKIE_ROZMIARY = ["62", "74", "86", "92", "104", "116", "128", "140", "152", "164"];

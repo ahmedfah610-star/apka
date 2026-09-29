@@ -51,7 +51,7 @@ function Rdzen() {
   if (stan === "ladowanie") {
     return (
       <div className={KARTA}>
-        <h1 className="mb-2 text-[22px] font-bold tracking-tight">Potwierdzamy Twój adres…</h1>
+        <h1 className="mb-2 text-[22px] font-extrabold tracking-tight">Potwierdzamy Twój adres…</h1>
         <p className="text-[15px] text-ink-2">Chwila — aktywujemy Twoje konto.</p>
       </div>
     );
@@ -59,22 +59,22 @@ function Rdzen() {
   if (stan === "ok") {
     return (
       <div className={KARTA}>
-        <h1 className="mb-2 text-[22px] font-bold tracking-tight">E-mail potwierdzony ✓</h1>
+        <h1 className="mb-2 text-[22px] font-extrabold tracking-tight">E-mail potwierdzony ✓</h1>
         <p className="text-[15px] text-ink-2">Przenosimy Cię do konta…</p>
       </div>
     );
   }
   return (
     <div className={KARTA}>
-      <h1 className="mb-2 text-[22px] font-bold tracking-tight">Link wygasł lub jest nieprawidłowy</h1>
+      <h1 className="mb-2 text-[22px] font-extrabold tracking-tight">Link wygasł lub jest nieprawidłowy</h1>
       <p className="mb-5 text-[15px] leading-relaxed text-ink-2">
         Poproś o nowy link — zaloguj się swoim e-mailem, a wyślemy świeże potwierdzenie.
       </p>
       <Link
         href="/konto/logowanie"
-        className="inline-block rounded-lg bg-ink px-6 py-3 text-[13px] font-semibold tracking-wide text-tlo no-underline transition-colors hover:bg-akcent"
+        className="inline-block rounded-lg bg-ink px-6 py-3 text-[14.5px] font-bold text-white no-underline transition-colors hover:bg-akcent"
       >
-        WRÓĆ DO LOGOWANIA
+        Wróć do logowania
       </Link>
     </div>
   );

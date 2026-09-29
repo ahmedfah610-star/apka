@@ -116,7 +116,7 @@ const daneStrukturalne = [
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pl" className={fontSans.variable}>
-      <body className="min-h-screen bg-tlo font-sans text-ink antialiased">
+      <body className="min-h-screen bg-strona font-sans text-ink antialiased">
         <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(daneStrukturalne)} />
         <AuthProvider>
           <UlubioneProvider>

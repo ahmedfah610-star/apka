@@ -110,13 +110,13 @@ export default function StronaZamowienia() {
 
   if (pozycjeZDanymi.length === 0) {
     return (
-      <div className="overflow-x-hidden">
+      <div className="overflow-x-clip">
         <Nawigacja />
         <div className="mx-auto max-w-content px-6 py-20 text-center md:px-12">
           <p className="mb-2 text-[17px] font-semibold">Koszyk jest pusty</p>
           <p className="mb-6 text-sm text-ink-2">Dodaj produkty, zanim przejdziesz do zamówienia.</p>
-          <Link href="/produkty" className="inline-block bg-ink px-8 py-3.5 text-[13px] font-semibold tracking-wide text-tlo no-underline hover:bg-akcent">
-            PRZEGLĄDAJ PRODUKTY
+          <Link href="/produkty" className="rounded-lg inline-block bg-ink px-8 py-3.5 text-[14.5px] font-bold text-white no-underline hover:bg-akcent">
+            Przeglądaj produkty
           </Link>
         </div>
         <Stopka />
@@ -217,13 +217,13 @@ export default function StronaZamowienia() {
   const input = "w-full rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[16px] outline-none transition-colors focus:border-ink md:text-[14px]";
 
   return (
-    <div className="overflow-x-hidden bg-szary/30">
+    <div className="overflow-x-clip bg-szary/30">
       <Nawigacja />
 
       <form onSubmit={zloz} className="mx-auto grid max-w-content grid-cols-1 gap-6 px-4 py-8 sm:px-6 md:px-12 md:py-12 lg:grid-cols-[1fr_380px] lg:gap-10">
         <div>
           <KrokiZamowienia aktywny={2} />
-          <h1 className="mb-7 text-[26px] font-bold tracking-tight md:text-[32px]">Dostawa i płatność</h1>
+          <h1 className="mb-7 text-[26px] font-extrabold tracking-tight md:text-[32px]">Dostawa i płatność</h1>
           {ZAMOWIENIA_WYLACZONE ? <PrzerwaTechniczna className="mb-6" /> : null}
 
           {/* Dane kontaktowe */}
@@ -422,9 +422,9 @@ export default function StronaZamowienia() {
           <button
             type="submit"
             disabled={wysylka || !akceptacja || ZAMOWIENIA_WYLACZONE}
-            className="block w-full rounded-lg bg-ink px-8 py-4 text-center text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:cursor-not-allowed disabled:opacity-60"
+            className="block w-full rounded-lg bg-ink px-8 py-4 text-center text-[14.5px] font-bold text-white transition-colors hover:bg-akcent disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {ZAMOWIENIA_WYLACZONE ? "ZAMÓWIENIA WYŁĄCZONE" : wysylka ? "PRZETWARZANIE…" : platnosciOnline ? "ZAMAWIAM I PŁACĘ" : "ZAMAWIAM"}
+            {ZAMOWIENIA_WYLACZONE ? "Zamówienia wyłączone" : wysylka ? "Przetwarzanie…" : platnosciOnline ? "Zamawiam i płacę" : "Zamawiam"}
           </button>
           <p className="mt-3 flex items-center justify-center gap-1.5 text-[12px] text-ink-2">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">

@@ -109,7 +109,7 @@ export function WyborPaczkomatu({
                     onChange={(e) => setQ(e.target.value)}
                     autoFocus
                     placeholder="Wpisz miasto, np. Warszawa"
-                    className="w-full border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-ink"
+                    className="w-full rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-ink"
                   />
                 </div>
                 {/* Mapa */}

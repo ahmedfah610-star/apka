@@ -14,10 +14,10 @@ export function StronaInfo({
   children: React.ReactNode;
 }) {
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-clip">
       <Nawigacja />
       <div className="mx-auto max-w-[760px] px-5 py-12 sm:px-6 md:py-16">
-        <h1 className="mb-3 text-[30px] font-bold tracking-tight md:text-[38px]">{tytul}</h1>
+        <h1 className="mb-3 text-[30px] font-extrabold tracking-tight md:text-[38px]">{tytul}</h1>
         {wstep ? <p className="mb-2 text-[16px] leading-relaxed text-ink-2">{wstep}</p> : null}
         {aktualizacja ? <p className="mb-8 text-[13px] text-ink-2">Ostatnia aktualizacja: {aktualizacja}</p> : <div className="mb-8" />}
         <div className="tresc flex flex-col gap-5 text-[15px] leading-relaxed text-ink">{children}</div>

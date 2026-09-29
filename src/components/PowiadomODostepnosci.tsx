@@ -52,14 +52,14 @@ export function PowiadomODostepnosci({ produktId, rozmiar }: { produktId: string
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Twój e-mail"
-          className="w-full border border-linia-2 bg-white px-3.5 py-2.5 text-[16px] outline-none focus:border-ink md:text-[14px]"
+          className="w-full rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[16px] outline-none focus:border-ink md:text-[14px]"
         />
         <button
           type="submit"
           disabled={stan === "wysylanie"}
-          className="whitespace-nowrap bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60"
+          className="rounded-lg whitespace-nowrap bg-ink px-6 py-2.5 text-[14.5px] font-bold text-white transition-colors hover:bg-akcent disabled:opacity-60"
         >
-          {stan === "wysylanie" ? "…" : "POWIADOM MNIE"}
+          {stan === "wysylanie" ? "…" : "Powiadom mnie"}
         </button>
       </div>
       {stan === "blad" ? <p className="mt-2 text-[13px] text-akcent">{blad}</p> : null}

@@ -21,11 +21,11 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
     .slice(0, 4);
 
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-clip pb-[76px] md:pb-0">
       <Nawigacja aktywna="produkty" />
 
-      <div className="mx-auto max-w-content px-6 pb-6 pt-6 md:px-12">
-        <p className="text-[13px] text-ink-2">
+      <div className="mx-auto max-w-content px-4 py-2.5 md:px-12 md:pb-6 md:pt-6">
+        <p className="truncate text-[13px] text-ink-2">
           <Link href="/produkty" className="no-underline hover:text-akcent">
             Produkty
           </Link>{" "}
@@ -33,18 +33,18 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
           <Link href={`/produkty?kategoria=${p.kategoria}`} className="no-underline hover:text-akcent">
             {KATEGORIE_LABEL[p.kategoria]}
           </Link>{" "}
-          / <span className="text-ink">{p.nazwa}</span>
+          <span className="hidden md:inline">/ <span className="text-ink">{p.nazwa}</span></span>
         </p>
       </div>
 
-      <div className="mx-auto max-w-content px-6 pb-20 md:px-12">
+      <div className="mx-auto max-w-content pb-8 md:px-12 md:pb-20">
         <PanelZakupu warianty={rodzina} startId={p.id} />
       </div>
 
       {/* Pełny opis — osobna, pełnowymiarowa sekcja (zdjęcia wyśrodkowane i wyrównane). */}
-      <section className="border-t border-linia px-6 py-14 md:px-12">
+      <section className="border-t border-linia px-4 py-8 md:px-12 md:py-14">
         <div className="mx-auto max-w-3xl">
-          <h2 className="mb-6 text-[22px] font-bold tracking-tight">Opis produktu</h2>
+          <h2 className="mb-4 text-[20px] font-extrabold tracking-tight md:mb-6 md:text-[22px]">Opis produktu</h2>
           {p.opisRozmiary && Object.keys(p.opisRozmiary).length ? (
             <OpisRozmiarowy opisy={p.opisRozmiary} rozmiary={p.rozmiary ?? []} domyslny={p.opisHtml ?? null} klasa={OPIS_KLASA} />
           ) : p.opisHtml ? (
@@ -58,10 +58,10 @@ export function WidokProduktu({ produkt: p, wszystkie }: { produkt: Produkt; wsz
       <Opinie produktId={p.id} />
 
       {podobne.length > 0 ? (
-        <section className="px-6 pb-20 md:px-12">
+        <section className="px-4 pb-12 pt-8 md:px-12 md:pb-20 md:pt-0">
           <div className="mx-auto max-w-content">
-            <h2 className="mb-8 text-[22px] font-bold tracking-tight">Zobacz też</h2>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
+            <h2 className="mb-4 text-[20px] font-extrabold tracking-tight md:mb-8 md:text-[22px]">Zobacz też</h2>
+            <div className="grid grid-cols-2 gap-x-2.5 gap-y-5 md:grid-cols-4 md:gap-x-6 md:gap-y-8">
               {podobne.map((x) => (
                 <KartaProduktu key={x.id} produkt={x} />
               ))}

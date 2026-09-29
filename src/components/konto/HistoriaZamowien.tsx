@@ -69,8 +69,8 @@ export function HistoriaZamowien() {
     return (
       <div className="text-ink-2">
         <p className="mb-4 text-[15px]">Nie masz jeszcze żadnych zamówień na tym koncie.</p>
-        <Link href="/produkty" className="inline-block bg-ink px-6 py-3 text-[13px] font-semibold tracking-wide text-tlo no-underline hover:bg-akcent">
-          PRZEGLĄDAJ PRODUKTY
+        <Link href="/produkty" className="rounded-lg inline-block bg-ink px-6 py-3 text-[14.5px] font-bold text-white no-underline hover:bg-akcent">
+          Przeglądaj produkty
         </Link>
       </div>
     );

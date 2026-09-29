@@ -3,6 +3,8 @@ import type { Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { PrzyciskUlubione } from "@/components/PrzyciskUlubione";
 
+// Jedna karta produktu w całym sklepie (lista, kolekcje, strona główna, „Zobacz też"):
+// zdjęcie, cena na pierwszym planie, nazwa, dostępne rozmiary i liczba kolorów.
 export function KartaProduktu({ produkt, liczbaKolorow, cenaOd }: { produkt: Produkt; liczbaKolorow?: number; cenaOd?: number }) {
   const placeholder = {
     background: `repeating-linear-gradient(115deg, oklch(90% 0.02 ${produkt.hue}) 0 18px, oklch(95% 0.01 ${produkt.hue}) 18px 36px)`,
@@ -10,20 +12,22 @@ export function KartaProduktu({ produkt, liczbaKolorow, cenaOd }: { produkt: Pro
   const niedostepny = produkt.stan === 0;
   // Tylko prawdziwie ostatnia sztuka — przy progu 5 etykieta wisiała na 95% produktów i nic nie znaczyła.
   const ostatnia = produkt.stan === 1;
+  const roz = produkt.rozmiary ?? [];
+  const rozmiary = roz.length ? `Rozm. ${roz.slice(0, 4).join(", ")}${roz.length > 4 ? " …" : ""}` : produkt.wiekLabel;
 
   return (
-    <Link href={`/produkty/${produkt.id}`} className="group block text-inherit no-underline">
-      <div
-        className="relative mb-3.5 flex aspect-[4/5] items-center justify-center overflow-hidden rounded-2xl border border-linia bg-white transition-all duration-300 group-hover:-translate-y-1 group-hover:border-ink/15 group-hover:shadow-[0_16px_36px_-18px_rgba(0,0,0,0.4)]"
-        style={produkt.zdjecie ? undefined : placeholder}
-      >
+    <Link
+      href={`/produkty/${produkt.id}`}
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-linia bg-white text-inherit no-underline transition-shadow hover:shadow-[0_10px_28px_-16px_rgba(0,0,0,0.35)]"
+    >
+      <div className="relative flex aspect-square items-center justify-center overflow-hidden" style={produkt.zdjecie ? undefined : placeholder}>
         <PrzyciskUlubione id={produkt.id} />
         {produkt.zdjecie ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={produkt.zdjecie}
             alt={produkt.nazwa}
-            className="h-full w-full object-contain p-2 transition-transform duration-500 ease-out group-hover:scale-[1.05]"
+            className="h-full w-full object-contain p-2.5 transition-transform duration-300 group-hover:scale-[1.04]"
             loading="lazy"
           />
         ) : (
@@ -32,35 +36,28 @@ export function KartaProduktu({ produkt, liczbaKolorow, cenaOd }: { produkt: Pro
           </span>
         )}
         {produkt.badge ? (
-          <span className="absolute left-3 top-3 rounded-full bg-ink px-3 py-[5px] text-[10.5px] font-semibold uppercase tracking-wide text-tlo shadow-sm">
-            {produkt.badge}
-          </span>
+          <span className="absolute left-2.5 top-2.5 rounded-full bg-ink px-2.5 py-1 text-[11px] font-bold text-white">{produkt.badge}</span>
         ) : null}
         {niedostepny ? (
-          <span className="absolute inset-0 flex items-center justify-center bg-white/70 text-[12px] font-semibold uppercase tracking-wide text-ink backdrop-blur-[1px]">
+          <span className="absolute inset-0 flex items-center justify-center bg-white/70 text-[13px] font-bold text-ink backdrop-blur-[1px]">
             Niedostępny
           </span>
         ) : null}
       </div>
-      <h3 className="mb-1 line-clamp-2 min-h-[2.7em] text-[15px] font-semibold leading-snug transition-colors group-hover:text-akcent">{produkt.nazwa}</h3>
-      <p className="mb-1.5 text-[12.5px] text-[oklch(50%_0.01_90)]">
-        {produkt.wiekLabel}
-        {liczbaKolorow && liczbaKolorow > 1 ? (
-          <span className="text-ink-2"> · {liczbaKolorow} {liczbaKolorow <= 4 ? "kolory" : "kolorów"}</span>
-        ) : null}
-      </p>
-      <p className="text-[16px] font-bold text-ink">
-        {cenaOd ? <span className="text-[12.5px] font-semibold text-ink-2">od </span> : null}
-        {formatCena(cenaOd ?? produkt.cena)} zł
-      </p>
-      {ostatnia ? (
-        <p className="mt-1 flex items-center gap-1 text-[12px] font-semibold text-akcent">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-            <path d="M13 2 4.5 12.8c-.4.5 0 1.2.6 1.2H11l-1 8 8.5-10.8c.4-.5 0-1.2-.6-1.2H12l1-8Z" />
-          </svg>
-          Ostatnia sztuka
+      <div className="flex flex-1 flex-col px-3 pb-3 pt-1">
+        <p className="text-[17px] font-extrabold tracking-tight text-ink md:text-[18px]">
+          {cenaOd ? <span className="text-[13px] font-semibold text-ink-2">od </span> : null}
+          {formatCena(cenaOd ?? produkt.cena)} zł
         </p>
-      ) : null}
+        <h3 className="mb-2 mt-0.5 line-clamp-2 min-h-[2.7em] text-[13.5px] font-medium leading-snug text-ink group-hover:text-akcent md:text-[14px]">
+          {produkt.nazwa}
+        </h3>
+        <p className="mt-auto truncate border-t border-linia pt-2 text-[12px] text-ink-2">
+          {ostatnia ? <span className="font-bold text-cena">Ostatnia sztuka · </span> : null}
+          {rozmiary}
+          {liczbaKolorow && liczbaKolorow > 1 ? ` · ${liczbaKolorow} ${liczbaKolorow <= 4 ? "kolory" : "kolorów"}` : ""}
+        </p>
+      </div>
     </Link>
   );
 }

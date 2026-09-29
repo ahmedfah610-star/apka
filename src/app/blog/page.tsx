@@ -15,10 +15,10 @@ const DATA_PL = (iso: string) => new Date(iso).toLocaleDateString("pl-PL", { day
 
 export default function Blog() {
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-clip">
       <Nawigacja />
       <div className="mx-auto max-w-content px-5 py-12 sm:px-6 md:px-12 md:py-16">
-        <h1 className="mb-2 text-[30px] font-bold tracking-tight md:text-[38px]">Blog</h1>
+        <h1 className="mb-2 text-[30px] font-extrabold tracking-tight md:text-[38px]">Blog</h1>
         <p className="mb-10 text-[16px] text-ink-2">Poradniki dla rodziców — rozmiary, wyprawka, pielęgnacja i więcej.</p>
 
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">

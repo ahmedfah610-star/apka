@@ -43,7 +43,7 @@ export function NoweHaslo() {
 
   return (
     <div className={karta}>
-      <h1 className="mb-1 text-center text-[24px] font-bold tracking-tight md:text-[27px]">Ustaw nowe hasło</h1>
+      <h1 className="mb-1 text-center text-[24px] font-extrabold tracking-tight md:text-[27px]">Ustaw nowe hasło</h1>
       <p className="mb-6 text-center text-[13.5px] text-ink-2">Wpisz nowe hasło do swojego konta.</p>
       <form onSubmit={zapisz} className="flex flex-col gap-3">
         <input
@@ -55,8 +55,8 @@ export function NoweHaslo() {
           className="w-full rounded-lg border border-linia-2 bg-white px-4 py-3 text-[15px] outline-none transition-colors focus:border-ink"
         />
         {blad ? <p className="rounded-lg bg-akcent/5 px-3 py-2 text-[13px] text-akcent">{blad}</p> : null}
-        <button type="submit" disabled={wysylka} className="mt-1 rounded-lg bg-ink px-6 py-3.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
-          {wysylka ? "ZAPISYWANIE…" : "USTAW NOWE HASŁO"}
+        <button type="submit" disabled={wysylka} className="mt-1 rounded-lg bg-ink px-6 py-3.5 text-[14.5px] font-bold text-white transition-colors hover:bg-akcent disabled:opacity-60">
+          {wysylka ? "Zapisywanie…" : "Ustaw nowe hasło"}
         </button>
       </form>
     </div>

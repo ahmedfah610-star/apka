@@ -81,9 +81,9 @@ export function SledzenieZamowienia() {
         <button
           type="submit"
           disabled={wysylka}
-          className="self-start bg-ink px-7 py-3.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60"
+          className="rounded-lg self-start bg-ink px-7 py-3.5 text-[14.5px] font-bold text-white transition-colors hover:bg-akcent disabled:opacity-60"
         >
-          {wysylka ? "SPRAWDZAM…" : "SPRAWDŹ STATUS"}
+          {wysylka ? "Sprawdzam…" : "Sprawdź status"}
         </button>
         <p className="text-[12.5px] text-ink-2">Numer zamówienia znajdziesz w e-mailu z potwierdzeniem (8 znaków).</p>
       </form>

@@ -57,7 +57,7 @@ export default async function StronaKolekcji({ params }: { params: { slug: strin
   ];
 
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-clip">
       <Nawigacja aktywna="produkty" />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ld)} />
 
@@ -65,7 +65,7 @@ export default async function StronaKolekcji({ params }: { params: { slug: strin
         <nav className="mb-3 text-[12.5px] text-ink-2">
           <Link href="/produkty" className="no-underline hover:text-akcent">Produkty</Link> / <span className="text-ink">{kol.h1}</span>
         </nav>
-        <h1 className="mb-3 text-[32px] font-bold tracking-tight md:text-[40px]">{kol.h1}</h1>
+        <h1 className="mb-3 text-[32px] font-extrabold tracking-tight md:text-[40px]">{kol.h1}</h1>
         <p className="mb-2 max-w-3xl text-[15.5px] leading-relaxed text-ink-2">{kol.wstep}</p>
         <p className="mb-7 text-[14px] text-ink-2">{produkty.length} {produkty.length === 1 ? "produkt" : "produktów"}</p>
       </div>
@@ -80,8 +80,8 @@ export default async function StronaKolekcji({ params }: { params: { slug: strin
         ) : (
           <div className="py-10 text-center text-ink-2">
             <p className="mb-4 text-[15px]">Chwilowo brak produktów w tej kolekcji.</p>
-            <Link href="/produkty" className="inline-block bg-ink px-6 py-3 text-[13px] font-semibold tracking-wide text-tlo no-underline hover:bg-akcent">
-              ZOBACZ WSZYSTKIE PRODUKTY
+            <Link href="/produkty" className="rounded-lg inline-block bg-ink px-6 py-3 text-[14.5px] font-bold text-white no-underline hover:bg-akcent">
+              Zobacz wszystkie produkty
             </Link>
           </div>
         )}

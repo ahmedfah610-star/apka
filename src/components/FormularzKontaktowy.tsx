@@ -68,9 +68,9 @@ export function FormularzKontaktowy() {
       <button
         type="submit"
         disabled={wysylka}
-        className="self-start bg-ink px-7 py-3.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60"
+        className="rounded-lg self-start bg-ink px-7 py-3.5 text-[14.5px] font-bold text-white transition-colors hover:bg-akcent disabled:opacity-60"
       >
-        {wysylka ? "WYSYŁANIE…" : "WYŚLIJ WIADOMOŚĆ"}
+        {wysylka ? "Wysyłanie…" : "Wyślij wiadomość"}
       </button>
     </form>
   );
