@@ -32,3 +32,12 @@ export function oczyscHtmlOpisu(h: string | null | undefined): string | null {
   }
   return s.replace(/\n{3,}/g, "\n\n").trim();
 }
+
+/**
+ * Nagłówki z opisu Allegro o poziom niżej (h1→h2 … h5→h6) — na stronie produktu jedynym
+ * <h1> ma być nazwa produktu (SEO). Tylko przy wyświetlaniu, nie przy zapisie do bazy.
+ */
+export function nizszeNaglowki(h: string | null | undefined): string | null {
+  if (!h) return h ?? null;
+  return h.replace(/<(\/?)h([1-6])(?=[\s>])/gi, (_, ukosnik: string, n: string) => `<${ukosnik}h${Math.min(Number(n) + 1, 6)}`);
+}

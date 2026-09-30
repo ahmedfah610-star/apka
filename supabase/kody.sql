@@ -1,7 +1,8 @@
 -- bobas-shopping — kody rabatowe.
 -- Sprzedawca tworzy kody (procentowe lub kwotowe), klient wpisuje je w koszyku.
 -- Walidacja i naliczanie rabatu odbywa się po stronie serwera (checkout).
--- Uruchom w Supabase → SQL Editor.
+-- Uruchom w Supabase → SQL Editor. (Zastosowane na produkcji 2026-09-30 razem z wysylka.sql,
+-- opinie-prosby.sql i koszyk-przypomnienie.sql — wcześniej brakowało tych kolumn i zamówienia online nie przechodziły.)
 
 create table if not exists kody_rabatowe (
   kod text primary key,                    -- zapisywany wielkimi literami

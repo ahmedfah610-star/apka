@@ -28,7 +28,7 @@ export function Nawigacja({ aktywna }: { aktywna?: "home" | "produkty" }) {
             </div>
           </div>
 
-          <div className="ml-auto flex items-center gap-4 sm:gap-5">
+          <div className="-mr-2 ml-auto flex items-center gap-0.5 sm:gap-1.5">
             <IkonaKonta />
             <IkonaUlubione />
             <IkonaKoszyka />

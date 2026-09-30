@@ -25,7 +25,7 @@ export function IkonaKonta() {
       <Link
         href="/konto/logowanie"
         aria-label="Zaloguj się"
-        className="relative flex items-center text-ink no-underline transition-colors hover:text-akcent"
+        className="relative flex h-10 w-10 items-center justify-center text-ink no-underline transition-colors hover:text-akcent"
       >
         {IKONA}
       </Link>
@@ -41,7 +41,7 @@ export function IkonaKonta() {
         onClick={() => setOtwarte((o) => !o)}
         aria-label="Menu konta"
         aria-expanded={otwarte}
-        className="flex items-center text-ink transition-colors hover:text-akcent"
+        className="flex h-10 w-10 items-center justify-center text-ink transition-colors hover:text-akcent"
       >
         {IKONA}
       </button>

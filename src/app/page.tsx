@@ -71,7 +71,7 @@ function Rzad({ tytul, link, linkTekst, pozycje }: { tytul: string; link: string
     <section className="mt-3 rounded-2xl bg-white p-4 md:mt-8 md:p-6">
       <div className="mb-4 flex items-baseline justify-between gap-4">
         <h2 className="text-[18px] font-extrabold tracking-tight md:text-[22px]">{tytul}</h2>
-        <Link href={link} className="shrink-0 text-[13.5px] font-bold text-akcent no-underline hover:underline md:text-[14px]">
+        <Link href={link} className="-my-2 shrink-0 py-2 text-[13.5px] font-bold text-akcent no-underline hover:underline md:text-[14px]">
           {linkTekst} →
         </Link>
       </div>
@@ -175,7 +175,7 @@ export default async function StronaGlowna() {
         <section className="mt-3 rounded-2xl bg-white p-4 md:mt-8 md:p-6">
           <div className="mb-4 flex items-baseline justify-between gap-4">
             <h2 className="text-[18px] font-extrabold tracking-tight md:text-[22px]">Kupuj według rodzaju</h2>
-            <Link href="/produkty" className="shrink-0 text-[13.5px] font-bold text-akcent no-underline hover:underline md:text-[14px]">
+            <Link href="/produkty" className="-my-2 shrink-0 py-2 text-[13.5px] font-bold text-akcent no-underline hover:underline md:text-[14px]">
               Wszystkie<span className="hidden md:inline"> produkty</span> →
             </Link>
           </div>

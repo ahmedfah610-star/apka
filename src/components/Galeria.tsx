@@ -63,14 +63,16 @@ export function Galeria({
             <span className="absolute right-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-[12px] font-bold text-white">
               {idx + 1} / {zdjecia.length}
             </span>
-            <div className="absolute inset-x-0 bottom-2.5 flex justify-center gap-1.5">
+            <div className="absolute inset-x-0 bottom-1 flex justify-center">
               {zdjecia.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => pokaz(i)}
                   aria-label={`Zdjęcie ${i + 1}`}
-                  className={`h-2 rounded-full transition-all ${i === idx ? "w-5 bg-ink" : "w-2 bg-black/20"}`}
-                />
+                  className="flex h-6 items-center px-1"
+                >
+                  <span className={`block h-2 rounded-full transition-all ${i === idx ? "w-5 bg-ink" : "w-2 bg-black/20"}`} />
+                </button>
               ))}
             </div>
           </>

@@ -74,6 +74,12 @@ function Listing() {
       }
     });
   }, []);
+  // Zwinięta lista rozmiarów: 18 najczęstszych (w naturalnej kolejności), reszta pod „Pokaż wszystkie".
+  const CZESTE_ROZMIARY = useMemo(() => {
+    const ile = new Map<string, number>();
+    for (const p of wszystkie) for (const r of p.rozmiary ?? []) ile.set(r, (ile.get(r) ?? 0) + 1);
+    return new Set([...ile.entries()].sort((a, b) => b[1] - a[1]).slice(0, 18).map(([r]) => r));
+  }, [wszystkie]);
   const DOSTEPNE_ROZMIARY = useMemo(
     () => Array.from(new Set(wszystkie.flatMap((p) => p.rozmiary ?? []))).sort(porownajRozmiary),
     [wszystkie],
@@ -105,6 +111,7 @@ function Listing() {
     startSort === "nowosci" || startSort === "cena-rosnaco" || startSort === "cena-malejaco" ? startSort : "domyslnie",
   );
   const [filtryOtwarte, setFiltryOtwarte] = useState(false);
+  const [wszystkieRozmiary, setWszystkieRozmiary] = useState(false);
 
   // Nowe wyszukiwanie / klik w zakładkę na tej samej stronie → filtry z adresu.
   const adres = params.toString();
@@ -344,7 +351,7 @@ function Listing() {
           <div>
             <h3 className="mb-2.5 text-[15px] font-bold text-ink md:mb-3.5">Rozmiar</h3>
             <div className="flex flex-wrap gap-2">
-              {DOSTEPNE_ROZMIARY.map((s) => {
+              {(wszystkieRozmiary ? DOSTEPNE_ROZMIARY : DOSTEPNE_ROZMIARY.filter((s) => CZESTE_ROZMIARY.has(s) || rozmiary.includes(s))).map((s) => {
                 const on = rozmiary.includes(s);
                 return (
                   <button
@@ -359,6 +366,14 @@ function Listing() {
                 );
               })}
             </div>
+            {DOSTEPNE_ROZMIARY.length > 18 ? (
+              <button
+                onClick={() => setWszystkieRozmiary((w) => !w)}
+                className="mt-2.5 text-[13.5px] font-semibold text-akcent"
+              >
+                {wszystkieRozmiary ? "Pokaż mniej" : `Pokaż wszystkie (${DOSTEPNE_ROZMIARY.length})`}
+              </button>
+            ) : null}
           </div>
 
           {aktywneFiltry > 0 ? (

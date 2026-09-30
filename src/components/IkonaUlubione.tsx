@@ -10,7 +10,7 @@ export function IkonaUlubione() {
     <Link
       href="/ulubione"
       aria-label="Ulubione"
-      className="relative flex items-center text-ink no-underline transition-colors hover:text-akcent"
+      className="relative flex h-10 w-10 items-center justify-center text-ink no-underline transition-colors hover:text-akcent"
     >
       <svg
         width="22"
@@ -24,7 +24,7 @@ export function IkonaUlubione() {
         <path d="M12 21s-7.5-4.9-9.7-9.2C.9 8.9 2.3 5.5 5.5 5.1c1.9-.2 3.4.8 4.5 2.3 1.1-1.5 2.6-2.5 4.5-2.3 3.2.4 4.6 3.8 3.2 6.7C19.5 16.1 12 21 12 21Z" />
       </svg>
       {ma ? (
-        <span className="absolute -right-2 -top-1.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-akcent px-1 text-[10.5px] font-bold leading-none text-tlo ring-2 ring-tlo">
+        <span className="absolute right-0 top-0.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-akcent px-1 text-[10.5px] font-bold leading-none text-white ring-2 ring-white">
           {liczba}
         </span>
       ) : null}
