@@ -3,10 +3,8 @@ import type { Produkt } from "@/data/produkty";
 // Warianty kolorystyczne. Ten sam model bywa w sklepie jako wiele osobnych
 // produktów różniących się tylko kolorem (na Allegro każdy kolor = osobna oferta).
 //
-// KLUCZ ŁĄCZENIA = OPIS. Sprzedawca kopiuje ten sam opis dla wszystkich kolorów
-// jednego modelu, więc identyczny opis pewnie wskazuje ten sam wzór/fason
-// (zweryfikowane na żywo: 0 grup mieszało różne typy ubranek — w odróżnieniu od
-// grupowania po ogólnej nazwie, które zlepiało różne rzeczy). Nie zmieniamy
+// Łączymy ŚCIŚLE (opis + nazwa bez koloru + cena, bez powtórzonych kolorów) — lepiej
+// pokazać dwa kafelki niż zlepić różne modele w jeden „z kolorami". Nie zmieniamy
 // danych — grupujemy w locie.
 
 function normOpis(s: string | null | undefined): string {
@@ -31,18 +29,55 @@ function typUbranka(nazwa: string): string {
   return "";
 }
 
+// Słowa kolorów usuwane z nazwy — „Legginsy prążkowane czarne" i „… zielone" to ten sam model.
+const KOLORY_W_NAZWIE =
+  /(?<!\p{L})(?:czarn|biał|szar|granat|niebiesk|błękit|czerwon|różow|zielon|żółt|beżow|brązow|fiolet|miętow|pudrow|bordow|kremow|grafitow|oliwkow|melanż|wielokolorow|pomarańcz|turkus|liliow|łososiow|koralow|musztardow|butelkow|jasno|ciemno)\p{L}*|(?<!\p{L})(?:róż|beż|bordo|ecru|khaki|mięta|kolorowy|kolorowa|kolorowe)(?!\p{L})/giu;
+
+function rdzenNazwy(nazwa: string): string {
+  return (nazwa || "")
+    .toLowerCase()
+    .replace(KOLORY_W_NAZWIE, " ")
+    .replace(/[^\p{L}\p{N} ]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /**
- * Klucz rodziny wariantów kolorystycznych = POCZĄTEK OPISU (90 zn.) + kategoria +
- * typ ubranka + CENA. Sprzedawca kopiuje ten sam opis dla wszystkich kolorów
- * jednego modelu (czasem z drobną zmianą w ogonie — dlatego prefiks, nie całość).
- * Cena to bezpiecznik: warianty koloru mają tę samą cenę, więc różne produkty
- * o wspólnym (ogólnym) opisie, ale różnej cenie, NIE zlepiają się w jeden.
- * Zbyt krótki opis → klucz unikalny (produkt nie łączy się z niczym).
+ * ŚCISŁY klucz rodziny wariantów koloru: początek opisu (90 zn.) + kategoria + typ
+ * ubranka + cena + NAZWA BEZ SŁÓW KOLORU. Sam opis nie wystarczał — sprzedawca używa
+ * jednego opisu dla różnych nadruków (np. body „Babcia tu była" i „Tata wie dużo"
+ * wyglądały jak jeden produkt w 3 kolorach). Zbyt krótki opis → produkt osobno.
  */
-export function kluczWariantu(p: Produkt): string {
+function kluczScisly(p: Produkt): string {
   const o = normOpis(p.opis);
   if (o.length < 40) return `id:${p.id}`;
-  return `${o.slice(0, 90)}|${p.kategoria}|${typUbranka(p.nazwa)}|${p.cena}`;
+  return `${o.slice(0, 90)}|${p.kategoria}|${typUbranka(p.nazwa)}|${p.cena}|${rdzenNazwy(p.nazwa)}`;
+}
+
+/** Klucz rodziny: przypisany dla całego katalogu (przypiszRodziny), a bez niego — ścisły klucz. */
+export function kluczWariantu(p: Produkt): string {
+  return p.rodzina ?? kluczScisly(p);
+}
+
+/**
+ * Rodziny kolorów dla CAŁEGO katalogu (na serwerze, raz): grupa zostaje rodziną tylko,
+ * gdy każdy produkt ma kolor i żaden kolor się nie powtarza. Powtórzony kolor znaczy,
+ * że to różne modele — wtedy każdy produkt jest osobno. Dzięki temu lista, wyszukiwarka
+ * i strona produktu łączą zawsze tak samo, niezależnie od filtrów.
+ */
+export function przypiszRodziny(lista: Produkt[]): Produkt[] {
+  const grupy = new Map<string, Produkt[]>();
+  for (const p of lista) {
+    const k = kluczScisly(p);
+    grupy.set(k, [...(grupy.get(k) ?? []), p]);
+  }
+  const rodzina = new Map<string, string>();
+  for (const [k, grupa] of grupy) {
+    const kolory = grupa.map((p) => (p.kolor || "").trim().toLowerCase());
+    const ok = grupa.length > 1 && kolory.every(Boolean) && new Set(kolory).size === kolory.length;
+    for (const p of grupa) rodzina.set(p.id, ok ? k : `id:${p.id}`);
+  }
+  return lista.map((p) => ({ ...p, rodzina: rodzina.get(p.id) }));
 }
 
 function stanProduktu(p: Produkt): number {

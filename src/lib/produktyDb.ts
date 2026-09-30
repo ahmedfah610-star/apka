@@ -2,6 +2,7 @@ import { PRODUKTY, type Produkt } from "@/data/produkty";
 import { sbAnon, sbService, supabaseWlaczony } from "@/lib/supabase";
 import { ladnaNazwa } from "@/lib/nazwa";
 import { oczyscHtmlOpisu, oczyscTekstOpisu } from "@/lib/opis";
+import { przypiszRodziny } from "@/lib/warianty";
 
 // Warstwa danych produktów. Gdy Supabase jest skonfigurowany — czyta z bazy.
 // Bez konfiguracji — fallback do katalogu z kodu (238 produktów), więc sklep
@@ -70,10 +71,10 @@ export async function katalogWidoczny(): Promise<Produkt[]> {
     const sb = sbService() ?? sbAnon();
     if (sb) {
       const { data, error } = await sb.from("produkty").select(KOLUMNY_KATALOG).eq("ukryty", false).order("created_at", { ascending: true }).limit(5000);
-      if (!error && data) return data.map(zRzedu);
+      if (!error && data) return przypiszRodziny(data.map(zRzedu));
     }
   }
-  return PRODUKTY.filter((p) => !p.ukryty);
+  return przypiszRodziny(PRODUKTY.filter((p) => !p.ukryty));
 }
 
 /** Pełny katalog (także wyłączone) — dla panelu. */
@@ -82,10 +83,10 @@ export async function katalogWszystko(): Promise<Produkt[]> {
     const sb = sbService() ?? sbAnon();
     if (sb) {
       const { data, error } = await sb.from("produkty").select(KOLUMNY_KATALOG).order("created_at", { ascending: true }).limit(5000);
-      if (!error && data) return data.map(zRzedu);
+      if (!error && data) return przypiszRodziny(data.map(zRzedu));
     }
   }
-  return PRODUKTY;
+  return przypiszRodziny(PRODUKTY);
 }
 
 /** Opisy per rozmiar jako czysty tekst (feed Google/Meta: osobna pozycja na rozmiar). */

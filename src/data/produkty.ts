@@ -34,6 +34,7 @@ export interface Produkt {
   /** Oferta wyłączona (niewidoczna w sklepie). */
   ukryty?: boolean;
   hue: number;
+  rodzina?: string; // klucz rodziny wariantów koloru (liczony dla całego katalogu, patrz lib/warianty)
 }
 
 export const KATEGORIE_LABEL: Record<Kategoria | "wszystkie", string> = {
