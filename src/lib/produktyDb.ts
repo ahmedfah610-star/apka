@@ -12,12 +12,35 @@ import { przypiszRodziny } from "@/lib/warianty";
 // Poprawki (kolumna `poprawki`) — zweryfikowane korekty nazwy/koloru/kategorii/modelu.
 // Nakładane przy odczycie, więc codzienne scalanie z Allegro ich nie nadpisuje.
 const KATEGORIE_OK = new Set(["dziewczynki", "chlopcy", "niemowleta", "dorosli"]);
-function poprawki(r: any): { nazwa?: string; kolor?: string; kategoria?: string; model?: string; opisHtml?: string } {
+function poprawki(r: any): {
+  nazwa?: string;
+  kolor?: string;
+  kategoria?: string;
+  model?: string;
+  opisHtml?: string;
+  opisRozmiary?: Record<string, string>;
+} {
   const p = r?.poprawki;
   if (!p || typeof p !== "object") return {};
   const tekst = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : undefined);
   const kat = tekst(p.kategoria);
-  return { nazwa: tekst(p.nazwa), kolor: tekst(p.kolor), kategoria: kat && KATEGORIE_OK.has(kat) ? kat : undefined, model: tekst(p.model), opisHtml: tekst(p.opisHtml) };
+  const rozm =
+    p.opisRozmiary && typeof p.opisRozmiary === "object"
+      ? Object.fromEntries(Object.entries(p.opisRozmiary as Record<string, unknown>).filter(([, v]) => typeof v === "string" && v.trim()))
+      : null;
+  return {
+    nazwa: tekst(p.nazwa),
+    kolor: tekst(p.kolor),
+    kategoria: kat && KATEGORIE_OK.has(kat) ? kat : undefined,
+    model: tekst(p.model),
+    opisHtml: tekst(p.opisHtml),
+    opisRozmiary: rozm && Object.keys(rozm).length ? (rozm as Record<string, string>) : undefined,
+  };
+}
+
+function czysteOpisyRozmiarow(m: unknown): Record<string, string> {
+  if (!m || typeof m !== "object") return {};
+  return Object.fromEntries(Object.entries(m as Record<string, string>).map(([k, v]) => [k, oczyscHtmlOpisu(v) ?? ""]));
 }
 
 // Tekst z HTML opisu (wyszukiwarka, feed, zapasowy opis).
@@ -43,7 +66,11 @@ function zRzedu(r: any): Produkt {
     // Opis poprawiony w edytorze (poprawki) zastępuje opis z Allegro — także opisy per rozmiar.
     opis: pop.opisHtml ? tekstZHtml(pop.opisHtml) : oczyscTekstOpisu(r.opis), // bez „zobacz inne aukcje" i zepsutych znaków
     opisHtml: pop.opisHtml ?? oczyscHtmlOpisu(r.opis_html),
-    opisRozmiary: !pop.opisHtml && r.opis_rozmiary
+    // Opisy per rozmiar: poprawione w edytorze (pojedyncze rozmiary) nadpisują te z Allegro;
+    // sam poprawiony opis bez rozmiarów (stary zapis) = jeden opis dla wszystkich.
+    opisRozmiary: pop.opisRozmiary
+      ? { ...czysteOpisyRozmiarow(r.opis_rozmiary), ...pop.opisRozmiary }
+      : !pop.opisHtml && r.opis_rozmiary
       ? Object.fromEntries(Object.entries(r.opis_rozmiary as Record<string, string>).map(([k, v]) => [k, oczyscHtmlOpisu(v) ?? ""]))
       : null,
     kolor: pop.kolor ?? r.kolor ?? null,
@@ -116,10 +143,12 @@ export async function opisyRozmiarowTekst(): Promise<Map<string, Record<string, 
   if (!sb) return wynik;
   const { data } = await sb.from("produkty").select("id, opis_rozmiary, poprawki").eq("ukryty", false).not("opis_rozmiary", "is", null).limit(5000);
   for (const r of data ?? []) {
-    if (poprawki(r).opisHtml) continue; // opis poprawiony w edytorze — jeden dla wszystkich rozmiarów
+    const pop = poprawki(r);
+    if (pop.opisHtml && !pop.opisRozmiary) continue; // opis poprawiony w edytorze — jeden dla wszystkich rozmiarów
     const m: Record<string, string> = {};
-    for (const [roz, html] of Object.entries((r.opis_rozmiary ?? {}) as Record<string, string>)) {
-      const t = (oczyscHtmlOpisu(html) ?? "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+    const zrodlo = { ...czysteOpisyRozmiarow(r.opis_rozmiary), ...(pop.opisRozmiary ?? {}) };
+    for (const [roz, html] of Object.entries(zrodlo)) {
+      const t = (html ?? "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
       if (t) m[roz] = t;
     }
     if (Object.keys(m).length) wynik.set(r.id, m);

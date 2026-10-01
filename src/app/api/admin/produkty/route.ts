@@ -81,13 +81,29 @@ export async function PATCH(req: Request) {
 
   // Nazwa/kolor/kategoria z panelu trafiają też do `poprawki` — codzienne scalanie
   // z Allegro nadpisuje zwykłe kolumny, a poprawki są nakładane przy odczycie.
-  const doPoprawek = (["nazwa", "kolor", "kategoria", "opisHtml"] as const).filter((k) => k in zmiany);
+  // Opisy per rozmiar z edytora: tylko teksty, bez skryptów/atrybutów zdarzeń.
+  if ("opisRozmiary" in zmiany) {
+    const czyste: Record<string, string> = {};
+    for (const [r, h] of Object.entries((zmiany.opisRozmiary ?? {}) as Record<string, unknown>)) {
+      if (typeof h !== "string") continue;
+      czyste[String(r).slice(0, 20)] = h
+        .replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
+        .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*')/gi, "")
+        .replace(/javascript:/gi, "")
+        .slice(0, 50000);
+    }
+    zmiany.opisRozmiary = Object.keys(czyste).length ? czyste : null;
+    map.opis_rozmiary = zmiany.opisRozmiary;
+  }
+
+  const doPoprawek = (["nazwa", "kolor", "kategoria", "opisHtml", "opisRozmiary"] as const).filter((k) => k in zmiany);
   if (doPoprawek.length) {
     const { data: obecny } = await sb.from("produkty").select("poprawki").eq("id", id).maybeSingle();
     const pop: Record<string, unknown> = { ...((obecny?.poprawki as Record<string, unknown> | null) ?? {}) };
     for (const k of doPoprawek) {
       const v = zmiany[k];
       if (typeof v === "string" && v.trim()) pop[k] = v.trim();
+      else if (v && typeof v === "object") pop[k] = v;
       else delete pop[k];
     }
     map.poprawki = Object.keys(pop).length ? pop : null;

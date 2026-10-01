@@ -38,22 +38,32 @@ export function EdytorProduktu({
   const [wiek, setWiek] = useState<Wiek>(produkt.wiek);
   const [badge, setBadge] = useState(produkt.badge ?? "");
   const [kolor, setKolor] = useState(produkt.kolor ?? "");
-  // Opis: edytor startuje od tego, co widzi klient (opis poprawiony, opis z Allegro albo
-  // opis pierwszego rozmiaru). Zapis rusza opis TYLKO, gdy admin go zmienił.
-  const [opisStart, setOpisStart] = useState<string | null>(nowy ? "" : null); // null = wczytywanie
-  const [opisHtml, setOpisHtml] = useState("");
-  const [opisZmieniony, setOpisZmieniony] = useState(false);
-  const [opisyRozmiarow, setOpisyRozmiarow] = useState(0); // ile różnych opisów per rozmiar
+  // Opisy: wspólny (bez rozmiarów albo „wszystkie rozmiary naraz") i osobny dla każdego
+  // rozmiaru (wymiary z Allegro). Edytor startuje od tego, co widzi klient; zapis rusza
+  // opisy TYLKO, gdy admin coś w nich zmienił.
+  const [wczytany, setWczytany] = useState(nowy);
+  const [wspolny, setWspolny] = useState("");
+  const [opisy, setOpisy] = useState<Record<string, string>>({});
+  const [zmianaOpisu, setZmianaOpisu] = useState(false);
+  const [zakladka, setZakladka] = useState("*"); // "*" = wszystkie rozmiary naraz
+  const [startZakladki, setStartZakladki] = useState(""); // treść, od której startuje edytor po przełączeniu
+  const [wersja, setWersja] = useState(0); // przemontowanie edytora przy zmianie zakładki
   useEffect(() => {
     if (nowy) return;
     let aktywny = true;
     const ustaw = (p: Produkt) => {
-      const rozm = p.opisRozmiary ?? null;
-      const pierwszy = rozm ? (p.rozmiary ?? []).map((r) => rozm[r]).find(Boolean) ?? Object.values(rozm).find(Boolean) : undefined;
-      const start = p.opisHtml || pierwszy || (p.opis ? tekstNaHtml(p.opis) : "");
-      setOpisyRozmiarow(rozm ? new Set(Object.values(rozm).filter(Boolean)).size : 0);
-      setOpisStart(start);
-      setOpisHtml(start);
+      const rozm = p.opisRozmiary ?? {};
+      const lista = p.rozmiary ?? [];
+      const pierwszy = lista.map((r) => rozm[r]).find(Boolean) ?? Object.values(rozm).find(Boolean);
+      const baza = p.opisHtml || pierwszy || (p.opis ? tekstNaHtml(p.opis) : "");
+      const mapa = Object.fromEntries(lista.map((r) => [r, rozm[r] || baza]));
+      const rozne = new Set(Object.values(mapa)).size > 1;
+      setOpisy(mapa);
+      setWspolny(rozne ? (mapa[lista[0]] ?? baza) : baza);
+      const start = rozne ? lista[0] : "*";
+      setZakladka(start);
+      setStartZakladki(start === "*" ? baza : mapa[start] ?? baza);
+      setWczytany(true);
     };
     // Lista produktów nie zawiera opisów (są ciężkie) — dociągamy pełny produkt.
     fetch(`/api/admin/produkty?id=${encodeURIComponent(produkt.id)}`)
@@ -136,6 +146,18 @@ export function EdytorProduktu({
     });
   }
 
+  // Co zapisać z opisów: przy rozmiarach — opis każdego rozmiaru (+ pierwszy jako główny),
+  // bez rozmiarów — jeden opis.
+  function daneOpisu(): Partial<Produkt> {
+    const tekst = (h: string) => h.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim() || undefined;
+    if (maRozmiary && rozmiary.length) {
+      const mapa = Object.fromEntries(rozmiary.map((r) => [r, sanitizeHtml((opisy[r] ?? wspolny).trim())]));
+      const glowny = mapa[rozmiary[0]] ?? "";
+      return { opisRozmiary: mapa, opisHtml: glowny || null, opis: tekst(glowny) };
+    }
+    return { opisHtml: wspolny.trim() ? sanitizeHtml(wspolny.trim()) : null, opis: tekst(wspolny) };
+  }
+
   async function zapisz() {
     const cenaN = parseFloat(cena.replace(",", "."));
     if (!nazwa.trim() || !Number.isFinite(cenaN)) {
@@ -150,12 +172,7 @@ export function EdytorProduktu({
       wiekLabel: WIEK_LABEL[wiek],
       badge: badge || null,
       kolor: kolor.trim() || null,
-      ...(opisZmieniony || nowy
-        ? {
-            opisHtml: opisHtml.trim() ? sanitizeHtml(opisHtml.trim()) : null,
-            opis: opisHtml.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim() || undefined,
-          }
-        : {}),
+      ...(zmianaOpisu || nowy ? daneOpisu() : {}),
       zdjecia,
       zdjecie: zdjecia[0] ?? null,
       hue: HUE[kategoria],
@@ -207,6 +224,26 @@ export function EdytorProduktu({
     } catch {
       setKomunikat("Błąd połączenia.");
       setZapis(false);
+    }
+  }
+
+  const rozneOpisy = rozmiary.length > 1 && new Set(rozmiary.map((r) => opisy[r] ?? wspolny)).size > 1;
+  const opisWidoczny = zakladka === "*" || !(maRozmiary && rozmiary.length) ? wspolny : opisy[zakladka] ?? wspolny;
+
+  function przelaczZakladke(z: string) {
+    if (z === zakladka) return;
+    setZakladka(z);
+    setStartZakladki(z === "*" ? (rozneOpisy ? opisy[rozmiary[0]] ?? wspolny : wspolny) : opisy[z] ?? wspolny);
+    setWersja((w) => w + 1);
+  }
+
+  function zmienOpis(html: string) {
+    setZmianaOpisu(true);
+    if (zakladka === "*" || !(maRozmiary && rozmiary.length)) {
+      setWspolny(html);
+      if (maRozmiary) setOpisy(Object.fromEntries(rozmiary.map((r) => [r, html])));
+    } else {
+      setOpisy((o) => ({ ...o, [zakladka]: html }));
     }
   }
 
@@ -299,28 +336,42 @@ export function EdytorProduktu({
             </label>
           </div>
 
-          {/* Opis — edytor bez kodu */}
+          {/* Opis — edytor bez kodu, osobno dla każdego rozmiaru albo dla wszystkich naraz */}
           <div className="mt-6 border-t border-linia pt-5">
             <p className="mb-1 text-[15px] font-bold text-ink">Opis produktu</p>
             <p className="mb-3 text-[13px] text-ink-2">
               Pisz jak w zwykłym edytorze. Zaznacz tekst i kliknij „B”, żeby go pogrubić, albo „Nagłówek”, żeby zrobić z linijki tytuł.
             </p>
-            {opisyRozmiarow > 1 ? (
-              <p className="mb-3 rounded-lg bg-akcent-2 px-3 py-2 text-[13px] text-ink">
-                Ten produkt ma osobny opis z wymiarami dla każdego rozmiaru ({opisyRozmiarow}). Poniżej jest opis pierwszego rozmiaru — jeśli go
-                zmienisz, po zapisie ten jeden opis będzie widoczny dla wszystkich rozmiarów.
-              </p>
+            {maRozmiary && rozmiary.length > 0 ? (
+              <div className="mb-3">
+                <p className="mb-1.5 text-[13px] font-semibold text-ink">Który opis edytujesz?</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {["*", ...rozmiary].map((z) => (
+                    <button
+                      key={z}
+                      type="button"
+                      onClick={() => przelaczZakladke(z)}
+                      className={`rounded-lg border px-3 py-1.5 text-[13.5px] font-bold transition-colors ${
+                        zakladka === z ? "border-ink bg-ink text-white" : "border-linia-2 bg-white text-ink hover:border-ink"
+                      }`}
+                    >
+                      {z === "*" ? "Wszystkie rozmiary naraz" : `Rozmiar ${z}`}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 rounded-lg bg-akcent-2 px-3 py-2 text-[13px] text-ink">
+                  {zakladka === "*"
+                    ? rozneOpisy
+                      ? "Rozmiary mają teraz różne opisy (np. inne wymiary). Jeśli zmienisz tekst tutaj, ten sam opis dostaną WSZYSTKIE rozmiary."
+                      : "Ten opis jest wspólny dla wszystkich rozmiarów — zmiana tutaj zmienia opis każdego rozmiaru."
+                    : `Zmieniasz opis tylko dla rozmiaru ${zakladka}. Pozostałe rozmiary zostają bez zmian.`}
+                </p>
+              </div>
             ) : null}
-            {opisStart === null ? (
+            {!wczytany ? (
               <div className="flex min-h-[320px] items-center justify-center rounded-xl border-2 border-linia-2 text-[14px] text-ink-2">Wczytywanie opisu…</div>
             ) : (
-              <EdytorOpisu
-                poczatkowy={opisStart}
-                onZmiana={(html) => {
-                  setOpisHtml(html);
-                  setOpisZmieniony(true);
-                }}
-              />
+              <EdytorOpisu key={`${zakladka}-${wersja}`} poczatkowy={startZakladki} onZmiana={zmienOpis} />
             )}
           </div>
 
@@ -406,14 +457,20 @@ export function EdytorProduktu({
                       <p className="mb-1.5 text-[13px] font-bold text-ink">Rozmiar</p>
                       <div className="flex flex-wrap gap-1.5">
                         {rozmiary.map((r) => (
-                          <span
+                          <button
                             key={r}
+                            type="button"
+                            onClick={() => przelaczZakladke(r)}
                             className={`rounded-lg border px-3 py-1.5 text-[13px] font-bold ${
-                              (Number(stany[r]) || 0) > 0 ? "border-linia-2 bg-white text-ink" : "border-linia bg-szary text-ink-2 line-through"
+                              zakladka === r
+                                ? "border-ink bg-ink text-white"
+                                : (Number(stany[r]) || 0) > 0
+                                  ? "border-linia-2 bg-white text-ink"
+                                  : "border-linia bg-szary text-ink-2 line-through"
                             }`}
                           >
                             {r}
-                          </span>
+                          </button>
                         ))}
                       </div>
                     </div>
@@ -423,8 +480,13 @@ export function EdytorProduktu({
               </div>
               <div className="mt-5 border-t border-linia pt-4">
                 <p className="mb-2 text-[17px] font-extrabold text-ink">Opis produktu</p>
-                {opisHtml.trim() ? (
-                  <div className={OPIS_KLASA} dangerouslySetInnerHTML={{ __html: nizszeNaglowki(sanitizeHtml(opisHtml)) ?? "" }} />
+                {maRozmiary && rozmiary.length > 1 ? (
+                  <p className="mb-2 text-[12.5px] text-ink-2">
+                    {zakladka === "*" ? "Opis wspólny dla wszystkich rozmiarów" : `Opis dla rozmiaru ${zakladka}`} — kliknij rozmiar wyżej, żeby zobaczyć inny.
+                  </p>
+                ) : null}
+                {opisWidoczny.trim() ? (
+                  <div className={OPIS_KLASA} dangerouslySetInnerHTML={{ __html: nizszeNaglowki(sanitizeHtml(opisWidoczny)) ?? "" }} />
                 ) : (
                   <p className="text-[14px] text-ink-2">Brak opisu.</p>
                 )}
