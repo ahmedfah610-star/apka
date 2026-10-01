@@ -3,7 +3,7 @@ import { sbService } from "@/lib/supabase";
 import { ladnaNazwa } from "@/lib/nazwa";
 import { porownajRozmiary, rozmiarDorosly } from "@/lib/rozmiary";
 import { oczyscTekstOpisu } from "@/lib/opis";
-import { kluczWariantu } from "@/lib/warianty";
+import { kluczScisly } from "@/lib/warianty";
 import type { Kategoria, Produkt, Wiek } from "@/data/produkty";
 
 // Mapowanie ofert z Allegro na produkty sklepu. Wyciąga: nazwę, cenę, wszystkie
@@ -381,7 +381,7 @@ function zdjeciaWlasnegoKoloru(produkty: any[]): void {
   const barwa = (k: string | null) => (k || "").toLowerCase().split("(")[0].trim();
   const rodziny = new Map<string, any[]>();
   for (const p of produkty) {
-    const k = kluczWariantu({ ...p, opis: oczyscTekstOpisu(p.opis) } as Produkt);
+    const k = kluczScisly({ ...p, opis: oczyscTekstOpisu(p.opis) } as Produkt);
     rodziny.set(k, [...(rodziny.get(k) ?? []), p]);
   }
   for (const rodzina of rodziny.values()) {

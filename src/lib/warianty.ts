@@ -48,22 +48,22 @@ function rdzenNazwy(nazwa: string): string {
  * jednego opisu dla różnych nadruków (np. body „Babcia tu była" i „Tata wie dużo"
  * wyglądały jak jeden produkt w 3 kolorach). Zbyt krótki opis → produkt osobno.
  */
-function kluczScisly(p: Produkt): string {
+export function kluczScisly(p: Produkt): string {
   const o = normOpis(p.opis);
   if (o.length < 40) return `id:${p.id}`;
   return `${o.slice(0, 90)}|${p.kategoria}|${typUbranka(p.nazwa)}|${p.cena}|${rdzenNazwy(p.nazwa)}`;
 }
 
-/** Klucz rodziny: przypisany dla całego katalogu (przypiszRodziny), a bez niego — ścisły klucz. */
+/** Klucz rodziny: przypisany dla całego katalogu (przypiszRodziny); bez niego — produkt osobno. */
 export function kluczWariantu(p: Produkt): string {
-  return p.rodzina ?? kluczScisly(p);
+  return p.rodzina ?? (p.model ? `m:${p.model}` : `id:${p.id}`);
 }
 
 /**
- * Rodziny kolorów dla CAŁEGO katalogu (na serwerze, raz): grupa zostaje rodziną tylko,
- * gdy każdy produkt ma kolor i żaden kolor się nie powtarza. Powtórzony kolor znaczy,
- * że to różne modele — wtedy każdy produkt jest osobno. Dzięki temu lista, wyszukiwarka
- * i strona produktu łączą zawsze tak samo, niezależnie od filtrów.
+ * Rodziny kolorów dla CAŁEGO katalogu (na serwerze, raz): łączymy WYŁĄCZNIE produkty
+ * ze zweryfikowanym modelem (poprawki.model); z każdego koloru jeden produkt w rodzinie.
+ * Reszta jest osobno. Dzięki temu lista, wyszukiwarka i strona produktu łączą zawsze
+ * tak samo, niezależnie od filtrów.
  */
 export function przypiszRodziny(lista: Produkt[]): Produkt[] {
   const grupy = new Map<string, Produkt[]>();
@@ -86,8 +86,10 @@ export function przypiszRodziny(lista: Produkt[]): Produkt[] {
       for (const p of grupa) rodzina.set(p.id, czlonkowie.size > 1 && czlonkowie.has(p.id) ? k : `id:${p.id}`);
       continue;
     }
-    const ok = grupa.length > 1 && [...ile.keys()].every(Boolean) && ile.size === grupa.length;
-    for (const p of grupa) rodzina.set(p.id, ok ? k : `id:${p.id}`);
+    // Bez zweryfikowanego modelu — osobno. Automat (opis + nazwa + cena) potrafi zlepić różne
+    // modele o identycznym opisie (np. trzy różne pajacyki jako „3 kolory"), więc kolory łączymy
+    // tylko po sprawdzeniu (audyt zdjęć / panel). Nowe oferty z Allegro są domyślnie osobno.
+    for (const p of grupa) rodzina.set(p.id, `id:${p.id}`);
   }
   return lista.map((p) => ({ ...p, rodzina: rodzina.get(p.id) }));
 }

@@ -9,10 +9,19 @@ const p = (over: Partial<Produkt>): Produkt => ({
 });
 
 describe("przypiszRodziny — ścisłe łączenie kolorów", () => {
-  it("łączy ten sam model w różnych kolorach (nazwa różni się tylko kolorem)", () => {
+  it("bez zweryfikowanego modelu nie łączy nawet identycznych opisów (bezpieczniej osobno)", () => {
     const k = przypiszRodziny([
       p({ id: "a", nazwa: "Legginsy prążkowane czarne", kolor: "czarny" }),
       p({ id: "b", nazwa: "Legginsy prążkowane zielone", kolor: "zielony" }),
+    ]);
+    expect(kluczWariantu(k[0])).not.toBe(kluczWariantu(k[1]));
+    expect(zwinWarianty(k)).toHaveLength(2);
+  });
+
+  it("zweryfikowany model łączy kolory w jeden kafel", () => {
+    const k = przypiszRodziny([
+      p({ id: "a", nazwa: "Legginsy prążkowane czarne", kolor: "czarny", model: "m1" }),
+      p({ id: "b", nazwa: "Legginsy prążkowane zielone", kolor: "zielony", model: "m1" }),
     ]);
     expect(kluczWariantu(k[0])).toBe(kluczWariantu(k[1]));
     expect(zwinWarianty(k)).toHaveLength(1);
