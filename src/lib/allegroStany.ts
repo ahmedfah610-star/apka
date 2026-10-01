@@ -117,33 +117,23 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
     raport.pominieteDamskie = oferty.length - wlasciwe.length;
     const aktywne = new Map(wlasciwe.map((o) => [o.id, o]));
 
-    // 2. Produkty sklepu (z Allegro) — do dopasowania nowych ofert.
-    const produkty: any[] = [];
-    for (let from = 0; from < 30000; from += 1000) {
-      const { data, error } = await sb
-        .from("produkty")
-        .select("id, nazwa, kolor, cena, opis, rozmiary")
-        .like("id", "al-%")
-        .order("id")
-        .range(from, from + 999);
-      if (error) throw new Error(error.message);
-      produkty.push(...(data ?? []));
-      if ((data ?? []).length < 1000) break;
-    }
-    const istnieje = new Set(produkty.map((p) => String(p.id)));
-    const poKluczu = new Map<string, any[]>();
-    const poNazwie = new Map<string, any[]>();
-    const dodaj = (m: Map<string, any[]>, k: string, p: any) => m.set(k, [...(m.get(k) ?? []), p]);
-    for (const p of produkty) {
-      const k = kluczScalania(p);
-      dodaj(poKluczu, k, p);
-      dodaj(poNazwie, k.split("|").slice(0, 2).join("|"), p);
-    }
+    // 2. Lista ID produktów + zapisane powiązania (lekkie zapytania, stronicowane po 1000).
+    const strony = async <T,>(zapytanie: (od: number, doo: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>) => {
+      const wynik: T[] = [];
+      for (let od = 0; od < 50000; od += 1000) {
+        const { data, error } = await zapytanie(od, od + 999);
+        if (error) throw new Error(error.message);
+        wynik.push(...(data ?? []));
+        if ((data ?? []).length < 1000) break;
+      }
+      return wynik;
+    };
+    const idProduktow = await strony<{ id: string }>((od, doo) => sb.from("produkty").select("id").like("id", "al-%").order("id").range(od, doo));
+    const istnieje = new Set(idProduktow.map((p) => String(p.id)));
 
     // 3. Powiązania oferta → produkt + rozmiar.
-    const { data: zapisane, error: ePow } = await sb.from("allegro_oferty").select("*");
-    if (ePow) throw new Error(ePow.message);
-    const powiazania = new Map<string, Powiazanie>(((zapisane ?? []) as Powiazanie[]).map((p) => [p.oferta_id, p]));
+    const zapisane = await strony<Powiazanie>((od, doo) => sb.from("allegro_oferty").select("*").order("oferta_id").range(od, doo));
+    const powiazania = new Map<string, Powiazanie>(zapisane.map((p) => [p.oferta_id, p]));
 
     const ponowOd = Date.now() - PONOW_NIEDOPASOWANE_PO_DNIACH * 86400000;
     const doSprawdzenia = wlasciwe.filter((o) => {
@@ -152,6 +142,21 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
       if (p.produkt_id) return !istnieje.has(p.produkt_id); // produkt scalony na nowo/usunięty
       return new Date(p.sprawdzono).getTime() < ponowOd;
     });
+
+    // Dane do dopasowania (nazwa, opis…) pobieramy tylko, gdy są nowe oferty do powiązania.
+    const poKluczu = new Map<string, any[]>();
+    const poNazwie = new Map<string, any[]>();
+    if (doSprawdzenia.length) {
+      const produkty = await strony<any>((od, doo) =>
+        sb.from("produkty").select("id, nazwa, kolor, cena, opis, rozmiary").like("id", "al-%").order("id").range(od, doo),
+      );
+      const dodaj = (m: Map<string, any[]>, k: string, p: any) => m.set(k, [...(m.get(k) ?? []), p]);
+      for (const p of produkty) {
+        const k = kluczScalania(p);
+        dodaj(poKluczu, k, p);
+        dodaj(poNazwie, k.split("|").slice(0, 2).join("|"), p);
+      }
+    }
 
     const wybierz = (kandydaci: any[] | undefined, rozmiar: string | null): any | null => {
       if (!kandydaci?.length) return null;
@@ -288,10 +293,11 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
       );
     }
 
-    // Ostatnio widziana ilość na Allegro (podgląd w panelu / diagnostyka).
+    // Ostatnio widziana ilość na Allegro (diagnostyka) — zapis tylko tam, gdzie się zmieniła.
     const widziane = [...powiazania.values()]
       .filter((p) => p.produkt_id && aktywne.has(p.oferta_id))
-      .map((p) => ({ ...p, ostatni_stan: Math.max(0, Math.floor(Number(aktywne.get(p.oferta_id)!.stock?.available) || 0)) }));
+      .map((p) => ({ ...p, ostatni_stan: Math.max(0, Math.floor(Number(aktywne.get(p.oferta_id)!.stock?.available) || 0)) }))
+      .filter((p) => p.ostatni_stan !== powiazania.get(p.oferta_id)?.ostatni_stan);
     for (let i = 0; i < widziane.length; i += 500) {
       await sb.from("allegro_oferty").upsert(widziane.slice(i, i + 500), { onConflict: "oferta_id" });
     }
