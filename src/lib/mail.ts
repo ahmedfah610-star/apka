@@ -126,7 +126,7 @@ function blokDostawy(k: DaneMaila["klient"]): string {
       <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3};margin-bottom:6px">Dane do wysyłki</div>
       <strong style="color:${M.ink}">${esc(k.imie || "")}</strong><br>
       ${adres}${k.telefon ? `<br>tel. ${esc(k.telefon)}` : ""}${k.email ? `<br>${esc(k.email)}` : ""}
-      ${k.uwagi ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${M.linia}"><span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3}">Uwagi do zamówienia</span><br><span style="color:${M.ink}">${esc(k.uwagi)}</span></div>` : ""}
+      ${k.uwagi ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${M.linia}"><span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3}">Informacja dla sprzedawcy</span><br><span style="color:${M.ink}">${esc(k.uwagi)}</span></div>` : ""}
     </td></tr>
   </table>`;
 }

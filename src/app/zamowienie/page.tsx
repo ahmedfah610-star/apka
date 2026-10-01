@@ -331,19 +331,17 @@ export default function StronaZamowienia() {
             )}
           </section>
 
-          {/* Uwagi do zamówienia */}
+          {/* Informacja dla sprzedawcy */}
           <section className="rounded-2xl border border-linia bg-white p-5 md:p-6">
-            <label htmlFor="uwagi" className="mb-1 block text-[15px] font-bold">
-              Uwagi do zamówienia <span className="font-normal text-ink-2">(opcjonalnie)</span>
+            <label htmlFor="uwagi" className="mb-3 block text-[15px] font-bold">
+              Informacja dla sprzedawcy <span className="font-normal text-ink-2">(opcjonalnie)</span>
             </label>
-            <p className="mb-3 text-[13px] text-ink-2">Np. prośba o konkretny odcień, zapakowanie na prezent albo informacja dla kuriera.</p>
             <textarea
               id="uwagi"
               value={uwagi}
               onChange={(e) => setUwagi(e.target.value.slice(0, 500))}
               rows={3}
               maxLength={500}
-              placeholder="Twoja wiadomość do sklepu…"
               className="w-full resize-y rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[16px] outline-none focus:border-ink md:text-[14px]"
             />
             <p className="mt-1 text-right text-[12px] text-ink-2">{uwagi.length}/500</p>

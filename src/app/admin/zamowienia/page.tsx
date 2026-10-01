@@ -276,7 +276,7 @@ export default function AdminZamowienia() {
                               </p>
                               {z.klient?.uwagi ? (
                                 <div className="mt-3 rounded-lg border border-[oklch(85%_0.1_85)] bg-[oklch(97%_0.04_90)] px-3 py-2 text-[13.5px]">
-                                  <p className="text-[11.5px] font-bold uppercase tracking-wide text-ink-2">Uwagi klienta</p>
+                                  <p className="text-[11.5px] font-bold uppercase tracking-wide text-ink-2">Informacja dla sprzedawcy</p>
                                   <p className="whitespace-pre-wrap">{z.klient.uwagi}</p>
                                 </div>
                               ) : null}
