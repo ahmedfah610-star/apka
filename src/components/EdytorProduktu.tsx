@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { type Kategoria, type Produkt, type Wiek } from "@/data/produkty";
+import { KATEGORIE_LABEL, type Kategoria, type Produkt, type Wiek } from "@/data/produkty";
+import { EdytorOpisu, tekstNaHtml } from "@/components/EdytorOpisu";
+import { OPIS_KLASA } from "@/lib/opisStyl";
+import { nizszeNaglowki } from "@/lib/opis";
+import { formatCena } from "@/lib/filtrowanie";
 
 const WIEK_LABEL: Record<Wiek, string> = { "0-2": "0-2 lata", "2-6": "2-6 lat", "6-12": "6-12 lat", dorosli: "rozmiar dorosły" };
 const HUE: Record<Kategoria, number> = { dziewczynki: 340, chlopcy: 230, niemowleta: 160, dorosli: 90 };
@@ -16,8 +20,6 @@ function sanitizeHtml(html: string): string {
     .replace(/javascript:/gi, "");
 }
 
-const OPIS_KLASY =
-  "opis-allegro text-[14px] leading-relaxed text-ink-2 [&_h1]:mb-1 [&_h1]:mt-3 [&_h1]:text-[18px] [&_h1]:font-bold [&_h1]:text-ink [&_h2]:mb-1 [&_h2]:mt-3 [&_h2]:text-[16px] [&_h2]:font-bold [&_h2]:text-ink [&_h3]:mt-2 [&_h3]:font-semibold [&_h3]:text-ink [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded [&_li]:ml-5 [&_li]:list-disc [&_p]:mb-2 [&_strong]:text-ink [&_ul]:mb-2 [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-0.5";
 
 export function EdytorProduktu({
   produkt,
@@ -36,27 +38,33 @@ export function EdytorProduktu({
   const [wiek, setWiek] = useState<Wiek>(produkt.wiek);
   const [badge, setBadge] = useState(produkt.badge ?? "");
   const [kolor, setKolor] = useState(produkt.kolor ?? "");
-  const [opis, setOpis] = useState(produkt.opis ?? "");
-  const [opisHtml, setOpisHtml] = useState(produkt.opisHtml ?? "");
-  // Lista w panelu nie zawiera opisu HTML (jest ciężki) — dociągamy pełny produkt.
-  // Dopóki się nie wczyta, zapis NIE rusza opisu HTML (inaczej by go skasował).
-  const [opisHtmlWczytany, setOpisHtmlWczytany] = useState(nowy || produkt.opisHtml != null);
+  // Opis: edytor startuje od tego, co widzi klient (opis poprawiony, opis z Allegro albo
+  // opis pierwszego rozmiaru). Zapis rusza opis TYLKO, gdy admin go zmienił.
+  const [opisStart, setOpisStart] = useState<string | null>(nowy ? "" : null); // null = wczytywanie
+  const [opisHtml, setOpisHtml] = useState("");
+  const [opisZmieniony, setOpisZmieniony] = useState(false);
+  const [opisyRozmiarow, setOpisyRozmiarow] = useState(0); // ile różnych opisów per rozmiar
   useEffect(() => {
-    if (nowy || produkt.opisHtml != null) return;
+    if (nowy) return;
     let aktywny = true;
+    const ustaw = (p: Produkt) => {
+      const rozm = p.opisRozmiary ?? null;
+      const pierwszy = rozm ? (p.rozmiary ?? []).map((r) => rozm[r]).find(Boolean) ?? Object.values(rozm).find(Boolean) : undefined;
+      const start = p.opisHtml || pierwszy || (p.opis ? tekstNaHtml(p.opis) : "");
+      setOpisyRozmiarow(rozm ? new Set(Object.values(rozm).filter(Boolean)).size : 0);
+      setOpisStart(start);
+      setOpisHtml(start);
+    };
+    // Lista produktów nie zawiera opisów (są ciężkie) — dociągamy pełny produkt.
     fetch(`/api/admin/produkty?id=${encodeURIComponent(produkt.id)}`)
       .then((r) => r.json())
-      .then((d) => {
-        if (!aktywny || !d?.produkt) return;
-        setOpisHtml(d.produkt.opisHtml ?? "");
-        setOpisHtmlWczytany(true);
-      })
-      .catch(() => {});
+      .then((d) => aktywny && ustaw(d?.produkt ?? produkt))
+      .catch(() => aktywny && ustaw(produkt));
     return () => {
       aktywny = false;
     };
-  }, [nowy, produkt.id, produkt.opisHtml]);
-  const [podglad, setPodglad] = useState(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nowy, produkt.id]);
 
   const startZdj = produkt.zdjecia?.length ? produkt.zdjecia : produkt.zdjecie ? [produkt.zdjecie] : [];
   const [zdjecia, setZdjecia] = useState<string[]>(startZdj);
@@ -142,8 +150,12 @@ export function EdytorProduktu({
       wiekLabel: WIEK_LABEL[wiek],
       badge: badge || null,
       kolor: kolor.trim() || null,
-      opis: opis.trim() || undefined,
-      ...(opisHtmlWczytany ? { opisHtml: opisHtml.trim() ? sanitizeHtml(opisHtml.trim()) : null } : {}),
+      ...(opisZmieniony || nowy
+        ? {
+            opisHtml: opisHtml.trim() ? sanitizeHtml(opisHtml.trim()) : null,
+            opis: opisHtml.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim() || undefined,
+          }
+        : {}),
       zdjecia,
       zdjecie: zdjecia[0] ?? null,
       hue: HUE[kategoria],
@@ -198,11 +210,11 @@ export function EdytorProduktu({
     }
   }
 
-  const input = "w-full border border-linia-2 bg-white px-3 py-2 text-[14px] outline-none focus:border-ink";
+  const input = "w-full rounded-lg border border-linia-2 bg-white px-3 py-2 text-[16px] outline-none focus:border-ink md:text-[14px]";
 
   return (
     <div className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8" onClick={onZamknij}>
-      <div className="w-full max-w-2xl border border-linia bg-tlo shadow-xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-linia bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-linia px-5 py-3.5">
           <h2 className="text-[16px] font-bold">{nowy ? "Wystaw nowy produkt" : "Edytuj produkt"}</h2>
           <button onClick={onZamknij} aria-label="Zamknij" className="text-ink-2 hover:text-ink">
@@ -212,7 +224,7 @@ export function EdytorProduktu({
           </button>
         </div>
 
-        <div className="max-h-[75vh] overflow-y-auto p-5">
+        <div className="max-h-[78vh] overflow-y-auto p-5">
           {/* Zdjęcia */}
           <p className="mb-2 text-[13px] font-semibold text-ink-2">Zdjęcia <span className="font-normal">(pierwsze = główne, najedź by zmienić)</span></p>
           <div className="mb-3 flex flex-wrap gap-2">
@@ -264,7 +276,7 @@ export function EdytorProduktu({
                 <option value="dziewczynki">Dziewczynki</option>
                 <option value="chlopcy">Chłopcy</option>
                 <option value="niemowleta">Niemowlęta</option>
-                <option value="dorosli">Dla dorosłych</option>
+                <option value="dorosli">Męskie</option>
               </select>
             </label>
             <label className="text-[12px] font-semibold text-ink-2">
@@ -285,38 +297,31 @@ export function EdytorProduktu({
                 <option value="-20%">-20%</option>
               </select>
             </label>
-            <label className="sm:col-span-2 text-[12px] font-semibold text-ink-2">
-              Krótki opis (pokazywany, gdy nie ma opisu rozszerzonego)
-              <textarea className={`${input} mt-1 min-h-[60px]`} value={opis} onChange={(e) => setOpis(e.target.value)} placeholder="Krótki, zachęcający opis produktu…" />
-            </label>
           </div>
 
-          {/* Opis rozszerzony (HTML) — jak na stronie */}
-          <div className="mt-5 border-t border-linia pt-4">
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-[13px] font-semibold text-ink-2">Opis rozszerzony (jak na stronie)</p>
-              <button type="button" onClick={() => setPodglad((v) => !v)} className="text-[12px] font-semibold text-ink underline underline-offset-2 hover:text-akcent">
-                {podglad ? "Edytuj" : "Podgląd"}
-              </button>
-            </div>
-            {podglad ? (
-              <div className="min-h-[120px] rounded border border-linia-2 bg-white p-3">
-                {opisHtml.trim() ? (
-                  <div className={OPIS_KLASY} dangerouslySetInnerHTML={{ __html: sanitizeHtml(opisHtml) }} />
-                ) : (
-                  <p className="text-[13px] text-ink-2">Pusto. Wpisz treść w trybie edycji.</p>
-                )}
-              </div>
+          {/* Opis — edytor bez kodu */}
+          <div className="mt-6 border-t border-linia pt-5">
+            <p className="mb-1 text-[15px] font-bold text-ink">Opis produktu</p>
+            <p className="mb-3 text-[13px] text-ink-2">
+              Pisz jak w zwykłym edytorze. Zaznacz tekst i kliknij „B”, żeby go pogrubić, albo „Nagłówek”, żeby zrobić z linijki tytuł.
+            </p>
+            {opisyRozmiarow > 1 ? (
+              <p className="mb-3 rounded-lg bg-akcent-2 px-3 py-2 text-[13px] text-ink">
+                Ten produkt ma osobny opis z wymiarami dla każdego rozmiaru ({opisyRozmiarow}). Poniżej jest opis pierwszego rozmiaru — jeśli go
+                zmienisz, po zapisie ten jeden opis będzie widoczny dla wszystkich rozmiarów.
+              </p>
+            ) : null}
+            {opisStart === null ? (
+              <div className="flex min-h-[320px] items-center justify-center rounded-xl border-2 border-linia-2 text-[14px] text-ink-2">Wczytywanie opisu…</div>
             ) : (
-              <textarea
-                className={`${input} min-h-[160px] font-mono text-[12.5px]`}
-                value={opisHtmlWczytany ? opisHtml : "Wczytywanie opisu…"}
-                disabled={!opisHtmlWczytany}
-                onChange={(e) => setOpisHtml(e.target.value)}
-                placeholder={"Rozbudowany opis. Możesz użyć prostego HTML:\n<h2>Nagłówek</h2>\n<p>Akapit opisu…</p>\n<ul><li>Cecha 1</li><li>Cecha 2</li></ul>\n<img src=\"adres-zdjęcia\" />"}
+              <EdytorOpisu
+                poczatkowy={opisStart}
+                onZmiana={(html) => {
+                  setOpisHtml(html);
+                  setOpisZmieniony(true);
+                }}
               />
             )}
-            <p className="mt-1.5 text-[11px] text-ink-2">Dozwolone znaczniki: nagłówki, akapity, listy, pogrubienie, zdjęcia. Skrypty są usuwane. Zostaw puste, jeśli wystarczy krótki opis.</p>
           </div>
 
           {/* Rozmiary i stany */}
@@ -362,15 +367,79 @@ export function EdytorProduktu({
               </label>
             )}
           </div>
+          {/* Podgląd oferty — na żywo, tak jak zobaczy klient */}
+          <div className="mt-6 border-t border-linia pt-5">
+            <p className="mb-3 text-[15px] font-bold text-ink">
+              Podgląd oferty <span className="font-normal text-ink-2">— tak zobaczy klient</span>
+            </p>
+            <div className="rounded-2xl border border-linia bg-strona p-4">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+                <div>
+                  <div className="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-white">
+                    {zdjecia[0] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={zdjecia[0]} alt="" className="h-full w-full object-contain p-3" />
+                    ) : (
+                      <span className="text-[13px] text-ink-2">Brak zdjęcia</span>
+                    )}
+                  </div>
+                  {zdjecia.length > 1 ? (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {zdjecia.slice(1, 6).map((z, i) => (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img key={i} src={z} alt="" className="h-12 w-12 rounded-md border border-linia bg-white object-contain p-0.5" />
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+                <div className="min-w-0">
+                  <p className="mb-1 text-[11.5px] uppercase tracking-wide text-ink-2">
+                    {[KATEGORIE_LABEL[kategoria], WIEK_LABEL[wiek], kolor.trim() || null].filter(Boolean).join(" · ")}
+                  </p>
+                  <p className="text-[22px] font-extrabold leading-tight tracking-tight text-ink">{nazwa.trim() || "Nazwa produktu"}</p>
+                  <p className="mt-1.5 text-[22px] font-extrabold text-ink">
+                    {Number.isFinite(parseFloat(cena.replace(",", "."))) ? `${formatCena(parseFloat(cena.replace(",", ".")))} zł` : "— zł"}
+                  </p>
+                  {badge ? <span className="mt-2 inline-block rounded-full bg-ink px-2.5 py-1 text-[11px] font-bold text-white">{badge}</span> : null}
+                  {maRozmiary && rozmiary.length ? (
+                    <div className="mt-3">
+                      <p className="mb-1.5 text-[13px] font-bold text-ink">Rozmiar</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {rozmiary.map((r) => (
+                          <span
+                            key={r}
+                            className={`rounded-lg border px-3 py-1.5 text-[13px] font-bold ${
+                              (Number(stany[r]) || 0) > 0 ? "border-linia-2 bg-white text-ink" : "border-linia bg-szary text-ink-2 line-through"
+                            }`}
+                          >
+                            {r}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  <span className="mt-4 block w-full rounded-xl bg-ink py-3 text-center text-[14px] font-bold text-white">Dodaj do koszyka</span>
+                </div>
+              </div>
+              <div className="mt-5 border-t border-linia pt-4">
+                <p className="mb-2 text-[17px] font-extrabold text-ink">Opis produktu</p>
+                {opisHtml.trim() ? (
+                  <div className={OPIS_KLASA} dangerouslySetInnerHTML={{ __html: nizszeNaglowki(sanitizeHtml(opisHtml)) ?? "" }} />
+                ) : (
+                  <p className="text-[14px] text-ink-2">Brak opisu.</p>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-linia px-5 py-3.5">
           {komunikat ? <span className="text-[13px] text-akcent">{komunikat}</span> : <span />}
           <div className="flex gap-2">
-            <button onClick={onZamknij} className="border border-linia-2 px-5 py-2.5 text-[13px] font-semibold hover:border-ink">
+            <button onClick={onZamknij} className="rounded-lg border border-linia-2 px-5 py-2.5 text-[14px] font-bold hover:border-ink">
               Anuluj
             </button>
-            <button onClick={zapisz} disabled={zapis} className="bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
+            <button onClick={zapisz} disabled={zapis} className="rounded-lg bg-ink px-6 py-2.5 text-[14px] font-bold text-white transition-colors hover:bg-akcent disabled:opacity-60">
               {zapis ? "Zapisywanie…" : nowy ? "Wystaw produkt" : "Zapisz"}
             </button>
           </div>

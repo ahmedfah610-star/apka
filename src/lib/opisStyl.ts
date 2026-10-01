@@ -1,0 +1,3 @@
+// Wygląd opisu produktu — jeden dla strony produktu i podglądu w edytorze (żeby admin widział to samo co klient).
+export const OPIS_KLASA =
+  "opis-allegro text-[15px] leading-relaxed text-ink-2 [&_h2]:mb-2 [&_h2]:mt-6 [&_h2]:text-[20px] [&_h2]:font-bold [&_h2]:text-ink [&_h3]:mb-2 [&_h3]:mt-6 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-ink [&_h4]:mt-4 [&_h4]:font-semibold [&_h4]:text-ink [&_img]:mx-auto [&_img]:my-4 [&_img]:block [&_img]:h-auto [&_img]:w-full [&_img]:max-w-xl [&_img]:rounded-xl [&_img]:border [&_img]:border-linia [&_li]:ml-5 [&_li]:list-disc [&_li]:marker:text-akcent [&_p]:mb-4 [&_strong]:text-ink [&_ul]:mb-4 [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-1.5";

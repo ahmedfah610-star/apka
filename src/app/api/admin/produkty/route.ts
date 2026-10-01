@@ -81,7 +81,7 @@ export async function PATCH(req: Request) {
 
   // Nazwa/kolor/kategoria z panelu trafiają też do `poprawki` — codzienne scalanie
   // z Allegro nadpisuje zwykłe kolumny, a poprawki są nakładane przy odczycie.
-  const doPoprawek = (["nazwa", "kolor", "kategoria"] as const).filter((k) => k in zmiany);
+  const doPoprawek = (["nazwa", "kolor", "kategoria", "opisHtml"] as const).filter((k) => k in zmiany);
   if (doPoprawek.length) {
     const { data: obecny } = await sb.from("produkty").select("poprawki").eq("id", id).maybeSingle();
     const pop: Record<string, unknown> = { ...((obecny?.poprawki as Record<string, unknown> | null) ?? {}) };
