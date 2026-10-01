@@ -4,6 +4,7 @@ import { bazaNazwy, czyDamski, importujStrone, przeklasyfikuj, scalProdukty } fr
 import { ladnaNazwa } from "@/lib/nazwa";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 import { sbService } from "@/lib/supabase";
+import { ostatniRaport, synchronizujStany } from "@/lib/allegroStany";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // limit planu Hobby
@@ -14,6 +15,9 @@ export const maxDuration = 60; // limit planu Hobby
 export async function GET(req: Request) {
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
   const url = new URL(req.url);
+  if (url.searchParams.get("synchronizacja")) {
+    return Response.json({ ok: true, raport: await ostatniRaport() });
+  }
   if (url.searchParams.get("diag") === "stany") {
     const sb = sbService();
     if (!sb) return Response.json({ ok: false, blad: "Brak bazy" });
@@ -208,6 +212,12 @@ export async function POST(req: Request) {
     // usunNieaktualne tylko po pełnym imporcie (panel/skrypt) — cron scala bez usuwania.
     const r = await scalProdukty({ usunNieaktualne: b.usunNieaktualne === true });
     if (r.ok) odswiezPoZmianieStanu();
+    return Response.json(r, { status: r.ok ? 200 : 500 });
+  }
+
+  if (b.akcja === "synchronizuj_stany") {
+    // To samo co codzienna synchronizacja — na żądanie z panelu.
+    const r = await synchronizujStany({ zrodlo: "panel" });
     return Response.json(r, { status: r.ok ? 200 : 500 });
   }
 

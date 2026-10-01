@@ -291,7 +291,7 @@ async function listaOfert(tylkoAktywne = true): Promise<OfertaLista[]> {
 }
 
 /** Szczegóły oferty (opis, parametry, zdjęcia, stan). */
-async function szczegoly(id: string): Promise<any> {
+export async function szczegoly(id: string): Promise<any> {
   try {
     return await allegroGet<any>(`/sale/product-offers/${id}`);
   } catch {

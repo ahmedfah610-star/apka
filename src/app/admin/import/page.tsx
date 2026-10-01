@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SynchronizacjaStanow } from "@/components/SynchronizacjaStanow";
 
 interface Status { skonfigurowany: boolean; polaczony: boolean }
 interface Wynik { pobrano: number; zapisano: number; bledy: number; blad?: string }
@@ -258,6 +259,8 @@ export default function AdminImport() {
               </div>
             )}
           </section>
+
+          {status.polaczony ? <SynchronizacjaStanow /> : null}
 
           {komunikat ? <p className="text-[13.5px] text-ink-2">{komunikat}</p> : null}
           {wynik && !wynik.blad ? (
