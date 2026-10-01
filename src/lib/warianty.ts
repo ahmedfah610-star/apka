@@ -68,13 +68,25 @@ export function kluczWariantu(p: Produkt): string {
 export function przypiszRodziny(lista: Produkt[]): Produkt[] {
   const grupy = new Map<string, Produkt[]>();
   for (const p of lista) {
-    const k = kluczScisly(p);
+    // Zweryfikowany model (poprawki) wygrywa z automatem — także między różnymi cenami.
+    const k = p.model ? `m:${p.model}` : kluczScisly(p);
     grupy.set(k, [...(grupy.get(k) ?? []), p]);
   }
+  const barwa = (p: Produkt) => (p.kolor || "").trim().toLowerCase();
   const rodzina = new Map<string, string>();
   for (const [k, grupa] of grupy) {
-    const kolory = grupa.map((p) => (p.kolor || "").trim().toLowerCase());
-    const ok = grupa.length > 1 && kolory.every(Boolean) && new Set(kolory).size === kolory.length;
+    const ile = new Map<string, number>();
+    for (const p of grupa) ile.set(barwa(p), (ile.get(barwa(p)) ?? 0) + 1);
+    if (k.startsWith("m:")) {
+      // Zweryfikowany model: z każdego koloru do rodziny trafia jeden produkt (najlepszy stan);
+      // dublety koloru (np. osobna oferta na rozmiar) są osobnymi kaflami — nic nie znika z listy.
+      const wRodzinie = new Map<string, Produkt>();
+      for (const p of [...grupa].sort(lepszy)) if (barwa(p) && !wRodzinie.has(barwa(p))) wRodzinie.set(barwa(p), p);
+      const czlonkowie = new Set([...wRodzinie.values()].map((p) => p.id));
+      for (const p of grupa) rodzina.set(p.id, czlonkowie.size > 1 && czlonkowie.has(p.id) ? k : `id:${p.id}`);
+      continue;
+    }
+    const ok = grupa.length > 1 && [...ile.keys()].every(Boolean) && ile.size === grupa.length;
     for (const p of grupa) rodzina.set(p.id, ok ? k : `id:${p.id}`);
   }
   return lista.map((p) => ({ ...p, rodzina: rodzina.get(p.id) }));

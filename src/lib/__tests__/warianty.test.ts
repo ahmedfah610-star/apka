@@ -39,4 +39,23 @@ describe("przypiszRodziny — ścisłe łączenie kolorów", () => {
     expect(zwinWarianty(przypiszRodziny([p({ id: "a", kolor: "czarny" }), p({ id: "b", kolor: "zielony", cena: 30 })]))).toHaveLength(2);
     expect(zwinWarianty(przypiszRodziny([p({ id: "a", kolor: "czarny" }), p({ id: "b", kolor: null })]))).toHaveLength(2);
   });
+
+  it("zweryfikowany model łączy różne nazwy/ceny, a dublet koloru zostaje osobnym kaflem", () => {
+    const k = przypiszRodziny([
+      p({ id: "a", nazwa: "Dres wóz strażacki", kolor: "zielony", model: "woz", stan: 5 }),
+      p({ id: "b", nazwa: "Dres strażak", kolor: "niebieski", model: "woz", cena: 30 }),
+      p({ id: "c", nazwa: "Dres wóz strażacki", kolor: "zielony", model: "woz", stan: 1 }),
+    ]);
+    const kafle = zwinWarianty(k);
+    expect(kafle).toHaveLength(2);
+    expect(kafle.find((z) => z.kolory === 2)?.produkt.id).toBe("a");
+  });
+
+  it("model jednoelementowy rozdziela produkt z automatycznej rodziny", () => {
+    const k = przypiszRodziny([
+      p({ id: "a", nazwa: "Legginsy prążkowane czarne", kolor: "czarny", model: "x1" }),
+      p({ id: "b", nazwa: "Legginsy prążkowane zielone", kolor: "zielony", model: "x2" }),
+    ]);
+    expect(zwinWarianty(k)).toHaveLength(2);
+  });
 });

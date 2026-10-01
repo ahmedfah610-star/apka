@@ -54,6 +54,25 @@ export function bazaNazwy(n: string): string {
     .replace(/(\s+(x{0,4}s|x{0,4}l|m))+$/i, "")
     .trim();
 }
+/**
+ * Nazwa do wyświetlenia: jak bazaNazwy (bez rozmiarów), ale ZOSTAWIA liczności —
+ * „5 części", „3 pary", „2-pak", „5 szt." (bazaNazwy zjadała cyfry: „Komplet … części").
+ * Klucz scalania nadal liczy się z bazaNazwy, więc ID produktów się nie zmieniają.
+ */
+export function nazwaBezRozmiarow(n: string): string {
+  const LITERY = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const liczby: string[] = [];
+  const chronione = (n || "").replace(
+    /(\d+)\s*[-–]?\s*(?=(części|czesci|częściow\p{L}*|czesciow\p{L}*|par(?!\p{L})|pary|pak(?!\p{L})|szt\.?|elementow\p{L}*|elementów)(?!\p{L}))/giu,
+    (m: string, d: string) => {
+      if (Number(d) > 20) return m; // to raczej rozmiar („68 szt."), nie liczność
+      liczby.push(d);
+      return `QQ${LITERY[(liczby.length - 1) % 26]}QQ `;
+    },
+  );
+  return bazaNazwy(chronione).replace(/QQ([A-Z])QQ/g, (_m, l: string) => liczby[LITERY.indexOf(l)] ?? "");
+}
+
 function hash36(s: string): string {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
@@ -467,7 +486,7 @@ export async function scalProdukty(
     scalone.push({
       id,
       allegro_id: id.slice(3),
-      nazwa: ladnaNazwa(bazaNazwy(first.nazwa || "")) || first.nazwa || "Produkt",
+      nazwa: ladnaNazwa(nazwaBezRozmiarow(first.nazwa || "")) || first.nazwa || "Produkt",
       cena: first.cena ?? 0,
       kategoria, wiek, wiek_label: WIEK_LABEL[wiek],
       badge: poprzedni?.badge ?? null, // etykieta ustawiona w panelu zostaje

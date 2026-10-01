@@ -79,6 +79,20 @@ export async function PATCH(req: Request) {
     }
   }
 
+  // Nazwa/kolor/kategoria z panelu trafiają też do `poprawki` — codzienne scalanie
+  // z Allegro nadpisuje zwykłe kolumny, a poprawki są nakładane przy odczycie.
+  const doPoprawek = (["nazwa", "kolor", "kategoria"] as const).filter((k) => k in zmiany);
+  if (doPoprawek.length) {
+    const { data: obecny } = await sb.from("produkty").select("poprawki").eq("id", id).maybeSingle();
+    const pop: Record<string, unknown> = { ...((obecny?.poprawki as Record<string, unknown> | null) ?? {}) };
+    for (const k of doPoprawek) {
+      const v = zmiany[k];
+      if (typeof v === "string" && v.trim()) pop[k] = v.trim();
+      else delete pop[k];
+    }
+    map.poprawki = Object.keys(pop).length ? pop : null;
+  }
+
   // Stan sprzed zmiany — do wykrycia „znów dostępne".
   const stary = zmianaStanu
     ? (await sb.from("produkty").select("stan, stan_rozmiary, nazwa").eq("id", id).maybeSingle()).data

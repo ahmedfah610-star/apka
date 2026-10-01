@@ -35,6 +35,7 @@ export interface Produkt {
   ukryty?: boolean;
   hue: number;
   rodzina?: string; // klucz rodziny wariantów koloru (liczony dla całego katalogu, patrz lib/warianty)
+  model?: string; // ręcznie/AI zweryfikowany model (poprawki) — ten sam model = ta sama rodzina kolorów
 }
 
 export const KATEGORIE_LABEL: Record<Kategoria | "wszystkie", string> = {

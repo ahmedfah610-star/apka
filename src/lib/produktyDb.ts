@@ -9,14 +9,26 @@ import { przypiszRodziny } from "@/lib/warianty";
 // działa zawsze, a po podłączeniu bazy przełącza się automatycznie.
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+// Poprawki (kolumna `poprawki`) — zweryfikowane korekty nazwy/koloru/kategorii/modelu.
+// Nakładane przy odczycie, więc codzienne scalanie z Allegro ich nie nadpisuje.
+const KATEGORIE_OK = new Set(["dziewczynki", "chlopcy", "niemowleta", "dorosli"]);
+function poprawki(r: any): { nazwa?: string; kolor?: string; kategoria?: string; model?: string } {
+  const p = r?.poprawki;
+  if (!p || typeof p !== "object") return {};
+  const tekst = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : undefined);
+  const kat = tekst(p.kategoria);
+  return { nazwa: tekst(p.nazwa), kolor: tekst(p.kolor), kategoria: kat && KATEGORIE_OK.has(kat) ? kat : undefined, model: tekst(p.model) };
+}
+
 function zRzedu(r: any): Produkt {
+  const pop = poprawki(r);
   // Kolejność zdjęć (własne zdjęcie koloru jako pierwsze) ustala scalanie.
   const zdjecia: string[] = r.zdjecia ?? [];
   return {
     id: r.id,
-    nazwa: ladnaNazwa(r.nazwa), // schludny tytuł (bez KRZYKU, „cm", literówek) — spójnie wszędzie
+    nazwa: pop.nazwa ?? ladnaNazwa(r.nazwa), // schludny tytuł (bez KRZYKU, „cm", literówek) — spójnie wszędzie
     cena: Number(r.cena),
-    kategoria: r.kategoria,
+    kategoria: (pop.kategoria ?? r.kategoria) as Produkt["kategoria"],
     wiek: r.wiek,
     wiekLabel: r.wiek_label,
     badge: r.badge ?? null,
@@ -28,7 +40,8 @@ function zRzedu(r: any): Produkt {
     opisRozmiary: r.opis_rozmiary
       ? Object.fromEntries(Object.entries(r.opis_rozmiary as Record<string, string>).map(([k, v]) => [k, oczyscHtmlOpisu(v) ?? ""]))
       : null,
-    kolor: r.kolor ?? null,
+    kolor: pop.kolor ?? r.kolor ?? null,
+    model: pop.model,
     stan: r.stan ?? undefined,
     stanRozmiary: r.stan_rozmiary ?? null,
     ukryty: !!r.ukryty,
@@ -62,7 +75,7 @@ export function doRzedu(p: Produkt): Record<string, unknown> {
 // opis_html = pełny opis). Bez tego odpowiedź przy 1000+ produktach jest
 // gigantyczna i się urywa. Ciężkie pola pobieramy tylko dla jednego produktu.
 const KOLUMNY_KATALOG =
-  "id, nazwa, cena, kategoria, wiek, wiek_label, badge, rozmiary, zdjecie, zdjecia, opis, kolor, stan, stan_rozmiary, ukryty, hue, created_at";
+  "id, nazwa, cena, kategoria, wiek, wiek_label, badge, rozmiary, zdjecie, zdjecia, opis, kolor, stan, stan_rozmiary, ukryty, hue, created_at, poprawki";
 
 /** Katalog widoczny w sklepie (bez wyłączonych ofert). */
 export async function katalogWidoczny(): Promise<Produkt[]> {

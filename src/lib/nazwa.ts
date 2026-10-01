@@ -34,7 +34,8 @@ export function ladnaNazwa(surowa: string): string {
   // Samo słowo „rozmiar" (liczbę zdjęto przy łączeniu rozmiarów) i osierocone „szt." /
   // „cz." / „-elementowy" / „-częściowy" po usuniętych liczbach („5 szt. 5-elementowy").
   s = s.replace(/(?<!\p{L})rozmiar(?!\p{L})/giu, " "); // (\b w JS nie zna polskich liter: „rozmiarów")
-  s = s.replace(/(^|\s)((szt|cz)\.?|r\.)(?=\s|$)/gi, " ").replace(/(^|\s)(elementow|częściow|czesciow)[yae](?=\s|$)/gi, " ");
+  // (po liczbie zostają: „5 szt.", „3 częściowy" to liczność, nie śmieć po rozmiarze)
+  s = s.replace(/(^|\s)(?<!\d\s?)((szt|cz)\.?|r\.)(?=\s|$)/gi, " ").replace(/(^|\s)(?<!\d\s?)(elementow|częściow|czesciow)[yae](?=\s|$)/gi, " ");
   s = s.replace(/\s{2,}/g, " ").trim();
 
   const slowa = s.split(" ").filter(Boolean);
