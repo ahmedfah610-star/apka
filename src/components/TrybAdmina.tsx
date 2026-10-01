@@ -4,6 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { createContext, useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import type { Produkt } from "@/data/produkty";
 
 // Tryb admina w sklepie: po zalogowaniu w /admin właściciel chodzi po sklepie jak klient,
@@ -12,6 +13,7 @@ import type { Produkt } from "@/data/produkty";
 
 const FLAGA = "bobas-admin";
 const PODGLAD = "bobas-admin-podglad";
+const ZDARZENIE = "bobas:admin-zmiana";
 
 // Edytor ładowany dopiero po kliknięciu — klienci sklepu go nie pobierają.
 const EdytorProduktu = dynamic(() => import("@/components/EdytorProduktu").then((m) => m.EdytorProduktu), { ssr: false });
@@ -28,27 +30,49 @@ export function oznaczAdmina(zalogowany: boolean) {
     if (zalogowany) localStorage.setItem(FLAGA, "1");
     else localStorage.removeItem(FLAGA);
   } catch {}
+  // Logowanie w panelu i przejście do sklepu dzieje się bez przeładowania strony —
+  // powiadamiamy tryb admina od razu (bez potrzeby odświeżania).
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(ZDARZENIE, { detail: zalogowany }));
 }
 
 export function TrybAdminaProvider({ children }: { children: React.ReactNode }) {
   const [admin, setAdmin] = useState(false);
   const [podglad, setPodglad] = useState(false);
+  const sciezka = usePathname();
 
+  // Sprawdzenie sesji: przy starcie, po każdej zmianie strony (dopóki nie jesteśmy adminem)
+  // i natychmiast po zalogowaniu/wylogowaniu w panelu.
   useEffect(() => {
-    let flaga = false;
     try {
-      flaga = localStorage.getItem(FLAGA) === "1";
       setPodglad(localStorage.getItem(PODGLAD) === "1");
     } catch {}
-    if (!flaga) return;
-    fetch("/api/admin/login", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((d) => {
-        setAdmin(!!d.ok);
-        if (!d.ok) oznaczAdmina(false); // sesja wygasła
-      })
-      .catch(() => {});
-  }, []);
+    const sprawdz = () => {
+      let flaga = false;
+      try {
+        flaga = localStorage.getItem(FLAGA) === "1";
+      } catch {}
+      if (!flaga) return setAdmin(false);
+      fetch("/api/admin/login", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((d) => {
+          setAdmin(!!d.ok);
+          if (!d.ok) {
+            try {
+              localStorage.removeItem(FLAGA); // sesja wygasła
+            } catch {}
+          }
+        })
+        .catch(() => {});
+    };
+    const zmiana = (e: Event) => {
+      if ((e as CustomEvent<boolean>).detail) sprawdz();
+      else setAdmin(false);
+    };
+    window.addEventListener(ZDARZENIE, zmiana);
+    if (!admin) sprawdz();
+    return () => window.removeEventListener(ZDARZENIE, zmiana);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sciezka]);
 
   const ustawPodglad = (v: boolean) => {
     setPodglad(v);

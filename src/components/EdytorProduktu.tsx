@@ -57,10 +57,10 @@ export function EdytorProduktu({
       const pierwszy = lista.map((r) => rozm[r]).find(Boolean) ?? Object.values(rozm).find(Boolean);
       const baza = p.opisHtml || pierwszy || (p.opis ? tekstNaHtml(p.opis) : "");
       const mapa = Object.fromEntries(lista.map((r) => [r, rozm[r] || baza]));
-      const rozne = new Set(Object.values(mapa)).size > 1;
       setOpisy(mapa);
-      setWspolny(rozne ? (mapa[lista[0]] ?? baza) : baza);
-      const start = rozne ? lista[0] : "*";
+      setWspolny(baza);
+      // Produkt z rozmiarami: zawsze edytujemy opis konkretnego rozmiaru (bez „wszystkie naraz").
+      const start = lista.length ? lista[0] : "*";
       setZakladka(start);
       setStartZakladki(start === "*" ? baza : mapa[start] ?? baza);
       setWczytany(true);
@@ -227,13 +227,12 @@ export function EdytorProduktu({
     }
   }
 
-  const rozneOpisy = rozmiary.length > 1 && new Set(rozmiary.map((r) => opisy[r] ?? wspolny)).size > 1;
   const opisWidoczny = zakladka === "*" || !(maRozmiary && rozmiary.length) ? wspolny : opisy[zakladka] ?? wspolny;
 
   function przelaczZakladke(z: string) {
     if (z === zakladka) return;
     setZakladka(z);
-    setStartZakladki(z === "*" ? (rozneOpisy ? opisy[rozmiary[0]] ?? wspolny : wspolny) : opisy[z] ?? wspolny);
+    setStartZakladki(z === "*" ? wspolny : opisy[z] ?? wspolny);
     setWersja((w) => w + 1);
   }
 
@@ -346,7 +345,7 @@ export function EdytorProduktu({
               <div className="mb-3">
                 <p className="mb-1.5 text-[13px] font-semibold text-ink">Który opis edytujesz?</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {["*", ...rozmiary].map((z) => (
+                  {rozmiary.map((z) => (
                     <button
                       key={z}
                       type="button"
@@ -355,15 +354,13 @@ export function EdytorProduktu({
                         zakladka === z ? "border-ink bg-ink text-white" : "border-linia-2 bg-white text-ink hover:border-ink"
                       }`}
                     >
-                      {z === "*" ? "Wszystkie rozmiary naraz" : `Rozmiar ${z}`}
+                      Rozmiar {z}
                     </button>
                   ))}
                 </div>
                 <p className="mt-2 rounded-lg bg-akcent-2 px-3 py-2 text-[13px] text-ink">
                   {zakladka === "*"
-                    ? rozneOpisy
-                      ? "Rozmiary mają teraz różne opisy (np. inne wymiary). Jeśli zmienisz tekst tutaj, ten sam opis dostaną WSZYSTKIE rozmiary."
-                      : "Ten opis jest wspólny dla wszystkich rozmiarów — zmiana tutaj zmienia opis każdego rozmiaru."
+                    ? "Opis wspólny (nowe rozmiary). Kliknij rozmiar, żeby edytować jego opis osobno."
                     : `Zmieniasz opis tylko dla rozmiaru ${zakladka}. Pozostałe rozmiary zostają bez zmian.`}
                 </p>
               </div>
@@ -482,7 +479,7 @@ export function EdytorProduktu({
                 <p className="mb-2 text-[17px] font-extrabold text-ink">Opis produktu</p>
                 {maRozmiary && rozmiary.length > 1 ? (
                   <p className="mb-2 text-[12.5px] text-ink-2">
-                    {zakladka === "*" ? "Opis wspólny dla wszystkich rozmiarów" : `Opis dla rozmiaru ${zakladka}`} — kliknij rozmiar wyżej, żeby zobaczyć inny.
+                    {zakladka === "*" ? "Opis wspólny" : `Opis dla rozmiaru ${zakladka}`} — kliknij rozmiar wyżej, żeby zobaczyć inny.
                   </p>
                 ) : null}
                 {opisWidoczny.trim() ? (
