@@ -16,7 +16,9 @@ import { ZAMOWIENIA_WYLACZONE, KOMUNIKAT_PRZERWY } from "@/lib/sklep";
 import { PrzerwaTechniczna } from "@/components/PrzerwaTechniczna";
 import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
-import { METODY_DOSTAWY, kosztDostawy } from "@/lib/dostawa";
+import { kosztDostawy } from "@/lib/dostawa";
+import { useDostawa } from "@/lib/dostawaKlient";
+import { EdycjaDostaw } from "@/components/EdycjaDostaw";
 import { pobierzKatalog } from "@/lib/katalogKlient";
 
 // Płatności obsługuje w całości Przelewy24 — to na jego bezpiecznej stronie
@@ -29,7 +31,10 @@ export default function StronaZamowienia() {
   const { user } = useAuth();
 
   const [katalog, setKatalog] = useState<Produkt[]>(PRODUKTY);
-  const [metodaId, setMetodaId] = useState(METODY_DOSTAWY[0].id);
+  // Metody dostawy z ustawień sklepu (ceny i opisy edytowane w trybie admina).
+  const ustawieniaDostawy = useDostawa();
+  const metodyDostawy = ustawieniaDostawy.metody.filter((m) => m.aktywna !== false);
+  const [metodaId, setMetodaId] = useState(metodyDostawy[0]?.id ?? "");
   const [paczkomat, setPaczkomat] = useState<Paczkomat | null>(null);
   const [punkt, setPunkt] = useState<PunktOdbioru | null>(null);
   const [dane, setDane] = useState({ imie: "", email: "", telefon: "", adres: "", miasto: "", kod: "" });
@@ -103,9 +108,9 @@ export default function StronaZamowienia() {
   const pozycjeZDanymi = pozycje.map((poz) => ({ poz, produkt: znajdz(poz.id) })).filter((x) => x.produkt);
   const suma = pozycjeZDanymi.reduce((s, { poz, produkt }) => s + produkt!.cena * poz.ilosc, 0);
 
-  const metoda = METODY_DOSTAWY.find((m) => m.id === metodaId)!;
+  const metoda = metodyDostawy.find((m) => m.id === metodaId) ?? metodyDostawy[0];
   const platnosc = PLATNOSCI[0];
-  const dostawa = kosztDostawy(metoda, suma);
+  const dostawa = kosztDostawy(metoda, suma, ustawieniaDostawy.darmowaOd);
   const rabat = kodPrzyjety ? Math.min(kodPrzyjety.rabat, suma) : 0;
   const razem = Math.max(0, suma - rabat) + dostawa;
 
@@ -183,6 +188,7 @@ export default function StronaZamowienia() {
             kolor: produkt!.kolor ?? null,
           })),
           dostawa,
+          metodaId: metoda.id,
           metoda: `${metoda.nazwa} · ${platnosc.nazwa}`,
           kod: kodPrzyjety?.kod,
           klient: {
@@ -246,10 +252,11 @@ export default function StronaZamowienia() {
             <h2 className="mb-4 flex items-center gap-2.5 text-[15px] font-bold">
               <span className={numer}>2</span> Sposób dostawy
             </h2>
+            <EdycjaDostaw klasa="mb-4" />
             <div className="flex flex-col gap-3">
-              {METODY_DOSTAWY.map((m) => {
-                const on = metodaId === m.id;
-                const koszt = kosztDostawy(m, suma);
+              {metodyDostawy.map((m) => {
+                const on = metoda.id === m.id;
+                const koszt = kosztDostawy(m, suma, ustawieniaDostawy.darmowaOd);
                 return (
                   <div key={m.id}>
                     <button

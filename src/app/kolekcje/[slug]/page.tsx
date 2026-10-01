@@ -7,6 +7,8 @@ import { KartaProduktu } from "@/components/KartaProduktu";
 import { KOLEKCJE, znajdzKolekcje, produktyKolekcji } from "@/data/kolekcje";
 import { katalogWidoczny } from "@/lib/produktyDb";
 import { BAZA_URL, jsonLd } from "@/lib/seo";
+import { zProgiem } from "@/lib/dostawa";
+import { pobierzDostawe } from "@/lib/dostawaDb";
 
 // ISR — treść statyczna, produkty odświeżane co 5 minut.
 export const revalidate = 300;
@@ -30,7 +32,8 @@ export default async function StronaKolekcji({ params }: { params: { slug: strin
   const kol = znajdzKolekcje(params.slug);
   if (!kol) notFound();
 
-  const katalog = await katalogWidoczny();
+  const [katalog, { darmowaOd }] = await Promise.all([katalogWidoczny(), pobierzDostawe()]);
+  const faq = kol.faq.map((f) => ({ q: f.q, a: zProgiem(f.a, darmowaOd) }));
   const produkty = produktyKolekcji(katalog, kol);
 
   // Pozostałe kolekcje do linkowania wewnętrznego.
@@ -48,7 +51,7 @@ export default async function StronaKolekcji({ params }: { params: { slug: strin
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: kol.faq.map((f) => ({
+      mainEntity: faq.map((f) => ({
         "@type": "Question",
         name: f.q,
         acceptedAnswer: { "@type": "Answer", text: f.a },
@@ -92,7 +95,7 @@ export default async function StronaKolekcji({ params }: { params: { slug: strin
         <div className="mx-auto max-w-content border-t border-linia pt-10">
           <h2 className="mb-5 text-[20px] font-bold tracking-tight">Najczęstsze pytania</h2>
           <div className="flex flex-col divide-y divide-linia border-y border-linia">
-            {kol.faq.map((f) => (
+            {faq.map((f) => (
               <details key={f.q} className="group py-4">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[16px] font-semibold">
                   {f.q}

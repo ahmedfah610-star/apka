@@ -42,7 +42,7 @@ const FAQ_ROZMIAR = {
 };
 const FAQ_DOSTAWA = {
   q: "Jak szybko dotrze zamówienie?",
-  a: "Wysyłamy w 1–2 dni robocze przez InPost, ORLEN Paczka, DPD lub DHL. Darmowa dostawa od 150 zł, a na zwrot masz 14 dni.",
+  a: "Wysyłamy w 1–2 dni robocze przez InPost, ORLEN Paczka, DPD lub DHL. Darmowa dostawa od {darmowaOd}, a na zwrot masz 14 dni.",
 };
 
 export const KOLEKCJE: Kolekcja[] = [

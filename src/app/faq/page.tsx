@@ -1,7 +1,12 @@
 import { StronaInfo } from "@/components/StronaInfo";
 import { jsonLd } from "@/lib/seo";
+import { zProgiem } from "@/lib/dostawa";
+import { pobierzDostawe } from "@/lib/dostawaDb";
 
 export const metadata = { title: "FAQ — najczęstsze pytania" };
+
+// Próg darmowej dostawy edytowany w trybie edycji sklepu.
+export const revalidate = 600;
 
 const PYTANIA: { q: string; a: string }[] = [
   // Rozmiary
@@ -17,7 +22,7 @@ const PYTANIA: { q: string; a: string }[] = [
 
   // Dostawa
   { q: "Jakie są sposoby dostawy?", a: "Wysyłamy przez InPost (Paczkomaty 24/7 i kurier), ORLEN Paczkę oraz kurierem. Punkt odbioru lub paczkomat wybierasz wygodnie na mapie podczas składania zamówienia." },
-  { q: "Od jakiej kwoty jest darmowa dostawa?", a: "Dostawa jest darmowa przy zamówieniach od 150 zł. Poniżej tej kwoty koszt zależy od wybranej metody — najtańsza opcja to InPost Paczkomat." },
+  { q: "Od jakiej kwoty jest darmowa dostawa?", a: "Dostawa jest darmowa przy zamówieniach od {darmowaOd}. Poniżej tej kwoty koszt zależy od wybranej metody — najtańsza opcja to InPost Paczkomat." },
   { q: "Jak długo czekam na paczkę?", a: "Zwykle 1–2 dni robocze na przygotowanie i nadanie oraz 1–2 dni na doręczenie — łącznie najczęściej 2–4 dni robocze od zaksięgowania płatności." },
   { q: "Czy mogę śledzić zamówienie?", a: "Tak. Status sprawdzisz na stronie „Śledzenie zamówienia”, podając numer zamówienia i e-mail. Zalogowani klienci widzą historię w panelu konta." },
 
@@ -32,22 +37,24 @@ const PYTANIA: { q: string; a: string }[] = [
   { q: "Kto może dodać opinię o produkcie?", a: "Opinie mogą dodawać wyłącznie klienci, którzy kupili dany produkt (weryfikujemy zakup po e-mailu z zamówienia). Dzięki temu oceny są prawdziwe i wiarygodne." },
 ];
 
-const faqLd = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: PYTANIA.map((p) => ({
+export default async function Faq() {
+  const { darmowaOd } = await pobierzDostawe();
+  const pytania = PYTANIA.map((p) => ({ q: p.q, a: zProgiem(p.a, darmowaOd) }));
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: pytania.map((p) => ({
     "@type": "Question",
-    name: p.q,
-    acceptedAnswer: { "@type": "Answer", text: p.a },
-  })),
-};
+      name: p.q,
+      acceptedAnswer: { "@type": "Answer", text: p.a },
+    })),
+  };
 
-export default function Faq() {
   return (
     <StronaInfo tytul="Najczęstsze pytania" wstep="Krótkie odpowiedzi na to, o co pytacie najczęściej.">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(faqLd)} />
       <div className="flex flex-col divide-y divide-linia border-y border-linia">
-        {PYTANIA.map((p) => (
+        {pytania.map((p) => (
           <details key={p.q} className="group py-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[16px] font-semibold">
               {p.q}

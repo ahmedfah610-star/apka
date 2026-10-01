@@ -1,24 +1,35 @@
+import { Fragment } from "react";
 import { StronaInfo, Sekcja, Lista, Ramka } from "@/components/StronaInfo";
+import { EdycjaDostaw } from "@/components/EdycjaDostaw";
+import { zl } from "@/lib/dostawa";
+import { pobierzDostawe } from "@/lib/dostawaDb";
 
 export const metadata = { title: "Dostawa i zwroty" };
 
-export default function DostawaZwroty() {
+export const revalidate = 600;
+
+export default async function DostawaZwroty() {
+  const { metody, darmowaOd } = await pobierzDostawe();
   return (
     <StronaInfo
       tytul="Dostawa i zwroty"
       wstep="Wygodna wysyłka InPost oraz 14 dni na zwrot bez podania przyczyny. Poniżej znajdziesz wszystkie zasady i wzór formularza odstąpienia."
     >
       <Sekcja tytul="Sposoby i koszt dostawy">
+        <EdycjaDostaw klasa="mb-3" />
         <Lista
           punkty={[
-            <>InPost Paczkomat (ekonomiczny) — <strong>10,50 zł</strong></>,
-            <>InPost Paczkomat 24/7 (standard) — <strong>14,60 zł</strong></>,
-            <>ORLEN Paczka (punkt) — <strong>11,99 zł</strong></>,
-            <>DPD Pickup (punkt) — <strong>10,99 zł</strong></>,
-            <>Pocztex (punkt) — <strong>12,99 zł</strong></>,
-            <>Kurier InPost (pod adres) — <strong>14,99 zł</strong></>,
-            <>Kurier DHL (pod adres) — <strong>19,99 zł</strong></>,
-            <>Darmowa dostawa dla zamówień powyżej <strong>150 zł</strong></>,
+            ...metody
+              .filter((m) => m.aktywna !== false)
+              .map((m) => (
+                <Fragment key={m.id}>
+                  {m.nazwa} — <strong>{zl(m.cena)}</strong>
+                  {m.opis ? <span className="text-ink-2"> · {m.opis}</span> : null}
+                </Fragment>
+              )),
+            <Fragment key="darmowa">
+              Darmowa dostawa dla zamówień od <strong>{zl(darmowaOd)}</strong>
+            </Fragment>,
           ]}
         />
         <p>

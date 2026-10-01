@@ -7,6 +7,8 @@ import { katalogWidoczny } from "@/lib/produktyDb";
 import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
 import { ZAMOWIENIA_WYLACZONE, KOMUNIKAT_PRZERWY } from "@/lib/sklep";
 import { sprawdzKod, zuzyjKod } from "@/lib/kodyDb";
+import { kosztDostawy } from "@/lib/dostawa";
+import { pobierzDostawe } from "@/lib/dostawaDb";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +24,7 @@ interface Body {
   pozycje: Pozycja[];
   dostawa: number;
   metoda: string;
+  metodaId?: string; // id sposobu dostawy — koszt liczony z cennika na serwerze
   klient?: Record<string, unknown>;
   kod?: string;
 }
@@ -56,9 +59,14 @@ export async function POST(req: Request) {
   }
   if (pozycje.length === 0) return Response.json({ ok: false, blad: "Produkty są niedostępne." }, { status: 400 });
 
-  // Kwoty liczone po stronie serwera. Dostawa ograniczona do rozsądnego zakresu.
+  // Kwoty liczone po stronie serwera. Dostawa z cennika ustawionego w sklepie
+  // (próg darmowej dostawy jak w koszyku); bez metodaId — kwota ograniczona do rozsądnego zakresu.
   const suma = pozycje.reduce((s, p) => s + p.cena * p.ilosc, 0);
-  const dostawa = Math.max(0, Math.min(100, Number(b.dostawa) || 0));
+  const ustawieniaDostawy = await pobierzDostawe();
+  const metodaDostawy = ustawieniaDostawy.metody.find((m) => m.id === b.metodaId && m.aktywna !== false);
+  const dostawa = metodaDostawy
+    ? kosztDostawy(metodaDostawy, suma, ustawieniaDostawy.darmowaOd)
+    : Math.max(0, Math.min(100, Number(b.dostawa) || 0));
 
   // Kod rabatowy — walidacja i naliczenie rabatu po stronie serwera.
   let rabat = 0;

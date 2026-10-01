@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { Nawigacja } from "@/components/Nawigacja";
 import { KartaProduktu } from "@/components/KartaProduktu";
 import { Stopka } from "@/components/Stopka";
+import { useDostawa } from "@/lib/dostawaKlient";
+import { zProgiem } from "@/lib/dostawa";
 import { KATEGORIE_LABEL, PRODUKTY, type Produkt } from "@/data/produkty";
 import {
   filtrujProdukty,
@@ -42,7 +44,7 @@ const WYROZNIENIA: { key: FiltrWyroznienie; label: string }[] = [
 // Opisy kategorii (SEO) — widoczne pod nagłówkiem strony kategorii.
 const OPISY_KATEGORII: Record<string, string> = {
   wszystkie:
-    "Ubranka dla dzieci 0–12 lat — od body i pajacyków dla niemowląt po dresy, bluzy i legginsy dla starszaków — oraz odzież męska. Przy każdym rozmiarze wymiary w centymetrach. Darmowa dostawa od 150 zł, 14 dni na zwrot.",
+    "Ubranka dla dzieci 0–12 lat — od body i pajacyków dla niemowląt po dresy, bluzy i legginsy dla starszaków — oraz odzież męska. Przy każdym rozmiarze wymiary w centymetrach. Darmowa dostawa od {darmowaOd}, 14 dni na zwrot.",
   dziewczynki:
     "Ubranka dla dziewczynek 0–12 lat: sukienki, legginsy, bluzy, komplety i body. Miękkie tkaniny i wygodne fasony — na przedszkole, spacer i wyjątkowe okazje.",
   chlopcy:
@@ -66,6 +68,7 @@ function Listing() {
   const params = useSearchParams();
 
   // Katalog z kodu + produkty dodane w panelu (localStorage).
+  const { darmowaOd } = useDostawa();
   const [wszystkie, setWszystkie] = useState<Produkt[]>(PRODUKTY);
   useEffect(() => {
     pobierzKatalog().then((k) => {
@@ -229,7 +232,7 @@ function Listing() {
           </p>
         ) : null}
         {!fraza && OPISY_KATEGORII[kategoria] ? (
-          <p className="mb-4 line-clamp-2 max-w-3xl text-[13px] leading-relaxed text-ink-2 md:mb-7 md:line-clamp-none md:text-[14.5px]">{OPISY_KATEGORII[kategoria]}</p>
+          <p className="mb-4 line-clamp-2 max-w-3xl text-[13px] leading-relaxed text-ink-2 md:mb-7 md:line-clamp-none md:text-[14.5px]">{zProgiem(OPISY_KATEGORII[kategoria], darmowaOd)}</p>
         ) : null}
       </div>
 

@@ -7,7 +7,8 @@ import { Stopka } from "@/components/Stopka";
 import { useKoszyk } from "@/components/KoszykContext";
 import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
-import { DARMOWA_DOSTAWA_OD } from "@/lib/dostawa";
+import { useDostawa } from "@/lib/dostawaKlient";
+import { EdycjaDostaw } from "@/components/EdycjaDostaw";
 import { ZAMOWIENIA_WYLACZONE } from "@/lib/sklep";
 import { PrzerwaTechniczna } from "@/components/PrzerwaTechniczna";
 import { pobierzKatalog } from "@/lib/katalogKlient";
@@ -40,8 +41,9 @@ export default function StronaKoszyka() {
   // Liczone z tego, co widać na liście (nie z surowego zapisu koszyka).
   const sztuk = pozycjeZDanymi.reduce((s, { poz }) => s + poz.ilosc, 0);
 
-  const doDarmowej = Math.max(0, DARMOWA_DOSTAWA_OD - suma);
-  const procent = Math.min(100, (suma / DARMOWA_DOSTAWA_OD) * 100);
+  const { darmowaOd } = useDostawa();
+  const doDarmowej = Math.max(0, darmowaOd - suma);
+  const procent = darmowaOd > 0 ? Math.min(100, (suma / darmowaOd) * 100) : 100;
 
   return (
     <div className="overflow-x-clip bg-szary/30">
@@ -84,6 +86,7 @@ export default function StronaKoszyka() {
             {/* Lista pozycji */}
             <div>
               {/* Pasek darmowej dostawy */}
+              <EdycjaDostaw klasa="mb-3" />
               <div className="mb-4 rounded-2xl border border-linia bg-white p-4 sm:p-5">
                 {doDarmowej > 0 ? (
                   <p className="mb-2.5 text-[13.5px] text-ink-2">

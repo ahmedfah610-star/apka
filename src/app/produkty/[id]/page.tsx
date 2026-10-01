@@ -4,23 +4,22 @@ import { WidokProduktu } from "@/components/WidokProduktu";
 import { KATEGORIE_LABEL, opisProduktu, type Produkt } from "@/data/produkty";
 import { katalogWidoczny, znajdzProduktDb } from "@/lib/produktyDb";
 import { pobierzOpinie, agregat, type Opinia } from "@/lib/opinieDb";
-import { METODY_DOSTAWY } from "@/lib/dostawa";
+import { najtanszaDostawa } from "@/lib/dostawa";
+import { pobierzDostawe } from "@/lib/dostawaDb";
 import { BAZA_URL, NAZWA_SKLEPU, jsonLd } from "@/lib/seo";
 
-// Najtańsza dostawa — do danych strukturalnych (Merchant listings).
-const NAJTANSZA_DOSTAWA = Math.min(...METODY_DOSTAWY.map((m) => m.cena));
-
 // Zasady dostawy i zwrotu wg schema.org (wymagane przez Google Merchant listings).
-const SHIPPING_DETAILS = {
+// Cena = najtańsza widoczna dostawa z ustawień sklepu.
+const szczegolyWysylki = (najtansza: number) => ({
   "@type": "OfferShippingDetails",
-  shippingRate: { "@type": "MonetaryAmount", value: NAJTANSZA_DOSTAWA.toFixed(2), currency: "PLN" },
+  shippingRate: { "@type": "MonetaryAmount", value: najtansza.toFixed(2), currency: "PLN" },
   shippingDestination: { "@type": "DefinedRegion", addressCountry: "PL" },
   deliveryTime: {
     "@type": "ShippingDeliveryTime",
     handlingTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 2, unitCode: "DAY" },
     transitTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 2, unitCode: "DAY" },
   },
-};
+});
 
 const RETURN_POLICY = {
   "@type": "MerchantReturnPolicy",
@@ -56,7 +55,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
-function daneProduktu(p: Produkt, opinie: Opinia[]) {
+function daneProduktu(p: Produkt, opinie: Opinia[], najtanszaDostawaZl: number) {
   const zdjecia = p.zdjecia?.length ? p.zdjecia : p.zdjecie ? [p.zdjecie] : [];
   const dostepny = p.stan === undefined || p.stan === null || p.stan > 0;
   const ag = agregat(opinie);
@@ -99,7 +98,7 @@ function daneProduktu(p: Produkt, opinie: Opinia[]) {
         itemCondition: "https://schema.org/NewCondition",
         url: `${BAZA_URL}/produkty/${p.id}`,
         seller: { "@type": "Organization", name: NAZWA_SKLEPU },
-        shippingDetails: SHIPPING_DETAILS,
+        shippingDetails: szczegolyWysylki(najtanszaDostawaZl),
         hasMerchantReturnPolicy: RETURN_POLICY,
       },
     },
@@ -120,11 +119,11 @@ export default async function StronaProduktu({ params }: { params: { id: string 
 
   if (!p) notFound(); // prawidłowy status 404 (bez soft-404) + nasza strona 404
 
-  const opinie = await pobierzOpinie(p.id);
+  const [opinie, dostawa] = await Promise.all([pobierzOpinie(p.id), pobierzDostawe()]);
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(daneProduktu(p, opinie))} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(daneProduktu(p, opinie, najtanszaDostawa(dostawa)))} />
       <WidokProduktu produkt={p} wszystkie={wszystkie} />
     </>
   );
