@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
+import { ListaBloga } from "@/components/ListaBloga";
 import { ARTYKULY } from "@/data/blog";
 
 export const metadata: Metadata = {
@@ -11,44 +10,21 @@ export const metadata: Metadata = {
   alternates: { canonical: "/blog" },
 };
 
-const DATA_PL = (iso: string) => new Date(iso).toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" });
-
 export default function Blog() {
+  // Do listy tylko dane karty — bez treści artykułów (mniejsza strona).
+  const wpisy = [...ARTYKULY]
+    .sort((a, b) => b.data.localeCompare(a.data))
+    .map(({ slug, tytul, opis, data, czasCzytania, kategoria, hue, zdjecie }) => ({ slug, tytul, opis, data, czasCzytania, kategoria, hue, zdjecie }));
+
   return (
     <div className="overflow-x-clip">
       <Nawigacja />
-      <div className="mx-auto max-w-content px-5 py-12 sm:px-6 md:px-12 md:py-16">
+      <div className="mx-auto max-w-content px-5 py-10 sm:px-6 md:px-12 md:py-14">
         <h1 className="mb-2 text-[30px] font-extrabold tracking-tight md:text-[38px]">Blog</h1>
-        <p className="mb-10 text-[16px] text-ink-2">Poradniki dla rodziców — rozmiary, wyprawka, pielęgnacja i więcej.</p>
-
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {ARTYKULY.map((a) => (
-            <Link key={a.slug} href={`/blog/${a.slug}`} className="group flex flex-col text-inherit no-underline">
-              <div
-                className="relative mb-4 flex h-[190px] items-end overflow-hidden rounded-lg p-4"
-                style={{ background: `linear-gradient(135deg, oklch(94% 0.04 ${a.hue}) 0%, oklch(88% 0.07 ${a.hue}) 100%)` }}
-              >
-                {a.zdjecie ? (
-                  <Image
-                    src={a.zdjecie}
-                    alt={a.tytul}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                ) : null}
-                <span className="relative z-10 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-ink shadow-sm backdrop-blur">
-                  {a.kategoria}
-                </span>
-              </div>
-              <h2 className="mb-1.5 text-[18px] font-bold leading-snug transition-colors group-hover:text-akcent">{a.tytul}</h2>
-              <p className="mb-3 text-[14px] leading-relaxed text-ink-2">{a.opis}</p>
-              <span className="mt-auto text-[12.5px] text-ink-2">
-                {DATA_PL(a.data)} · {a.czasCzytania} min czytania
-              </span>
-            </Link>
-          ))}
-        </div>
+        <p className="mb-6 max-w-2xl text-[16px] text-ink-2">
+          Poradniki dla rodziców — rozmiary, wyprawka, pielęgnacja i ubieranie na każdą porę roku. W każdym wpisie podpowiadamy też, co z naszego sklepu się sprawdzi.
+        </p>
+        <ListaBloga wpisy={wpisy} />
       </div>
       <Stopka />
     </div>

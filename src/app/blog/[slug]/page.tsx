@@ -5,8 +5,26 @@ import { notFound } from "next/navigation";
 import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
 import { UdostepnijWpis } from "@/components/UdostepnijWpis";
+import { KartaProduktu } from "@/components/KartaProduktu";
 import { ARTYKULY, znajdzArtykul, polecaneDlaArtykulu, type Blok } from "@/data/blog";
+import { pasyDlaArtykulu, wybierzProdukty, type PasProduktow } from "@/lib/blogProdukty";
+import { katalogWidoczny } from "@/lib/produktyDb";
+import { kluczWariantu, type Zwiniety } from "@/lib/warianty";
 import { BAZA_URL, NAZWA_SKLEPU, jsonLd } from "@/lib/seo";
+
+// Produkty w treści pochodzą z katalogu — odświeżane co 10 minut (wyprzedane znikają same).
+export const revalidate = 600;
+
+// Kotwica nagłówka (spis treści): „Kiedy lepszy pajacyk" → „kiedy-lepszy-pajacyk".
+function kotwica(t: string): string {
+  return t
+    .toLowerCase()
+    .replace(/ł/g, "l")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 // Zamienia znaczniki [tekst](/url) w treści na wewnętrzne odnośniki (tylko ścieżki /…).
 function tekstZLinkami(tekst: string): React.ReactNode {
@@ -52,21 +70,71 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
 const DATA_PL = (iso: string) => new Date(iso).toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" });
 
 function Blok({ b }: { b: Blok }) {
-  if (b.typ === "h2") return <h2 className="mt-8 text-[22px] font-bold tracking-tight">{b.tekst}</h2>;
+  if (b.typ === "h2")
+    return (
+      <h2 id={kotwica(b.tekst)} className="mt-6 scroll-mt-24 text-[22px] font-extrabold leading-snug tracking-tight md:text-[25px]">
+        {b.tekst}
+      </h2>
+    );
   if (b.typ === "ul")
     return (
-      <ul className="flex list-disc flex-col gap-2 pl-5 text-ink-2">
+      <ul className="flex flex-col gap-2.5 text-[16px] leading-[1.7] text-ink md:text-[17px]">
         {b.punkty.map((p, i) => (
-          <li key={i}>{tekstZLinkami(p)}</li>
+          <li key={i} className="relative pl-6 before:absolute before:left-1 before:top-[0.7em] before:h-2 before:w-2 before:rounded-full before:bg-akcent">
+            {tekstZLinkami(p)}
+          </li>
         ))}
       </ul>
     );
-  return <p className="text-[16px] leading-[1.75] text-ink">{tekstZLinkami(b.tekst)}</p>;
+  return <p className="text-[16px] leading-[1.75] text-ink md:text-[17px]">{tekstZLinkami(b.tekst)}</p>;
 }
 
-export default function Artykul({ params }: { params: { slug: string } }) {
+// Pas produktów w treści artykułu: na telefonie przewijany palcem, na komputerze 4 kafelki.
+function PasWTresci({ pas, produkty }: { pas: PasProduktow; produkty: Zwiniety[] }) {
+  return (
+    <aside className="my-4 rounded-2xl bg-szary/60 p-4 md:p-5" aria-label={`Produkty: ${pas.tytul}`}>
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <div>
+          <p className="text-[11.5px] font-bold uppercase tracking-wide text-akcent">Z naszego sklepu</p>
+          <h3 className="text-[17px] font-extrabold tracking-tight md:text-[18px]">{pas.tytul}</h3>
+        </div>
+        <Link href={pas.link} className="-my-2 shrink-0 py-2 text-[13.5px] font-bold text-ink no-underline hover:text-akcent">
+          {pas.linkTekst ?? "Zobacz wszystkie"} →
+        </Link>
+      </div>
+      <div className="-mx-4 flex snap-x gap-2.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+        {produkty.map(({ produkt, kolory, cenaMin, cenyRozne }, i) => (
+          <div key={produkt.id} className={`w-[42%] shrink-0 snap-start sm:w-auto ${i >= 4 ? "sm:hidden" : ""}`}>
+            <KartaProduktu produkt={produkt} liczbaKolorow={kolory} cenaOd={cenyRozne ? cenaMin : undefined} />
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+export default async function Artykul({ params }: { params: { slug: string } }) {
   const a = znajdzArtykul(params.slug);
   if (!a) notFound();
+
+  // Produkty do wplecenia w treść — po sekcji o danym nagłówku; bez powtórek modeli w artykule.
+  const katalog = await katalogWidoczny();
+  const pokazane = new Set<string>();
+  const pasyPoSekcji = new Map<string, { pas: PasProduktow; produkty: Zwiniety[] }[]>();
+  for (const pas of pasyDlaArtykulu(a.slug)) {
+    const produkty = wybierzProdukty(katalog, pas.wybor, pokazane);
+    if (!produkty.length) continue;
+    produkty.forEach((z) => pokazane.add(kluczWariantu(z.produkt)));
+    pasyPoSekcji.set(pas.po, [...(pasyPoSekcji.get(pas.po) ?? []), { pas, produkty }]);
+  }
+
+  // Treść w sekcjach (od nagłówka do nagłówka) — pas produktów zamyka swoją sekcję.
+  const sekcje: { h2: string | null; bloki: Blok[] }[] = [{ h2: null, bloki: [] }];
+  for (const b of a.tresc) {
+    if (b.typ === "h2") sekcje.push({ h2: b.tekst, bloki: [b] });
+    else sekcje[sekcje.length - 1].bloki.push(b);
+  }
+  const naglowki = a.tresc.filter((b): b is Extract<Blok, { typ: "h2" }> => b.typ === "h2").map((b) => b.tekst);
 
   const inne = ARTYKULY.filter((x) => x.slug !== a.slug).slice(0, 3);
 
@@ -114,9 +182,30 @@ export default function Artykul({ params }: { params: { slug: string } }) {
           </div>
         ) : null}
 
+        {naglowki.length >= 3 ? (
+          <nav aria-label="Spis treści" className="mb-8 rounded-2xl border border-linia bg-white p-5">
+            <p className="mb-2.5 text-[13px] font-bold uppercase tracking-wide text-ink-2">W tym artykule</p>
+            <ol className="flex flex-col gap-1.5 text-[15px]">
+              {naglowki.map((h, i) => (
+                <li key={h} className="flex gap-2.5">
+                  <span className="w-5 shrink-0 text-right font-bold text-ink-2">{i + 1}.</span>
+                  <a href={`#${kotwica(h)}`} className="text-ink no-underline hover:text-akcent hover:underline">
+                    {h}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        ) : null}
+
         <div className="flex flex-col gap-4">
-          {a.tresc.map((b, i) => (
-            <Blok key={i} b={b} />
+          {sekcje.map((s, si) => (
+            <section key={si} className="flex flex-col gap-4">
+              {s.bloki.map((b, i) => (
+                <Blok key={i} b={b} />
+              ))}
+              {s.h2 ? (pasyPoSekcji.get(s.h2) ?? []).map(({ pas, produkty }) => <PasWTresci key={pas.tytul} pas={pas} produkty={produkty} />) : null}
+            </section>
           ))}
         </div>
 
