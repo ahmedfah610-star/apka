@@ -221,7 +221,7 @@ export function EdytorProduktu({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={z} alt="" className="h-full w-full object-contain p-0.5" />
                 {i === 0 ? (
-                  <span className="absolute left-0 top-0 bg-ink px-1 text-[9px] font-semibold text-tlo">GŁÓWNE</span>
+                  <span className="absolute left-0 top-0 bg-ink px-1 text-[9px] font-semibold text-tlo">Główne</span>
                 ) : (
                   <button type="button" onClick={() => ustawGlowne(i)} className="absolute inset-x-0 bottom-0 bg-ink/80 py-0.5 text-[9px] font-semibold text-tlo opacity-0 transition-opacity group-hover:opacity-100">
                     główne
@@ -371,7 +371,7 @@ export function EdytorProduktu({
               Anuluj
             </button>
             <button onClick={zapisz} disabled={zapis} className="bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
-              {zapis ? "ZAPISYWANIE…" : nowy ? "WYSTAW PRODUKT" : "ZAPISZ"}
+              {zapis ? "Zapisywanie…" : nowy ? "Wystaw produkt" : "Zapisz"}
             </button>
           </div>
         </div>

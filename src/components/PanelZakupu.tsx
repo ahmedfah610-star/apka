@@ -8,6 +8,7 @@ import { KATEGORIE_LABEL, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { etykietaStanu } from "@/lib/dostepnosc";
 import { wariantyKoloru } from "@/lib/warianty";
+import { EdycjaProduktu } from "@/components/TrybAdmina";
 
 const CECHY: Record<string, string[]> = {
   dziewczynki: ["Miękka, przyjazna skórze tkanina", "Wygodny krój na co dzień", "Łatwe pranie w 30°C"],
@@ -46,6 +47,8 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
       <Galeria key={p.id} zdjecia={zdjecia} alt={p.nazwa} placeholder={placeholder} />
 
       <div className="flex flex-col px-4 md:px-0">
+        {/* key = przy zmianie koloru edytujemy wybrany wariant */}
+        <EdycjaProduktu key={p.id} produkt={p} wariant="strona" />
         <p className="mb-1.5 text-[12px] uppercase tracking-wide text-ink-2 md:mb-2 md:text-[13px]">
           {KATEGORIE_LABEL[p.kategoria]} · {p.wiekLabel}
           {p.kolor ? <span> · {p.kolor}</span> : null}

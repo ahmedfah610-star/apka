@@ -7,6 +7,7 @@ import { UlubioneProvider } from "@/components/UlubioneContext";
 import { BannerCookies } from "@/components/BannerCookies";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { BAZA_URL, NAZWA_SKLEPU, OPIS_SKLEPU, jsonLd } from "@/lib/seo";
+import { TrybAdminaProvider } from "@/components/TrybAdmina";
 
 // Self-hosting fontu przez next/font — bez blokującego zapytania do Google
 // i bez przesunięć układu (CLS). latin-ext obejmuje polskie znaki.
@@ -120,7 +121,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(daneStrukturalne)} />
         <AuthProvider>
           <UlubioneProvider>
-            <KoszykProvider>{children}</KoszykProvider>
+            <KoszykProvider>
+              <TrybAdminaProvider>{children}</TrybAdminaProvider>
+            </KoszykProvider>
           </UlubioneProvider>
         </AuthProvider>
         <BannerCookies />

@@ -94,8 +94,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             })}
           </nav>
           <div className="mt-auto flex flex-col gap-1 border-t border-linia pt-4 text-[13.5px]">
-            <Link href="/" target="_blank" className="rounded-lg px-3 py-2 text-ink-2 no-underline hover:bg-szary hover:text-ink">
-              Zobacz sklep ↗
+            <Link href="/" className="rounded-lg bg-akcent-2 px-3 py-2 font-semibold text-akcent no-underline hover:bg-akcent hover:text-white">
+              Edytuj w sklepie →
             </Link>
             <button onClick={wyloguj} className="rounded-lg px-3 py-2 text-left text-ink-2 hover:bg-szary hover:text-ink">
               Wyloguj
@@ -110,8 +110,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               bobas-shopping <span className="font-medium text-ink-2">· panel</span>
             </Link>
             <div className="flex items-center gap-3 text-[13px]">
-              <Link href="/" target="_blank" className="text-ink-2 no-underline">
-                Sklep ↗
+              <Link href="/" className="font-semibold text-akcent no-underline">
+                Edytuj w sklepie
               </Link>
               <button onClick={wyloguj} className="text-ink-2">
                 Wyloguj

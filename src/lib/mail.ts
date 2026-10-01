@@ -25,6 +25,7 @@ interface PozycjaMail {
   cena: number;
   ilosc: number;
   rozmiar?: string;
+  kolor?: string | null;
 }
 interface DaneMaila {
   id: string;
@@ -34,7 +35,7 @@ interface DaneMaila {
   rabat?: number;
   kod?: string | null;
   metoda: string;
-  klient: { imie?: string; email?: string; telefon?: string; adres?: string; miasto?: string; kod?: string; paczkomat?: string; punkt?: string; punktOpis?: string };
+  klient: { imie?: string; email?: string; telefon?: string; adres?: string; miasto?: string; kod?: string; paczkomat?: string; punkt?: string; punktOpis?: string; uwagi?: string };
 }
 
 const zl = (n: number) => `${Number(n).toFixed(2).replace(".", ",")} zł`;
@@ -90,7 +91,7 @@ function tabelaPozycji(d: DaneMaila): string {
     .map(
       (x) => `<tr>
         <td style="padding:11px 0;border-bottom:1px solid ${M.linia};font-size:14px;color:${M.ink}">
-          ${esc(x.nazwa)}${x.rozmiar ? `<span style="color:${M.ink3}"> · rozm. ${esc(x.rozmiar)}</span>` : ""}
+          ${esc(x.nazwa)}${x.kolor ? `<span style="color:${M.ink3}"> · ${esc(x.kolor)}</span>` : ""}${x.rozmiar ? `<span style="color:${M.ink3}"> · rozm. ${esc(x.rozmiar)}</span>` : ""}
           <span style="color:${M.ink3}"> × ${x.ilosc}</span>
         </td>
         <td style="padding:11px 0;border-bottom:1px solid ${M.linia};font-size:14px;text-align:right;white-space:nowrap;color:${M.ink}">${zl(x.cena * x.ilosc)}</td>
@@ -125,6 +126,7 @@ function blokDostawy(k: DaneMaila["klient"]): string {
       <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3};margin-bottom:6px">Dane do wysyłki</div>
       <strong style="color:${M.ink}">${esc(k.imie || "")}</strong><br>
       ${adres}${k.telefon ? `<br>tel. ${esc(k.telefon)}` : ""}${k.email ? `<br>${esc(k.email)}` : ""}
+      ${k.uwagi ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${M.linia}"><span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3}">Uwagi do zamówienia</span><br><span style="color:${M.ink}">${esc(k.uwagi)}</span></div>` : ""}
     </td></tr>
   </table>`;
 }

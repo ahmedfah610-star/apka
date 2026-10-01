@@ -91,7 +91,7 @@ export function HistoriaZamowien() {
             {(z.pozycje ?? []).map((p: any, i: number) => (
               <li key={i}>
                 {p.nazwa}
-                {p.rozmiar ? ` · rozm. ${p.rozmiar}` : ""} × {p.ilosc}
+                {p.kolor ? ` · ${p.kolor}` : ""}{p.rozmiar ? ` · rozm. ${p.rozmiar}` : ""} × {p.ilosc}
               </li>
             ))}
           </ul>

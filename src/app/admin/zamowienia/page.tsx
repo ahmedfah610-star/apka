@@ -10,6 +10,7 @@ interface Pozycja {
   cena: number;
   ilosc: number;
   rozmiar?: string;
+  kolor?: string | null;
 }
 interface Klient {
   imie?: string;
@@ -21,6 +22,7 @@ interface Klient {
   paczkomat?: string;
   punkt?: string;
   punktOpis?: string;
+  uwagi?: string;
 }
 interface Zamowienie {
   id: string;
@@ -227,7 +229,10 @@ export default function AdminZamowienia() {
                                 {z.pozycje.map((p, i) => (
                                   <div key={i} className="flex justify-between text-[13.5px]">
                                     <span>
-                                      {p.nazwa}
+                                      <a href={`/produkty/${p.id}`} target="_blank" rel="noopener noreferrer" className="text-ink underline-offset-2 hover:underline">
+                                        {p.nazwa}
+                                      </a>
+                                      {p.kolor ? <span className="font-semibold"> · {p.kolor}</span> : null}
                                       {p.rozmiar ? <span className="text-ink-2"> · rozm. {p.rozmiar}</span> : null}
                                       <span className="text-ink-2"> × {p.ilosc}</span>
                                     </span>
@@ -269,6 +274,12 @@ export default function AdminZamowienia() {
                                   ? `Punkt: ${z.klient.punkt}${z.klient?.punktOpis ? ` — ${z.klient.punktOpis}` : ""}`
                                   : [z.klient?.adres, [z.klient?.kod, z.klient?.miasto].filter(Boolean).join(" ")].filter(Boolean).join(", ") || "—"}
                               </p>
+                              {z.klient?.uwagi ? (
+                                <div className="mt-3 rounded-lg border border-[oklch(85%_0.1_85)] bg-[oklch(97%_0.04_90)] px-3 py-2 text-[13.5px]">
+                                  <p className="text-[11.5px] font-bold uppercase tracking-wide text-ink-2">Uwagi klienta</p>
+                                  <p className="whitespace-pre-wrap">{z.klient.uwagi}</p>
+                                </div>
+                              ) : null}
 
                               {/* Nadanie paczki */}
                               <div className="mt-5 border-t border-linia pt-4">

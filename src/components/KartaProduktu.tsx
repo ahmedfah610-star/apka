@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { PrzyciskUlubione } from "@/components/PrzyciskUlubione";
+import { EdycjaProduktu } from "@/components/TrybAdmina";
 
 // Jedna karta produktu w całym sklepie (lista, kolekcje, strona główna, „Zobacz też"):
 // zdjęcie, cena na pierwszym planie, nazwa, dostępne rozmiary i liczba kolorów.
@@ -22,6 +23,7 @@ export function KartaProduktu({ produkt, liczbaKolorow, cenaOd }: { produkt: Pro
     >
       <div className="relative flex aspect-square items-center justify-center overflow-hidden" style={produkt.zdjecie ? undefined : placeholder}>
         <PrzyciskUlubione id={produkt.id} />
+        <EdycjaProduktu produkt={produkt} wariant="karta" />
         {produkt.zdjecie ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

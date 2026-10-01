@@ -16,6 +16,7 @@ interface Pozycja {
   cena: number;
   ilosc: number;
   rozmiar?: string;
+  kolor?: string | null; // z katalogu na serwerze — każdy kolor to osobny produkt, w zamówieniu musi być widać który
 }
 interface Body {
   pozycje: Pozycja[];
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
       cena: prod.cena, // ← cena z serwera
       ilosc,
       rozmiar: typeof w.rozmiar === "string" ? w.rozmiar.slice(0, 20) : undefined,
+      kolor: prod.kolor ?? null,
     });
   }
   if (pozycje.length === 0) return Response.json({ ok: false, blad: "Produkty są niedostępne." }, { status: 400 });
@@ -70,6 +72,11 @@ export async function POST(req: Request) {
   }
   const razem = Math.max(0, suma - rabat) + dostawa;
 
+  // Dane klienta + uwagi do zamówienia (tekst od klienta — przycięty, bez znaczników).
+  const klientWe = (b.klient ?? {}) as Record<string, unknown>;
+  const uwagi = typeof klientWe.uwagi === "string" ? klientWe.uwagi.replace(/[<>]/g, "").trim().slice(0, 500) : "";
+  const klient = { ...klientWe, uwagi: uwagi || undefined };
+
   // ── Płatność online (Przelewy24) — priorytet, wymaga bazy do zapisu ──
   if (p24Wlaczony() && supabaseWlaczony()) {
     const sb = sbService();
@@ -78,7 +85,7 @@ export async function POST(req: Request) {
     // 1) Zapis zamówienia jako oczekującego (bez zdejmowania stanu).
     const { data, error } = await sb
       .from("zamowienia")
-      .insert({ pozycje, suma, dostawa, razem, metoda: b.metoda, klient: b.klient ?? {}, status: "oczekuje_na_platnosc", kod_rabatowy: kodRabatowy, rabat })
+      .insert({ pozycje, suma, dostawa, razem, metoda: b.metoda, klient, status: "oczekuje_na_platnosc", kod_rabatowy: kodRabatowy, rabat })
       .select("id")
       .single();
     if (error || !data) return Response.json({ ok: false, blad: error?.message || "Zapis nieudany" }, { status: 500 });
@@ -109,7 +116,7 @@ export async function POST(req: Request) {
     // 1) Zapis zamówienia jako oczekującego (bez zdejmowania stanu).
     const { data, error } = await sb
       .from("zamowienia")
-      .insert({ pozycje, suma, dostawa, razem, metoda: b.metoda, klient: b.klient ?? {}, status: "oczekuje_na_platnosc", kod_rabatowy: kodRabatowy, rabat })
+      .insert({ pozycje, suma, dostawa, razem, metoda: b.metoda, klient, status: "oczekuje_na_platnosc", kod_rabatowy: kodRabatowy, rabat })
       .select("id")
       .single();
     if (error || !data) return Response.json({ ok: false, blad: error?.message || "Zapis nieudany" }, { status: 500 });
@@ -167,7 +174,7 @@ export async function POST(req: Request) {
         p_dostawa: dostawa,
         p_razem: razem,
         p_metoda: b.metoda,
-        p_klient: b.klient ?? {},
+        p_klient: klient,
       });
       if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
       // Zapamiętaj kod + rabat na zamówieniu i policz użycie (płatność od razu).
@@ -184,7 +191,7 @@ export async function POST(req: Request) {
         rabat,
         kod: kodRabatowy,
         metoda: b.metoda,
-        klient: (b.klient ?? {}) as never,
+        klient: klient as never,
       });
       return Response.json({ ok: true, id: data });
     }

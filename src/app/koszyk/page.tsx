@@ -116,6 +116,9 @@ export default function StronaKoszyka() {
                           <Link href={`/produkty/${produkt!.id}`} className="block text-[15px] font-semibold leading-snug no-underline text-ink hover:text-akcent">
                             {produkt!.nazwa}
                           </Link>
+                          {produkt!.kolor ? (
+                            <span className="mr-1.5 mt-1.5 inline-block rounded-md border border-linia-2 px-2 py-0.5 text-[12px] text-ink-2">kolor: {produkt!.kolor}</span>
+                          ) : null}
                           {poz.rozmiar ? (
                             <span className="mt-1.5 inline-block rounded-md border border-linia-2 px-2 py-0.5 text-[12px] text-ink-2">rozmiar {poz.rozmiar}</span>
                           ) : null}

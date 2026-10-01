@@ -6,10 +6,12 @@ import { IkonaKonta } from "@/components/IkonaKonta";
 import { Szukajka } from "@/components/Szukajka";
 import { MenuMobilne } from "@/components/MenuMobilne";
 import { PasekKategorii } from "@/components/PasekKategorii";
+import { PasekAdmina } from "@/components/TrybAdmina";
 
 export function Nawigacja({ aktywna }: { aktywna?: "home" | "produkty" }) {
   return (
     <>
+      <PasekAdmina />
       <header className="sticky top-0 z-50 border-b border-linia bg-white md:border-b-0">
         <div className="mx-auto flex max-w-content items-center gap-3 px-4 py-2 sm:px-6 md:gap-8 md:px-10 md:py-3">
           <div className="flex shrink-0 items-center gap-1.5">

@@ -34,6 +34,7 @@ export default function StronaZamowienia() {
   const [punkt, setPunkt] = useState<PunktOdbioru | null>(null);
   const [dane, setDane] = useState({ imie: "", email: "", telefon: "", adres: "", miasto: "", kod: "" });
   const [akceptacja, setAkceptacja] = useState(false);
+  const [uwagi, setUwagi] = useState("");
   const [blad, setBlad] = useState("");
   const [wysylka, setWysylka] = useState(false);
   const [platnosciOnline, setPlatnosciOnline] = useState(false);
@@ -179,6 +180,7 @@ export default function StronaZamowienia() {
             cena: produkt!.cena,
             ilosc: poz.ilosc,
             rozmiar: poz.rozmiar,
+            kolor: produkt!.kolor ?? null,
           })),
           dostawa,
           metoda: `${metoda.nazwa} · ${platnosc.nazwa}`,
@@ -187,6 +189,7 @@ export default function StronaZamowienia() {
             imie: dane.imie,
             email: dane.email,
             telefon: dane.telefon,
+            uwagi: uwagi.trim() || undefined,
             ...(metoda.paczkomat
               ? { paczkomat: paczkomat?.kod, paczkomatOpis: paczkomat?.opis }
               : metoda.punkt
@@ -327,6 +330,24 @@ export default function StronaZamowienia() {
               </div>
             )}
           </section>
+
+          {/* Uwagi do zamówienia */}
+          <section className="rounded-2xl border border-linia bg-white p-5 md:p-6">
+            <label htmlFor="uwagi" className="mb-1 block text-[15px] font-bold">
+              Uwagi do zamówienia <span className="font-normal text-ink-2">(opcjonalnie)</span>
+            </label>
+            <p className="mb-3 text-[13px] text-ink-2">Np. prośba o konkretny odcień, zapakowanie na prezent albo informacja dla kuriera.</p>
+            <textarea
+              id="uwagi"
+              value={uwagi}
+              onChange={(e) => setUwagi(e.target.value.slice(0, 500))}
+              rows={3}
+              maxLength={500}
+              placeholder="Twoja wiadomość do sklepu…"
+              className="w-full resize-y rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[16px] outline-none focus:border-ink md:text-[14px]"
+            />
+            <p className="mt-1 text-right text-[12px] text-ink-2">{uwagi.length}/500</p>
+          </section>
         </div>
 
         {/* Podsumowanie */}
@@ -346,7 +367,11 @@ export default function StronaZamowienia() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium text-ink">{produkt!.nazwa}</span>
-                  {poz.rozmiar ? <span className="block text-[12px] text-ink-2">rozmiar {poz.rozmiar}</span> : null}
+                  {produkt!.kolor || poz.rozmiar ? (
+                    <span className="block text-[12px] text-ink-2">
+                      {[produkt!.kolor, poz.rozmiar ? `rozmiar ${poz.rozmiar}` : null].filter(Boolean).join(" · ")}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="whitespace-nowrap font-semibold">{formatCena(produkt!.cena * poz.ilosc)} zł</span>
               </div>

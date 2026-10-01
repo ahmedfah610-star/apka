@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { oznaczAdmina } from "@/components/TrybAdmina";
 
 // Brama panelu. Logowanie idzie przez serwer (/api/admin/login) — hasło
 // trzymane jest w zmiennej ADMIN_HASLO na serwerze, a sesja w cookie httpOnly.
@@ -19,6 +20,7 @@ export function StrazAdmina({ children }: { children: React.ReactNode }) {
       .then((r) => r.json())
       .then((d) => {
         setOdblokowane(!!d.ok);
+        oznaczAdmina(!!d.ok);
         setSkonfigurowane(d.skonfigurowane !== false);
       })
       .catch(() => {})
@@ -37,6 +39,7 @@ export function StrazAdmina({ children }: { children: React.ReactNode }) {
       });
       if (res.ok) {
         setOdblokowane(true);
+        oznaczAdmina(true);
       } else if (res.status === 501) {
         setBlad("Panel nie jest skonfigurowany — ustaw zmienną ADMIN_HASLO.");
       } else {
@@ -91,6 +94,7 @@ export function StrazAdmina({ children }: { children: React.ReactNode }) {
 }
 
 export async function wyloguj() {
+  oznaczAdmina(false);
   try {
     await fetch("/api/admin/login", { method: "DELETE" });
   } catch {
