@@ -35,7 +35,7 @@ interface DaneMaila {
   rabat?: number;
   kod?: string | null;
   metoda: string;
-  klient: { imie?: string; email?: string; telefon?: string; adres?: string; miasto?: string; kod?: string; paczkomat?: string; punkt?: string; punktOpis?: string; uwagi?: string };
+  klient: { imie?: string; email?: string; telefon?: string; adres?: string; miasto?: string; kod?: string; paczkomat?: string; punkt?: string; punktOpis?: string; uwagi?: string; test?: boolean };
 }
 
 const zl = (n: number) => `${Number(n).toFixed(2).replace(".", ",")} zł`;
@@ -217,6 +217,7 @@ export async function wyslijMaileZamowienia(d: DaneMaila) {
   if (!key) return;
   const odbiorcaSklep = sklep || "amin.kids1@hotmail.com";
   const nr = d.id.slice(0, 8);
+  const tag = d.klient.test ? "[TEST] " : ""; // zamówienie testowe — od razu widać w skrzynce
   const zadania: Promise<{ ok: boolean; blad?: string }>[] = [];
 
   // Do klienta — ciepłe podziękowanie + podsumowanie + śledzenie.
@@ -229,7 +230,7 @@ export async function wyslijMaileZamowienia(d: DaneMaila) {
       tresc: tabelaPozycji(d) + blokDostawy(d.klient),
       cta: { tekst: "ŚLEDŹ ZAMÓWIENIE", url: `${BAZA}/status-zamowienia` },
     });
-    zadania.push(wyslij(d.klient.email, `Potwierdzenie zamówienia ${nr} — bobas-shopping`, html));
+    zadania.push(wyslij(d.klient.email, `${tag}Potwierdzenie zamówienia ${nr} — bobas-shopping`, html));
   }
 
   // Do sklepu — rzeczowe powiadomienie.
@@ -240,7 +241,7 @@ export async function wyslijMaileZamowienia(d: DaneMaila) {
     tresc: tabelaPozycji(d) + blokDostawy(d.klient),
     cta: { tekst: "PANEL ZAMÓWIEŃ", url: `${BAZA}/admin/zamowienia` },
   });
-  zadania.push(wyslij(odbiorcaSklep, `Nowe zamówienie ${nr} — ${zl(d.razem)}`, htmlSklep));
+  zadania.push(wyslij(odbiorcaSklep, `${tag}Nowe zamówienie ${nr} — ${zl(d.razem)}`, htmlSklep));
 
   await Promise.all(zadania);
 }

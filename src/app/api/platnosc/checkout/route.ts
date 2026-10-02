@@ -9,6 +9,7 @@ import { ZAMOWIENIA_WYLACZONE, KOMUNIKAT_PRZERWY } from "@/lib/sklep";
 import { sprawdzKod, zuzyjKod } from "@/lib/kodyDb";
 import { kosztDostawy } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
+import { kluczTestowyOk } from "@/lib/zamowienieTestowe";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,7 @@ interface Body {
   metodaId?: string; // id sposobu dostawy — koszt liczony z cennika na serwerze
   klient?: Record<string, unknown>;
   kod?: string;
+  test?: string; // klucz zamówienia testowego (bez płatności) — patrz zamowienieTestowe.ts
 }
 
 export async function POST(req: Request) {
@@ -83,10 +85,11 @@ export async function POST(req: Request) {
   // Dane klienta + uwagi do zamówienia (tekst od klienta — przycięty, bez znaczników).
   const klientWe = (b.klient ?? {}) as Record<string, unknown>;
   const uwagi = typeof klientWe.uwagi === "string" ? klientWe.uwagi.replace(/[<>]/g, "").trim().slice(0, 500) : "";
-  const klient = { ...klientWe, uwagi: uwagi || undefined };
+  const test = b.test ? await kluczTestowyOk(b.test) : false;
+  const klient = { ...klientWe, uwagi: uwagi || undefined, test: test || undefined };
 
   // ── Płatność online (Przelewy24) — priorytet, wymaga bazy do zapisu ──
-  if (p24Wlaczony() && supabaseWlaczony()) {
+  if (!test && p24Wlaczony() && supabaseWlaczony()) {
     const sb = sbService();
     if (!sb) return Response.json({ ok: false, blad: "Błąd konfiguracji" }, { status: 500 });
 
@@ -116,7 +119,7 @@ export async function POST(req: Request) {
   }
 
   // ── Płatność online (Stripe) — wymaga też bazy do zapisu zamówienia ──
-  if (stripeWlaczony() && supabaseWlaczony()) {
+  if (!test && stripeWlaczony() && supabaseWlaczony()) {
     const sb = sbService();
     const sk = stripe();
     if (!sb || !sk) return Response.json({ ok: false, blad: "Błąd konfiguracji" }, { status: 500 });

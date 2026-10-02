@@ -23,6 +23,7 @@ interface Klient {
   punkt?: string;
   punktOpis?: string;
   uwagi?: string;
+  test?: boolean;
 }
 interface Zamowienie {
   id: string;
@@ -184,7 +185,10 @@ export default function AdminZamowienia() {
                   <Fragment key={z.id}>
                     <tr className="bg-white align-middle">
                       <td className="px-4 py-3">
-                        <span className="block font-semibold">#{z.id.slice(0, 8)}</span>
+                        <span className="block font-semibold">
+                          #{z.id.slice(0, 8)}
+                          {z.klient?.test ? <span className="ml-1.5 rounded bg-[oklch(92%_0.07_85)] px-1.5 py-0.5 text-[10.5px] font-bold text-[oklch(45%_0.12_75)]">TEST</span> : null}
+                        </span>
                         <span className="text-[12px] text-ink-2">
                           {new Date(z.data).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" })}
                         </span>

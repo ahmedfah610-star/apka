@@ -104,6 +104,13 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
     return r;
   };
 
+  // Ślad na wypadek przekroczenia limitu czasu funkcji (wtedy końcowy raport się nie zapisze).
+  await sb.from("ustawienia").upsert({
+    klucz: KLUCZ_RAPORTU,
+    wartosc: { ...raport, blad: "Synchronizacja trwa albo została przerwana (limit czasu) — dokończy się przy następnym uruchomieniu." },
+    zaktualizowano: new Date().toISOString(),
+  });
+
   try {
     if (!(await aktualnyToken())) {
       return zakoncz({ ...raport, blad: "Brak połączenia z Allegro — połącz ponownie w panelu (Import z Allegro)." });
@@ -165,7 +172,7 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
       return zRozmiarem.length === 1 ? zRozmiarem[0] : null; // niejednoznaczne — lepiej nie zgadywać
     };
 
-    const koniecCzasu = start + (opcje.budzetMs ?? 38000);
+    const koniecCzasu = start + (opcje.budzetMs ?? 25000);
     const nowe = await poKolei(doSprawdzenia, 8, koniecCzasu, async (o): Promise<Powiazanie | null> => {
       try {
         const det = await szczegoly(o.id);
