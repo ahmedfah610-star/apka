@@ -164,5 +164,9 @@ export function p24PodpisNotyfikacjiOk(n: P24Notyfikacja): boolean {
     statement: n.statement,
     crc: cfg.crc,
   });
-  return oczekiwany === n.sign;
+  // Powiadomienie musi dotyczyć NASZEGO sklepu i mieć poprawny podpis (porównanie stałoczasowe).
+  if (Number(n.merchantId) !== cfg.merchantId || Number(n.posId) !== cfg.posId) return false;
+  const a = Buffer.from(oczekiwany);
+  const b = Buffer.from(String(n.sign ?? ""));
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }

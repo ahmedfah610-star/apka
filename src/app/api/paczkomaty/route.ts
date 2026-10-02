@@ -1,3 +1,4 @@
+import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
 // Pobiera paczkomaty InPost z publicznego API ShipX (bez tokenu).
 // Wołane z przeglądarki jako /api/paczkomaty?q=<miasto> — bez problemów CORS.
 
@@ -37,6 +38,7 @@ function normalizujMiasto(s: string): string {
 }
 
 export async function GET(req: Request) {
+  if (!wLimicie(`paczkomaty:${ipZadania(req)}`, 60, 60 * 1000)) return limitOdpowiedz();
   const surowe = (new URL(req.url).searchParams.get("q") ?? "").trim();
   if (surowe.length < 2) return Response.json({ items: [] });
   const q = normalizujMiasto(surowe);

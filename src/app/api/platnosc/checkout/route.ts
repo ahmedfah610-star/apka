@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   if (!wLimicie(`checkout:${ipZadania(req)}`, 15, 60 * 1000)) return limitOdpowiedz();
 
   const b = (await req.json().catch(() => ({}))) as Body;
-  const wejscie = Array.isArray(b.pozycje) ? b.pozycje : [];
+  const wejscie = Array.isArray(b.pozycje) ? b.pozycje.slice(0, 50) : [];
   if (wejscie.length === 0) return Response.json({ ok: false, blad: "Pusty koszyk" }, { status: 400 });
 
   // ── Ceny i nazwy pobierane z KATALOGU SERWERA, nie z danych klienta ──
@@ -47,16 +47,34 @@ export async function POST(req: Request) {
   const katalog = await katalogWidoczny();
   const cennik = new Map(katalog.map((p) => [p.id, p]));
   const pozycje: Pozycja[] = [];
+  const zamawiane = new Map<string, number>(); // produkt|rozmiar → łącznie sztuk w koszyku
   for (const w of wejscie) {
     const prod = cennik.get(String(w.id));
     if (!prod) continue; // nieznany lub ukryty produkt — pomijamy
     const ilosc = Math.max(1, Math.min(99, Math.floor(Number(w.ilosc) || 1)));
+    // Rozmiar musi istnieć, a sztuk musi wystarczyć (stan z bazy, nie z przeglądarki).
+    const rozmiar = typeof w.rozmiar === "string" ? w.rozmiar.slice(0, 20) : undefined;
+    const maRozmiary = (prod.rozmiary ?? []).length > 0;
+    if (maRozmiary && (!rozmiar || !(prod.rozmiary ?? []).map(String).includes(rozmiar))) {
+      return Response.json({ ok: false, blad: `Wybierz dostępny rozmiar: ${prod.nazwa}.` }, { status: 400 });
+    }
+    const klucz = `${prod.id}|${maRozmiary ? rozmiar : ""}`;
+    const lacznie = (zamawiane.get(klucz) ?? 0) + ilosc;
+    zamawiane.set(klucz, lacznie);
+    const dostepne = maRozmiary ? prod.stanRozmiary?.[rozmiar!] : prod.stan;
+    if (typeof dostepne === "number" && lacznie > dostepne) {
+      const co = `${prod.nazwa}${maRozmiary ? ` (rozm. ${rozmiar})` : ""}`;
+      return Response.json(
+        { ok: false, blad: dostepne > 0 ? `${co}: dostępne tylko ${dostepne} szt.` : `${co} jest już wyprzedany. Usuń go z koszyka.` },
+        { status: 409 },
+      );
+    }
     pozycje.push({
       id: prod.id,
       nazwa: prod.nazwa,
       cena: prod.cena, // ← cena z serwera
       ilosc,
-      rozmiar: typeof w.rozmiar === "string" ? w.rozmiar.slice(0, 20) : undefined,
+      rozmiar: maRozmiary ? rozmiar : undefined,
       kolor: prod.kolor ?? null,
       zdjecie: prod.zdjecie ?? null,
     });

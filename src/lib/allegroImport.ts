@@ -4,6 +4,7 @@ import { ladnaNazwa } from "@/lib/nazwa";
 import { porownajRozmiary, rozmiarDorosly } from "@/lib/rozmiary";
 import { oczyscTekstOpisu } from "@/lib/opis";
 import { kluczScisly } from "@/lib/warianty";
+import { bezpiecznyHtml } from "@/lib/bezpiecznyHtml";
 import type { Kategoria, Produkt, Wiek } from "@/data/produkty";
 
 // Mapowanie ofert z Allegro na produkty sklepu. Wyciąga: nazwę, cenę, wszystkie
@@ -106,14 +107,7 @@ function stripHtml(html: string): string {
 }
 
 // Prosta sanityzacja HTML opisu (treść z własnych ofert Allegro, ale na wszelki wypadek).
-function sanitizeHtml(html: string): string {
-  return html
-    .replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
-    .replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*\/?>/gi, "")
-    .replace(/\son\w+\s*=\s*"[^"]*"/gi, "")
-    .replace(/\son\w+\s*=\s*'[^']*'/gi, "")
-    .replace(/javascript:/gi, "");
-}
+const sanitizeHtml = bezpiecznyHtml; // biała lista znaczników (bez skryptów i zdarzeń)
 
 // Pełny opis: wersja czytelna (tekst), oryginalny HTML oraz zdjęcia z opisu.
 function opisIZdjeciaZOpisu(o: any): { opis: string; opisHtml: string; zdjeciaOpis: string[] } {
@@ -128,7 +122,7 @@ function opisIZdjeciaZOpisu(o: any): { opis: string; opisHtml: string; zdjeciaOp
         teksty.push(stripHtml(String(it.content)));
       }
       if (it?.type === "IMAGE" && it.url) {
-        html.push(`<img src="${String(it.url)}" alt="" loading="lazy" />`); // grafiki opisu
+        html.push(bezpiecznyHtml(`<img src="${String(it.url).replace(/"/g, "")}">`)); // grafiki opisu (tylko https)
         zdj.push(String(it.url));
       }
     }

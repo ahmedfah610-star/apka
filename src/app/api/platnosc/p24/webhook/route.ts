@@ -31,6 +31,11 @@ export async function POST(req: Request) {
 
   // Potwierdzenie transakcji w P24 (kwota z zamówienia = kwota zarejestrowana).
   const amount = Math.round(Number(zam.razem) * 100);
+  // Kwota i waluta z powiadomienia muszą zgadzać się z zamówieniem (niedopłata = brak opłacenia).
+  if (Number(n.amount) !== amount || String(n.currency).toUpperCase() !== "PLN") {
+    console.error(`[p24] webhook: kwota/waluta nie zgadza się dla ${zamowienieId} (${n.amount} ${n.currency} ≠ ${amount} PLN)`);
+    return new Response("Zła kwota", { status: 400 });
+  }
   const ok = await p24Weryfikuj({ sessionId: zamowienieId, orderId: n.orderId, amount });
   if (!ok) {
     console.error(`[p24] webhook: weryfikacja nieudana dla ${zamowienieId}`);
@@ -47,7 +52,8 @@ export async function POST(req: Request) {
   // Policz użycie kodu rabatowego tylko przy pierwszym opłaceniu.
   if (pierwszePotwierdzenie && zam.kod_rabatowy) await zuzyjKod(String(zam.kod_rabatowy));
 
-  const { data } = await sb.from("zamowienia").select("*").eq("id", zamowienieId).single();
+  // Maile tylko przy pierwszym potwierdzeniu — P24 potrafi powtórzyć powiadomienie.
+  const { data } = pierwszePotwierdzenie ? await sb.from("zamowienia").select("*").eq("id", zamowienieId).single() : { data: null };
   if (data) {
     await wyslijMaileZamowienia({
       id: data.id,

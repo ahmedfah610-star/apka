@@ -3,6 +3,7 @@ import { sbAnon, sbService, supabaseWlaczony } from "@/lib/supabase";
 import { ladnaNazwa } from "@/lib/nazwa";
 import { oczyscHtmlOpisu, oczyscTekstOpisu } from "@/lib/opis";
 import { przypiszRodziny } from "@/lib/warianty";
+import { bezpiecznyHtml } from "@/lib/bezpiecznyHtml";
 
 // Warstwa danych produktów. Gdy Supabase jest skonfigurowany — czyta z bazy.
 // Bez konfiguracji — fallback do katalogu z kodu (238 produktów), więc sklep
@@ -48,6 +49,11 @@ function tekstZHtml(h: string): string {
   return h.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
 }
 
+// Każdy opis wychodzący do strony przechodzi przez białą listę znaczników (ochrona przed XSS).
+const bezpieczny = (h: string | null | undefined) => (h ? bezpiecznyHtml(h) || null : (h ?? null));
+const bezpieczneOpisy = (m: Record<string, string> | null) =>
+  m ? Object.fromEntries(Object.entries(m).map(([k, v]) => [k, bezpiecznyHtml(v)]).filter(([, v]) => v)) : null;
+
 function zRzedu(r: any): Produkt {
   const pop = poprawki(r);
   // Kolejność zdjęć (własne zdjęcie koloru jako pierwsze) ustala scalanie.
@@ -65,14 +71,16 @@ function zRzedu(r: any): Produkt {
     zdjecia,
     // Opis poprawiony w edytorze (poprawki) zastępuje opis z Allegro — także opisy per rozmiar.
     opis: pop.opisHtml ? tekstZHtml(pop.opisHtml) : oczyscTekstOpisu(r.opis), // bez „zobacz inne aukcje" i zepsutych znaków
-    opisHtml: pop.opisHtml ?? oczyscHtmlOpisu(r.opis_html),
+    opisHtml: bezpieczny(pop.opisHtml ?? oczyscHtmlOpisu(r.opis_html)),
     // Opisy per rozmiar: poprawione w edytorze (pojedyncze rozmiary) nadpisują te z Allegro;
     // sam poprawiony opis bez rozmiarów (stary zapis) = jeden opis dla wszystkich.
-    opisRozmiary: pop.opisRozmiary
-      ? { ...czysteOpisyRozmiarow(r.opis_rozmiary), ...pop.opisRozmiary }
-      : !pop.opisHtml && r.opis_rozmiary
-      ? Object.fromEntries(Object.entries(r.opis_rozmiary as Record<string, string>).map(([k, v]) => [k, oczyscHtmlOpisu(v) ?? ""]))
-      : null,
+    opisRozmiary: bezpieczneOpisy(
+      pop.opisRozmiary
+        ? { ...czysteOpisyRozmiarow(r.opis_rozmiary), ...pop.opisRozmiary }
+        : !pop.opisHtml && r.opis_rozmiary
+        ? Object.fromEntries(Object.entries(r.opis_rozmiary as Record<string, string>).map(([k, v]) => [k, oczyscHtmlOpisu(v) ?? ""]))
+        : null,
+    ),
     kolor: pop.kolor ?? r.kolor ?? null,
     model: pop.model,
     stan: r.stan ?? undefined,

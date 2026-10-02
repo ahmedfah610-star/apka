@@ -178,6 +178,8 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
     };
 
     const koniecCzasu = start + (opcje.budzetMs ?? 25000);
+    // Opis rozmiaru z oferty (wymiary) — nowy rozmiar na Allegro dostaje w sklepie swój opis, nie cudzy.
+    const opisyOfert = new Map<string, { rozmiar: string; html: string }>();
     const nowe = await poKolei(doSprawdzenia, 8, koniecCzasu, async (o): Promise<Powiazanie | null> => {
       try {
         const det = await szczegoly(o.id);
@@ -185,6 +187,8 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
         const klucz = kluczScalania(m.wiersz);
         const produkt =
           wybierz(poKluczu.get(klucz), m.rozmiar) ?? wybierz(poNazwie.get(klucz.split("|").slice(0, 2).join("|")), m.rozmiar);
+        const html = m.rozmiar ? (m.wiersz.opis_rozmiary as Record<string, string> | null)?.[m.rozmiar] : undefined;
+        if (m.rozmiar && html) opisyOfert.set(o.id, { rozmiar: m.rozmiar, html });
         return {
           oferta_id: o.id,
           produkt_id: produkt ? String(produkt.id) : null,
@@ -240,14 +244,21 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
     const ids = [...cel.keys()];
     const obecne: any[] = [];
     for (let i = 0; i < ids.length; i += 200) {
-      const { data, error } = await sb.from("produkty").select("id, nazwa, rozmiary, stan, stan_rozmiary").in("id", ids.slice(i, i + 200));
+      const { data, error } = await sb.from("produkty").select("id, nazwa, rozmiary, stan, stan_rozmiary, opis_rozmiary").in("id", ids.slice(i, i + 200));
       if (error) throw new Error(error.message);
       obecne.push(...(data ?? []));
     }
 
     let rozmiarowSklepu = 0;
     let doWyzerowania = 0;
-    const aktualizacje: { p: any; sr: Record<string, number> | null; stan: number; rozmiary: string[]; zmiany: ZmianaStanu[] }[] = [];
+    const aktualizacje: { p: any; sr: Record<string, number> | null; stan: number; rozmiary: string[]; zmiany: ZmianaStanu[]; opisy?: Record<string, string> }[] = [];
+    // Brakujące opisy rozmiarów z właśnie powiązanych ofert (istniejących nie nadpisujemy).
+    const noweOpisy = new Map<string, Record<string, string>>();
+    for (const [oferta, o] of opisyOfert) {
+      const pid = powiazania.get(oferta)?.produkt_id;
+      if (!pid) continue;
+      noweOpisy.set(pid, { ...(noweOpisy.get(pid) ?? {}), [o.rozmiar]: o.html });
+    }
     for (const p of obecne) {
       const docelowe = cel.get(p.id)!;
       const sr: Record<string, number> = { ...((p.stan_rozmiary as Record<string, number> | null) ?? {}) };
@@ -272,10 +283,13 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
         rozmiarowSklepu++;
         if (!docelowe.has(r)) raport.bezPowiazania++;
       }
-      if (!zmiany.length) continue;
+      const obecneOpisy = (p.opis_rozmiary as Record<string, string> | null) ?? {};
+      const brakujace = Object.fromEntries(Object.entries(noweOpisy.get(p.id) ?? {}).filter(([r]) => !obecneOpisy[r]));
+      const opisy = Object.keys(brakujace).length ? { ...obecneOpisy, ...brakujace } : undefined;
+      if (!zmiany.length && !opisy) continue;
       const maRozmiary = Object.keys(sr).length > 0;
       const stan = maRozmiary ? Object.values(sr).reduce((s, v) => s + (Number(v) || 0), 0) : (stanBezRozmiaru ?? p.stan ?? 0);
-      aktualizacje.push({ p, sr: maRozmiary ? sr : null, stan, rozmiary: [...rozmiary].sort(porownajRozmiary), zmiany });
+      aktualizacje.push({ p, sr: maRozmiary ? sr : null, stan, rozmiary: [...rozmiary].sort(porownajRozmiary), zmiany, opisy });
     }
 
     if (rozmiarowSklepu > 20 && doWyzerowania > rozmiarowSklepu * MAX_UDZIAL_ZER) {
@@ -291,7 +305,7 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
         aktualizacje.slice(i, i + 10).map(async (a) => {
           const { error } = await sb
             .from("produkty")
-            .update({ stan_rozmiary: a.sr, stan: a.stan, rozmiary: a.rozmiary })
+            .update({ stan_rozmiary: a.sr, stan: a.stan, rozmiary: a.rozmiary, ...(a.opisy ? { opis_rozmiary: a.opisy } : {}) })
             .eq("id", a.p.id);
           if (error) return;
           raport.zmienione++;

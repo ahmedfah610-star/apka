@@ -2,23 +2,33 @@
 
 import { useEffect, useRef, useState } from "react";
 import { KATEGORIE_LABEL, type Kategoria, type Produkt, type Wiek } from "@/data/produkty";
+import { bezpiecznyHtml } from "@/lib/bezpiecznyHtml";
 import { EdytorOpisu, tekstNaHtml } from "@/components/EdytorOpisu";
 import { OPIS_KLASA } from "@/lib/opisStyl";
 import { nizszeNaglowki } from "@/lib/opis";
 import { formatCena } from "@/lib/filtrowanie";
 
+// Najbliższy liczbowo istniejący rozmiar (dla „62" → „56" albo „68"); inaczej pierwszy.
+function najblizszyRozmiar(lista: string[], nowy: string): string | undefined {
+  const n = parseInt(nowy, 10);
+  if (!lista.length) return undefined;
+  if (!Number.isFinite(n)) return lista[0];
+  return [...lista].sort((a, b) => Math.abs((parseInt(a, 10) || 1e9) - n) - Math.abs((parseInt(b, 10) || 1e9) - n))[0];
+}
+
+// Podmienia oznaczenie rozmiaru w opisie: „Rozmiar: 56", „rozm. 56", „Wzrost 56 cm" → nowy rozmiar.
+// Inne liczby (wymiary) zostają — te sprawdza człowiek.
+function zmienOznaczenieRozmiaru(html: string, z: string, na: string): string {
+  const esc = z.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`(rozmiar[a-ząćęłńóśźż]*|rozm\\.?|wzrost[a-ząćęłńóśźż]*)(\\s*:?\\s*(?:<[^>]+>\\s*)*)${esc}(?![0-9]|\\s*[-–/]\\s*[0-9])`, "gi"); // zakres „56-62" zostaje
+  return html.replace(re, (_m, a: string, b: string) => `${a}${b}${na}`);
+}
+
 const WIEK_LABEL: Record<Wiek, string> = { "0-2": "0-2 lata", "2-6": "2-6 lat", "6-12": "6-12 lat", dorosli: "rozmiar dorosły" };
 const HUE: Record<Kategoria, number> = { dziewczynki: 340, chlopcy: 230, niemowleta: 160, dorosli: 90 };
 
 // Uproszczona sanityzacja opisu HTML (na wypadek wklejenia czegoś niebezpiecznego).
-function sanitizeHtml(html: string): string {
-  return html
-    .replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
-    .replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*\/?>/gi, "")
-    .replace(/\son\w+\s*=\s*"[^"]*"/gi, "")
-    .replace(/\son\w+\s*=\s*'[^']*'/gi, "")
-    .replace(/javascript:/gi, "");
-}
+const sanitizeHtml = bezpiecznyHtml; // ta sama biała lista co na serwerze
 
 
 export function EdytorProduktu({
@@ -130,14 +140,32 @@ export function EdytorProduktu({
   const ustawGlowne = (i: number) => setZdjecia((z) => [z[i], ...z.filter((_, idx) => idx !== i)]);
   const usunZdj = (i: number) => setZdjecia((z) => z.filter((_, idx) => idx !== i));
 
+  // Nowy rozmiar dostaje WŁASNY opis: kopię opisu najbliższego rozmiaru z podmienionym
+  // oznaczeniem („Rozmiar 56" → „Rozmiar 62"). Wymiarów (długość, szerokość) nie zgadujemy —
+  // edytor przełącza się na nowy rozmiar i prosi o ich sprawdzenie.
+  const [doSprawdzenia, setDoSprawdzenia] = useState<Record<string, string>>({}); // nowy rozmiar → z którego skopiowano
   function dodajRozmiar(r: string) {
     const rr = (r ?? "").trim().replace(/\s+/g, "");
     if (!rr || rozmiary.includes(rr)) return;
     setRozmiary((p) => [...p, rr].sort((a, b) => (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0)));
     setStany((s) => ({ ...s, [rr]: s[rr] ?? 0 }));
     setNowyRozmiar("");
+    if (!wczytany) return;
+    const zrodlo = najblizszyRozmiar(rozmiary, rr);
+    const opis = zrodlo ? zmienOznaczenieRozmiaru(opisy[zrodlo] ?? wspolny, zrodlo, rr) : wspolny;
+    setOpisy((o) => ({ ...o, [rr]: opis }));
+    setZmianaOpisu(true);
+    if (zrodlo && opis.trim()) setDoSprawdzenia((d) => ({ ...d, [rr]: zrodlo }));
+    setZakladka(rr);
+    setStartZakladki(opis);
+    setWersja((w) => w + 1);
   }
   function usunRozmiar(r: string) {
+    setDoSprawdzenia((d) => {
+      const kop = { ...d };
+      delete kop[r];
+      return kop;
+    });
     setRozmiary((p) => p.filter((x) => x !== r));
     setStany((s) => {
       const kop = { ...s };
@@ -363,6 +391,12 @@ export function EdytorProduktu({
                     ? "Opis wspólny (nowe rozmiary). Kliknij rozmiar, żeby edytować jego opis osobno."
                     : `Zmieniasz opis tylko dla rozmiaru ${zakladka}. Pozostałe rozmiary zostają bez zmian.`}
                 </p>
+                {doSprawdzenia[zakladka] ? (
+                  <p className="mt-2 rounded-lg border border-[oklch(85%_0.1_85)] bg-[oklch(97%_0.04_90)] px-3 py-2 text-[13px] text-ink">
+                    <strong>Nowy rozmiar {zakladka}:</strong> opis skopiowany z rozmiaru {doSprawdzenia[zakladka]} (oznaczenie rozmiaru już zmienione). Popraw
+                    wymiary — długość, szerokość itp. — tak, żeby pasowały do rozmiaru {zakladka}.
+                  </p>
+                ) : null}
               </div>
             ) : null}
             {!wczytany ? (

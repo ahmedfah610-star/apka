@@ -5,6 +5,7 @@ import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { bazowyUrl } from "@/lib/platnosci";
 import { powiadomOOdblokowaniu } from "@/lib/restock";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
+import { bezpiecznyHtml } from "@/lib/bezpiecznyHtml";
 
 export const dynamic = "force-dynamic";
 
@@ -54,7 +55,10 @@ export async function PATCH(req: Request) {
   if ("nazwa" in zmiany) map.nazwa = zmiany.nazwa;
   if ("cena" in zmiany) map.cena = zmiany.cena;
   if ("opis" in zmiany) map.opis = zmiany.opis ?? null;
-  if ("opisHtml" in zmiany) map.opis_html = zmiany.opisHtml ?? null;
+  if ("opisHtml" in zmiany) {
+    zmiany.opisHtml = zmiany.opisHtml ? bezpiecznyHtml(String(zmiany.opisHtml)).slice(0, 50000) || null : null;
+    map.opis_html = zmiany.opisHtml;
+  }
   if ("kolor" in zmiany) map.kolor = zmiany.kolor ?? null;
   if ("kategoria" in zmiany) map.kategoria = zmiany.kategoria;
   if ("wiek" in zmiany) {
@@ -86,11 +90,7 @@ export async function PATCH(req: Request) {
     const czyste: Record<string, string> = {};
     for (const [r, h] of Object.entries((zmiany.opisRozmiary ?? {}) as Record<string, unknown>)) {
       if (typeof h !== "string") continue;
-      czyste[String(r).slice(0, 20)] = h
-        .replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
-        .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*')/gi, "")
-        .replace(/javascript:/gi, "")
-        .slice(0, 50000);
+      czyste[String(r).slice(0, 20)] = bezpiecznyHtml(h).slice(0, 50000);
     }
     zmiany.opisRozmiary = Object.keys(czyste).length ? czyste : null;
     map.opis_rozmiary = zmiany.opisRozmiary;

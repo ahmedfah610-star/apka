@@ -26,7 +26,7 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false, // nie zdradzaj, że to Next.js
   images: {
-    formats: ["image/avif", "image/webp"],
+    formats: ["image/webp"], // bez AVIF — znana luka w optymalizatorze obrazów Next 14 (RCE przy AVIF)
     minimumCacheTTL: 60 * 60 * 24,
     remotePatterns: [
       { protocol: "https", hostname: "*.allegroimg.com" },
