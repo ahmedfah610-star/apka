@@ -20,6 +20,7 @@ interface Pozycja {
   ilosc: number;
   rozmiar?: string;
   kolor?: string | null; // z katalogu na serwerze — każdy kolor to osobny produkt, w zamówieniu musi być widać który
+  zdjecie?: string | null; // miniatura w panelu i mailu — od razu widać, którą rzecz spakować
 }
 interface Body {
   pozycje: Pozycja[];
@@ -57,13 +58,15 @@ export async function POST(req: Request) {
       ilosc,
       rozmiar: typeof w.rozmiar === "string" ? w.rozmiar.slice(0, 20) : undefined,
       kolor: prod.kolor ?? null,
+      zdjecie: prod.zdjecie ?? null,
     });
   }
   if (pozycje.length === 0) return Response.json({ ok: false, blad: "Produkty są niedostępne." }, { status: 400 });
 
   // Kwoty liczone po stronie serwera. Dostawa z cennika ustawionego w sklepie
   // (próg darmowej dostawy jak w koszyku); bez metodaId — kwota ograniczona do rozsądnego zakresu.
-  const suma = pozycje.reduce((s, p) => s + p.cena * p.ilosc, 0);
+  const grosze = (n: number) => Math.round(n * 100) / 100; // bez „59.980000000000004” w bazie
+  const suma = grosze(pozycje.reduce((s, p) => s + p.cena * p.ilosc, 0));
   const ustawieniaDostawy = await pobierzDostawe();
   const metodaDostawy = ustawieniaDostawy.metody.find((m) => m.id === b.metodaId && m.aktywna !== false);
   const dostawa = metodaDostawy
@@ -80,7 +83,7 @@ export async function POST(req: Request) {
       kodRabatowy = w.kod!.kod;
     }
   }
-  const razem = Math.max(0, suma - rabat) + dostawa;
+  const razem = grosze(Math.max(0, suma - rabat) + dostawa);
 
   // Dane klienta + uwagi do zamówienia (tekst od klienta — przycięty, bez znaczników).
   const klientWe = (b.klient ?? {}) as Record<string, unknown>;

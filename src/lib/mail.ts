@@ -26,6 +26,7 @@ interface PozycjaMail {
   ilosc: number;
   rozmiar?: string;
   kolor?: string | null;
+  zdjecie?: string | null;
 }
 interface DaneMaila {
   id: string;
@@ -35,7 +36,7 @@ interface DaneMaila {
   rabat?: number;
   kod?: string | null;
   metoda: string;
-  klient: { imie?: string; email?: string; telefon?: string; adres?: string; miasto?: string; kod?: string; paczkomat?: string; punkt?: string; punktOpis?: string; uwagi?: string; test?: boolean };
+  klient: { imie?: string; email?: string; telefon?: string; adres?: string; miasto?: string; kod?: string; paczkomat?: string; paczkomatOpis?: string; punkt?: string; punktOpis?: string; uwagi?: string; test?: boolean };
 }
 
 const zl = (n: number) => `${Number(n).toFixed(2).replace(".", ",")} zł`;
@@ -91,8 +92,13 @@ function tabelaPozycji(d: DaneMaila): string {
     .map(
       (x) => `<tr>
         <td style="padding:11px 0;border-bottom:1px solid ${M.linia};font-size:14px;color:${M.ink}">
-          ${esc(x.nazwa)}${x.kolor ? `<span style="color:${M.ink3}"> · ${esc(x.kolor)}</span>` : ""}${x.rozmiar ? `<span style="color:${M.ink3}"> · rozm. ${esc(x.rozmiar)}</span>` : ""}
-          <span style="color:${M.ink3}"> × ${x.ilosc}</span>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+            ${/^https:\/\//.test(x.zdjecie ?? "") ? `<td style="padding-right:12px;vertical-align:top"><img src="${esc(x.zdjecie!)}" width="52" height="52" alt="" style="display:block;width:52px;height:52px;object-fit:contain;border:1px solid ${M.linia};border-radius:8px;background:#fff"></td>` : ""}
+            <td style="vertical-align:top;font-size:14px;color:${M.ink}">
+              ${esc(x.nazwa)}<br>
+              <span style="font-size:13px;color:${M.ink2}">${[x.kolor ? `kolor: <strong style="color:${M.ink}">${esc(x.kolor)}</strong>` : "", x.rozmiar ? `rozmiar: <strong style="color:${M.ink}">${esc(x.rozmiar)}</strong>` : "", `ilość: <strong style="color:${M.ink}">${x.ilosc}</strong>`].filter(Boolean).join(" · ")}</span>
+            </td>
+          </tr></table>
         </td>
         <td style="padding:11px 0;border-bottom:1px solid ${M.linia};font-size:14px;text-align:right;white-space:nowrap;color:${M.ink}">${zl(x.cena * x.ilosc)}</td>
       </tr>`,
@@ -117,7 +123,7 @@ function tabelaPozycji(d: DaneMaila): string {
 
 function blokDostawy(k: DaneMaila["klient"]): string {
   const adres = k.paczkomat
-    ? `Paczkomat InPost: <strong>${esc(k.paczkomat)}</strong>`
+    ? `Paczkomat InPost: <strong>${esc(k.paczkomat)}</strong>${k.paczkomatOpis ? ` — ${esc(k.paczkomatOpis)}` : ""}`
     : k.punkt
     ? `Punkt odbioru: <strong>${esc(k.punkt)}</strong>${k.punktOpis ? ` — ${esc(k.punktOpis)}` : ""}`
     : esc([k.adres, [k.kod, k.miasto].filter(Boolean).join(" ")].filter(Boolean).join(", "));

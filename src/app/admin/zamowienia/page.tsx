@@ -11,6 +11,7 @@ interface Pozycja {
   ilosc: number;
   rozmiar?: string;
   kolor?: string | null;
+  zdjecie?: string | null;
 }
 interface Klient {
   imie?: string;
@@ -20,6 +21,7 @@ interface Klient {
   miasto?: string;
   kod?: string;
   paczkomat?: string;
+  paczkomatOpis?: string;
   punkt?: string;
   punktOpis?: string;
   uwagi?: string;
@@ -231,16 +233,24 @@ export default function AdminZamowienia() {
                               <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-2">Produkty</p>
                               <div className="flex flex-col gap-1.5">
                                 {z.pozycje.map((p, i) => (
-                                  <div key={i} className="flex justify-between text-[13.5px]">
-                                    <span>
-                                      <a href={`/produkty/${p.id}`} target="_blank" rel="noopener noreferrer" className="text-ink underline-offset-2 hover:underline">
-                                        {p.nazwa}
-                                      </a>
-                                      {p.kolor ? <span className="font-semibold"> · {p.kolor}</span> : null}
-                                      {p.rozmiar ? <span className="text-ink-2"> · rozm. {p.rozmiar}</span> : null}
-                                      <span className="text-ink-2"> × {p.ilosc}</span>
+                                  <div key={i} className="flex items-center justify-between gap-3 text-[13.5px]">
+                                    <span className="flex min-w-0 items-center gap-3">
+                                      {p.zdjecie ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img src={p.zdjecie} alt="" className="h-12 w-12 shrink-0 rounded-md border border-linia bg-white object-contain" />
+                                      ) : null}
+                                      <span className="min-w-0">
+                                        <a href={`/produkty/${p.id}`} target="_blank" rel="noopener noreferrer" className="block text-ink underline-offset-2 hover:underline">
+                                          {p.nazwa}
+                                        </a>
+                                        <span className="text-[12.5px] text-ink-2">
+                                          {p.kolor ? <>kolor: <strong className="text-ink">{p.kolor}</strong> · </> : null}
+                                          {p.rozmiar ? <>rozmiar: <strong className="text-ink">{p.rozmiar}</strong> · </> : null}
+                                          ilość: <strong className="text-ink">{p.ilosc}</strong>
+                                        </span>
+                                      </span>
                                     </span>
-                                    <span className="font-medium">{formatCena(p.cena * p.ilosc)} zł</span>
+                                    <span className="shrink-0 font-medium">{formatCena(p.cena * p.ilosc)} zł</span>
                                   </div>
                                 ))}
                                 <div className="mt-1 flex justify-between border-t border-linia pt-1.5 text-[13px] text-ink-2">
@@ -273,7 +283,7 @@ export default function AdminZamowienia() {
                                 ) : null}
                                 <br />
                                 {z.klient?.paczkomat
-                                  ? `Paczkomat: ${z.klient.paczkomat}`
+                                  ? `Paczkomat: ${z.klient.paczkomat}${z.klient?.paczkomatOpis ? ` — ${z.klient.paczkomatOpis}` : ""}`
                                   : z.klient?.punkt
                                   ? `Punkt: ${z.klient.punkt}${z.klient?.punktOpis ? ` — ${z.klient.punktOpis}` : ""}`
                                   : [z.klient?.adres, [z.klient?.kod, z.klient?.miasto].filter(Boolean).join(" ")].filter(Boolean).join(", ") || "—"}
