@@ -117,7 +117,7 @@ export async function allegroGet<T = unknown>(sciezka: string): Promise<T> {
   if (!token) throw new Error("Brak połączenia z Allegro.");
   const res = await fetch(`${API}${sciezka}`, {
     headers: { Authorization: `Bearer ${token}`, Accept: ACCEPT },
-    signal: AbortSignal.timeout(15000), // zawieszone zapytanie nie może zjeść limitu funkcji
+    signal: AbortSignal.timeout(10000), // zawieszone zapytanie nie może zjeść limitu funkcji
   });
   if (!res.ok) throw new Error(`Allegro ${sciezka} → ${res.status}: ${await res.text().catch(() => "")}`);
   return (await res.json()) as T;

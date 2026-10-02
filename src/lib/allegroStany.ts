@@ -67,14 +67,19 @@ async function wszystkieAktywne(): Promise<OfertaLista[]> {
 async function poKolei<T, W>(elementy: T[], rownolegle: number, koniecCzasu: number, f: (e: T) => Promise<W>): Promise<W[]> {
   const wyniki: W[] = [];
   let i = 0;
+  let koniec = false;
   const watek = async () => {
-    while (i < elementy.length && Date.now() < koniecCzasu) {
+    while (!koniec && i < elementy.length && Date.now() < koniecCzasu) {
       const e = elementy[i++];
-      wyniki.push(await f(e));
+      const w = await f(e);
+      if (!koniec) wyniki.push(w); // wynik spóźniony po terminie — pomijamy (dokończy następny przebieg)
     }
   };
-  await Promise.all(Array.from({ length: rownolegle }, watek));
-  return wyniki;
+  // Twardy termin: nie czekamy na zawieszone zapytania — reszta synchronizacji musi zdążyć przed limitem funkcji.
+  const termin = new Promise<void>((r) => setTimeout(r, Math.max(0, koniecCzasu - Date.now()) + 1500));
+  await Promise.race([Promise.all(Array.from({ length: rownolegle }, watek)), termin]);
+  koniec = true;
+  return [...wyniki];
 }
 
 export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: number } = {}): Promise<RaportStanow> {
