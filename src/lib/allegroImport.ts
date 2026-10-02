@@ -74,7 +74,7 @@ export function nazwaBezRozmiarow(n: string): string {
   return bazaNazwy(chronione).replace(/QQ([A-Z])QQ/g, (_m, l: string) => liczby[LITERY.indexOf(l)] ?? "");
 }
 
-function hash36(s: string): string {
+export function hash36(s: string): string {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
   return h.toString(36);

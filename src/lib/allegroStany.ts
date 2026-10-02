@@ -42,7 +42,7 @@ const ROZMIAR_BRAK = ""; // produkt bez rozmiarów — ilość trafia do `stan`
 const PONOW_NIEDOPASOWANE_PO_DNIACH = 3;
 const MAX_UDZIAL_ZER = 0.3; // więcej rozmiarów wyzerowanych naraz = coś nie tak po stronie Allegro/API
 
-async function wszystkieAktywne(): Promise<OfertaLista[]> {
+export async function wszystkieAktywne(): Promise<OfertaLista[]> {
   const wynik: OfertaLista[] = [];
   const limit = 1000;
   let razem: number | null = null;

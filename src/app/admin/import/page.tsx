@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SynchronizacjaStanow } from "@/components/SynchronizacjaStanow";
+import { NoweZAllegro } from "@/components/NoweZAllegro";
 
 interface Status { skonfigurowany: boolean; polaczony: boolean }
 interface Wynik { pobrano: number; zapisano: number; bledy: number; blad?: string }
@@ -260,6 +261,7 @@ export default function AdminImport() {
             )}
           </section>
 
+          {status.polaczony ? <NoweZAllegro /> : null}
           {status.polaczony ? <SynchronizacjaStanow /> : null}
 
           {komunikat ? <p className="text-[13.5px] text-ink-2">{komunikat}</p> : null}

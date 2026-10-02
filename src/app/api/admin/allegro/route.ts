@@ -5,6 +5,7 @@ import { ladnaNazwa } from "@/lib/nazwa";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 import { sbService } from "@/lib/supabase";
 import { ostatniRaport, synchronizujStany } from "@/lib/allegroStany";
+import { kandydaciDoPobrania, pobierzPorcje } from "@/lib/allegroNowe";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // limit planu Hobby
@@ -167,7 +168,7 @@ export async function GET(req: Request) {
 // Akcje: start (device flow), poll (sprawdź autoryzację), import (pobierz oferty).
 export async function POST(req: Request) {
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
-  const b = (await req.json().catch(() => ({}))) as { akcja?: string; deviceCode?: string; tylkoAktywne?: boolean; offset?: number; usunNieaktualne?: boolean };
+  const b = (await req.json().catch(() => ({}))) as { akcja?: string; deviceCode?: string; tylkoAktywne?: boolean; offset?: number; usunNieaktualne?: boolean; ids?: string[] };
 
   if (b.akcja === "start") {
     const r = await rozpocznijDevice();
@@ -213,6 +214,26 @@ export async function POST(req: Request) {
     const r = await scalProdukty({ usunNieaktualne: b.usunNieaktualne === true });
     if (r.ok) odswiezPoZmianieStanu();
     return Response.json(r, { status: r.ok ? 200 : 500 });
+  }
+
+  // „Pobierz nowe": najpierw lista ofert, których sklep nie zna, potem porcje (panel woła w pętli).
+  if (b.akcja === "nowe_lista") {
+    try {
+      return Response.json({ ok: true, ...(await kandydaciDoPobrania()) });
+    } catch (e) {
+      return Response.json({ ok: false, blad: e instanceof Error ? e.message : "błąd" }, { status: 500 });
+    }
+  }
+  if (b.akcja === "nowe_porcja") {
+    const ids = (Array.isArray(b.ids) ? b.ids : []).map(String).filter((x) => /^\d{5,20}$/.test(x)).slice(0, 15);
+    if (!ids.length) return Response.json({ ok: false, blad: "Brak ofert" }, { status: 400 });
+    try {
+      const wyniki = await pobierzPorcje(ids);
+      if (wyniki.some((w) => w.wynik === "dodany" || w.wynik === "nowy-rozmiar")) odswiezPoZmianieStanu();
+      return Response.json({ ok: true, wyniki });
+    } catch (e) {
+      return Response.json({ ok: false, blad: e instanceof Error ? e.message : "błąd" }, { status: 500 });
+    }
   }
 
   if (b.akcja === "synchronizuj_stany") {

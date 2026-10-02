@@ -22,7 +22,9 @@ async function zamow(pozycje: unknown[]) {
 }
 
 describe("checkout — rozmiar i stan sprawdzane na serwerze", () => {
-  beforeEach(() => vi.resetModules());
+  beforeEach(() => {
+    vi.resetModules();
+  });
   it("przyjmuje dostępny rozmiar", async () => {
     expect((await zamow([{ id: "p1", rozmiar: "74", ilosc: 2 }])).dane.ok).toBe(true);
   });
