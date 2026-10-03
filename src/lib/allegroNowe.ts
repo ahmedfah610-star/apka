@@ -1,4 +1,4 @@
-import { czyDamski, hash36, kluczScalania, mapujOferte, nazwaBezRozmiarow, szczegoly } from "@/lib/allegroImport";
+import { czyDamski, hash36, HUE, kategoriaIWiek, kluczScalania, mapujOferte, nazwaBezRozmiarow, szczegoly, WIEK_LABEL } from "@/lib/allegroImport";
 import { wszystkieAktywne } from "@/lib/allegroStany";
 import { ladnaNazwa } from "@/lib/nazwa";
 import { porownajRozmiary } from "@/lib/rozmiary";
@@ -118,6 +118,9 @@ export async function pobierzPorcje(
       const istniejacy = async (pid: string) => {
         const brak = m.rozmiar ? !(await maRozmiar(sb, pid, m.rozmiar)) : false;
         const dolozony = brak && wolnoDokladac(pid) ? await dolozRozmiar(sb, pid, m.rozmiar, m.sztuk, opisRozmiaru) : false;
+        // Produkt dodany w tym pobieraniu: kategoria/wiek z PEŁNEJ listy rozmiarów (np. 80–104 to już
+        // „dziewczynki", nie „niemowlęta" jak po pierwszym rozmiarze). Starych produktów nie przeliczamy.
+        if (dolozony && noweTeraz.has(pid)) await przeliczKategorie(sb, pid, det);
         await powiaz(pid);
         wyniki.push({
           oferta: id,
@@ -178,6 +181,14 @@ export async function pobierzPorcje(
     }
   }
   return wyniki;
+}
+
+async function przeliczKategorie(sb: any, produktId: string, det: any): Promise<void> {
+  const { data: p } = await sb.from("produkty").select("nazwa, rozmiary, kategoria").eq("id", produktId).maybeSingle();
+  if (!p) return;
+  const { kategoria, wiek } = kategoriaIWiek(p.rozmiary ?? [], det, String(p.nazwa ?? ""), p.kategoria);
+  if (kategoria === p.kategoria) return;
+  await sb.from("produkty").update({ kategoria, wiek, wiek_label: WIEK_LABEL[wiek], hue: HUE[kategoria] }).eq("id", produktId);
 }
 
 async function maRozmiar(sb: any, produktId: string, rozmiar: string): Promise<boolean> {

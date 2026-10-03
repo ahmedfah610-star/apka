@@ -13,8 +13,8 @@ import type { Kategoria, Produkt, Wiek } from "@/data/produkty";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const HUE: Record<Kategoria, number> = { dziewczynki: 340, chlopcy: 230, niemowleta: 160, dorosli: 90 };
-const WIEK_LABEL: Record<Wiek, string> = { "0-2": "0-2 lata", "2-6": "2-6 lat", "6-12": "6-12 lat", dorosli: "rozmiar dorosły" };
+export const HUE: Record<Kategoria, number> = { dziewczynki: 340, chlopcy: 230, niemowleta: 160, dorosli: 90 };
+export const WIEK_LABEL: Record<Wiek, string> = { "0-2": "0-2 lata", "2-6": "2-6 lat", "6-12": "6-12 lat", dorosli: "rozmiar dorosły" };
 
 // ── Pomocnicze wyciąganie pól z oferty ──────────────────────────────────
 
@@ -181,7 +181,7 @@ function czyDorosly(nazwa: string, rozmiary: string[]): boolean {
  * rozmiar literowy) → osobny dział; (2) małe rozmiary (≤92) → niemowlęta;
  * (3) starszaki → płeć z nazwy/parametru, inaczej „obecna" lub niemowlęta.
  */
-function kategoriaIWiek(
+export function kategoriaIWiek(
   rozmiary: string[] | string,
   o: any,
   nazwa: string,

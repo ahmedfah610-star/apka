@@ -98,4 +98,16 @@ describe("pobierz nowe z Allegro", () => {
     expect(baza.produkty).toHaveLength(1);
     expect(baza.produkty[0].rozmiary).toEqual(["104", "110"]);
   });
+
+  it("kategoria nowego produktu liczona z pełnej listy rozmiarów", async () => {
+    baza.produkty = [];
+    baza.allegro_oferty = [];
+    OFERTY["2001"] = oferta("2001", "Sweterek dla dziewczynki ciepły 80", "80", 1, "WZROST 80 CM. Sweterek");
+    OFERTY["2002"] = oferta("2002", "Sweterek dla dziewczynki ciepły 104", "104", 1, "WZROST 104 CM. Sweterek");
+    const { pobierzPorcje } = await import("@/lib/allegroNowe");
+    await pobierzPorcje(["2001", "2002"]);
+    expect(baza.produkty).toHaveLength(1);
+    expect(baza.produkty[0].rozmiary).toEqual(["80", "104"]);
+    expect(baza.produkty[0].kategoria).toBe("dziewczynki");
+  });
 });
