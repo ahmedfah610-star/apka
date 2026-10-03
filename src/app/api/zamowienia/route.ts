@@ -78,3 +78,14 @@ export async function PATCH(req: Request) {
   }
   return Response.json({ ok: true, mail });
 }
+
+// Usunięcie zamówień TESTOWYCH (oznaczonych w panelu znaczkiem TEST i anulowanych).
+// Prawdziwych zamówień ta akcja nie dotyka.
+export async function DELETE() {
+  if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
+  const sb = sbService();
+  if (!sb) return Response.json({ ok: false, powod: "brak_bazy" }, { status: 501 });
+  const { data, error } = await sb.from("zamowienia").delete().eq("klient->>test", "true").eq("status", "anulowane").select("id");
+  if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
+  return Response.json({ ok: true, usunieto: data?.length ?? 0 });
+}

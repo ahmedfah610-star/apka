@@ -127,6 +127,16 @@ export default function AdminZamowienia() {
     }
   }
 
+  // Zamówienia testowe (znaczek TEST, anulowane) — do usunięcia jednym kliknięciem.
+  const testowe = lista.filter((z) => z.klient?.test && z.status === "anulowane").length;
+  async function usunTestowe() {
+    if (!confirm(`Usunąć ${testowe} zamówień testowych? Prawdziwe zamówienia zostają.`)) return;
+    const r = await fetch("/api/zamowienia", { method: "DELETE" });
+    const d = (await r.json().catch(() => ({}))) as { ok?: boolean; usunieto?: number; blad?: string };
+    if (!r.ok || !d.ok) return alert(d.blad || "Nie udało się usunąć.");
+    await odswiez();
+  }
+
   const liczby = useMemo(() => {
     const m: Record<string, number> = {};
     for (const z of lista) m[z.status] = (m[z.status] ?? 0) + 1;
@@ -140,6 +150,14 @@ export default function AdminZamowienia() {
           <h1 className="text-[26px] font-bold tracking-tight">Zamówienia</h1>
           <p className="text-[14px] text-ink-2">{lista.length} łącznie</p>
         </div>
+        {testowe > 0 ? (
+          <button
+            onClick={() => void usunTestowe()}
+            className="rounded-lg border border-linia-2 bg-white px-3.5 py-2 text-[13px] font-semibold text-ink hover:border-akcent hover:text-akcent"
+          >
+            Usuń zamówienia testowe ({testowe})
+          </button>
+        ) : null}
       </div>
 
       {/* Filtry statusów */}
