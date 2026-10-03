@@ -16,7 +16,7 @@ export interface Kandydat { id: string; nazwa: string }
 export type WynikOferty = {
   oferta: string;
   nazwa: string;
-  wynik: "dodany" | "nowy-rozmiar" | "jest" | "do-sprawdzenia" | "blad";
+  wynik: "dodany" | "nowy-rozmiar" | "brak-rozmiaru" | "jest" | "do-sprawdzenia" | "blad";
   produkt?: string;
   rozmiar?: string | null;
   info?: string;
@@ -48,9 +48,16 @@ export async function kandydaciDoPobrania(): Promise<{ aktywne: number; kandydac
 }
 
 /** Przetwarza porcję ofert (do ~15, mieści się w limicie funkcji). */
-export async function pobierzPorcje(idOfert: string[]): Promise<WynikOferty[]> {
+export async function pobierzPorcje(
+  idOfert: string[],
+  opcje: { dokladajRozmiary?: boolean; noweProdukty?: string[] } = {},
+): Promise<WynikOferty[]> {
   const sb = sbService();
   if (!sb) throw new Error("Brak bazy.");
+  // Istniejących produktów domyślnie NIE ruszamy. Rozmiary dokładamy tylko do produktów
+  // dodanych w tym samym pobieraniu (kolejne rozmiary nowości) albo gdy admin to zaznaczy.
+  const noweTeraz = new Set(opcje.noweProdukty ?? []);
+  const wolnoDokladac = (pid: string) => !!opcje.dokladajRozmiary || noweTeraz.has(pid);
 
   // Indeks produktów sklepu do dopasowania (ten sam klucz co przy imporcie/synchronizacji).
   const produkty = await strony<any>((od, doo) => sb.from("produkty").select("id, nazwa, kolor, cena, opis, rozmiary").like("id", "al-%").order("id").range(od, doo));
@@ -107,11 +114,21 @@ export async function pobierzPorcje(idOfert: string[]): Promise<WynikOferty[]> {
           { onConflict: "oferta_id" },
         );
 
+      // Produkt już jest: powiązujemy ofertę; brakujący rozmiar dokładamy tylko, gdy wolno.
+      const istniejacy = async (pid: string) => {
+        const brak = m.rozmiar ? !(await maRozmiar(sb, pid, m.rozmiar)) : false;
+        const dolozony = brak && wolnoDokladac(pid) ? await dolozRozmiar(sb, pid, m.rozmiar, m.sztuk, opisRozmiaru) : false;
+        await powiaz(pid);
+        wyniki.push({
+          oferta: id,
+          nazwa: nazwaOferty,
+          wynik: dolozony ? "nowy-rozmiar" : brak ? "brak-rozmiaru" : "jest",
+          produkt: pid,
+          rozmiar: m.rozmiar,
+        });
+      };
       if (dopasowany) {
-        // Produkt już jest. Brakujący rozmiar dokładamy (z ilością i opisem tej oferty).
-        const dolozony = await dolozRozmiar(sb, String(dopasowany.id), m.rozmiar, m.sztuk, opisRozmiaru);
-        await powiaz(String(dopasowany.id));
-        wyniki.push({ oferta: id, nazwa: nazwaOferty, wynik: dolozony ? "nowy-rozmiar" : "jest", produkt: String(dopasowany.id), rozmiar: m.rozmiar });
+        await istniejacy(String(dopasowany.id));
         continue;
       }
       if (zKlucza === "wiele" || zNazwy === "wiele") {
@@ -124,9 +141,7 @@ export async function pobierzPorcje(idOfert: string[]): Promise<WynikOferty[]> {
       const idProduktu = "al-m-" + hash36(klucz);
       const { data: juz } = await sb.from("produkty").select("id").eq("id", idProduktu).maybeSingle();
       if (juz) {
-        const dolozony = await dolozRozmiar(sb, idProduktu, m.rozmiar, m.sztuk, opisRozmiaru);
-        await powiaz(idProduktu);
-        wyniki.push({ oferta: id, nazwa: nazwaOferty, wynik: dolozony ? "nowy-rozmiar" : "jest", produkt: idProduktu, rozmiar: m.rozmiar });
+        await istniejacy(idProduktu);
         continue;
       }
       const nowy = {
@@ -156,12 +171,18 @@ export async function pobierzPorcje(idOfert: string[]): Promise<WynikOferty[]> {
       // Kolejne oferty tej porcji mogą być innymi rozmiarami tego produktu.
       const wpis = { id: idProduktu, nazwa: w.nazwa, kolor: w.kolor, cena: w.cena, opis: w.opis, rozmiary: w.rozmiary };
       dodaj(poKluczu, klucz, wpis);
+      noweTeraz.add(idProduktu);
       wyniki.push({ oferta: id, nazwa: nazwaOferty, wynik: "dodany", produkt: idProduktu, rozmiar: m.rozmiar });
     } catch (e) {
       wyniki.push({ oferta: id, nazwa: nazwaOferty, wynik: "blad", info: e instanceof Error ? e.message.slice(0, 160) : "błąd" });
     }
   }
   return wyniki;
+}
+
+async function maRozmiar(sb: any, produktId: string, rozmiar: string): Promise<boolean> {
+  const { data } = await sb.from("produkty").select("rozmiary").eq("id", produktId).maybeSingle();
+  return (data?.rozmiary ?? []).map(String).includes(rozmiar);
 }
 
 // Dokłada rozmiar, którego produkt jeszcze nie ma. Istniejących rozmiarów nie rusza

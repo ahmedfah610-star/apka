@@ -5,11 +5,14 @@ import type { WynikOferty } from "@/lib/allegroNowe";
 
 // Panel: „Pobierz nowe z Allegro" — sprawdza, czego na stronie brakuje, i dodaje tylko to.
 // Nic nie jest kasowane ani pobierane od nowa.
+const pracujeNaStart = (e: string) => e === "sprawdzam" || e === "pobieram";
+
 export function NoweZAllegro() {
   const [etap, setEtap] = useState<"start" | "sprawdzam" | "pobieram" | "koniec">("start");
   const [postep, setPostep] = useState({ zrobione: 0, razem: 0 });
   const [wyniki, setWyniki] = useState<WynikOferty[]>([]);
   const [blad, setBlad] = useState("");
+  const [dokladajRozmiary, setDokladajRozmiary] = useState(false); // domyślnie: istniejących produktów nie ruszamy
 
   const zapytaj = async (body: object) => {
     const r = await fetch("/api/admin/allegro", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -32,7 +35,9 @@ export function NoweZAllegro() {
         let porcja: WynikOferty[] = [];
         for (let proba = 0; proba < 2; proba++) {
           try {
-            porcja = ((await zapytaj({ akcja: "nowe_porcja", ids })) as { wyniki: WynikOferty[] }).wyniki;
+            // Kolejne rozmiary nowości z wcześniejszych porcji trafiają do tego samego nowego produktu.
+            const noweProdukty = [...new Set(zebrane.filter((x) => x.wynik === "dodany").map((x) => x.produkt!))];
+            porcja = ((await zapytaj({ akcja: "nowe_porcja", ids, dokladajRozmiary, noweProdukty })) as { wyniki: WynikOferty[] }).wyniki;
             break;
           } catch (e) {
             if (proba === 1) porcja = ids.map((id) => ({ oferta: id, nazwa: "", wynik: "blad", info: e instanceof Error ? e.message : "błąd" }));
@@ -52,6 +57,7 @@ export function NoweZAllegro() {
   const ile = (w: WynikOferty["wynik"]) => wyniki.filter((x) => x.wynik === w).length;
   const dodane = wyniki.filter((x) => x.wynik === "dodany");
   const rozmiary = wyniki.filter((x) => x.wynik === "nowy-rozmiar");
+  const brakRozmiaru = wyniki.filter((x) => x.wynik === "brak-rozmiaru");
   const reczne = wyniki.filter((x) => x.wynik === "do-sprawdzenia" || x.wynik === "blad");
   // Ten sam nowy produkt w kilku rozmiarach = kilka ofert; na liście raz.
   const noweProdukty = [...new Map(dodane.map((x) => [x.produkt, x])).values()];
@@ -61,8 +67,19 @@ export function NoweZAllegro() {
     <section className="rounded-xl border-2 border-ink bg-white p-5">
       <h2 className="text-[16px] font-bold">Pobierz nowe produkty z Allegro</h2>
       <p className="mb-3 mt-1 text-[13.5px] text-ink-2">
-        Sprawdza, które oferty z Allegro nie są jeszcze w sklepie, i dodaje tylko je (także nowe rozmiary istniejących produktów). Nic nie jest kasowane.
+        Sprawdza, które oferty z Allegro nie są jeszcze w sklepie, i dodaje tylko nowe produkty. Nic nie jest kasowane, a istniejące produkty zostają
+        nietknięte (nazwy, opisy, zdjęcia, ceny, Twoje poprawki).
       </p>
+      <label className="mb-3 flex cursor-pointer items-start gap-2 text-[13.5px] text-ink">
+        <input type="checkbox" className="mt-0.5" checked={dokladajRozmiary} disabled={pracujeNaStart(etap)} onChange={(e) => setDokladajRozmiary(e.target.checked)} />
+        <span>
+          Dokładaj od razu brakujące rozmiary do istniejących produktów
+          <span className="block text-[12.5px] text-ink-2">
+            Wyłączone: teraz tylko pokażę je na liście. Nocna synchronizacja stanów i tak dołoży rozmiar, który jest w sprzedaży na Allegro (z jego
+            ilością i opisem) — nazwy, opisy, zdjęcia i ceny starych produktów zostają bez zmian.
+          </span>
+        </span>
+      </label>
       <button
         onClick={start}
         disabled={pracuje}
@@ -92,6 +109,11 @@ export function NoweZAllegro() {
             <li>
               Były już w sklepie (teraz powiązane z Allegro): <strong>{ile("jest")}</strong>
             </li>
+            {brakRozmiaru.length ? (
+              <li>
+                Rozmiary z Allegro, których brakuje w istniejących produktach (dojdą w nocy): <strong>{brakRozmiaru.length}</strong>
+              </li>
+            ) : null}
             {reczne.length ? (
               <li className="text-akcent">
                 Do sprawdzenia ręcznie: <strong>{reczne.length}</strong>
@@ -108,6 +130,23 @@ export function NoweZAllegro() {
                     <a href={`/produkty/${x.produkt}`} target="_blank" rel="noreferrer" className="hover:underline">
                       {x.nazwa}
                     </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {brakRozmiaru.length ? (
+            <div className="mt-3">
+              <p className="mb-1 font-semibold">Brakujące rozmiary w istniejących produktach</p>
+              <p className="mb-1 text-[13px] text-ink-2">Teraz nie zmieniałem tych produktów — rozmiar dojdzie przy nocnej synchronizacji (albo od razu, z zaznaczoną opcją wyżej).</p>
+              <ul className="max-h-60 overflow-y-auto rounded-lg border border-linia">
+                {brakRozmiaru.map((x) => (
+                  <li key={x.oferta} className="border-b border-linia px-3 py-1.5 last:border-0">
+                    <a href={`/produkty/${x.produkt}`} target="_blank" rel="noreferrer" className="hover:underline">
+                      {x.nazwa}
+                    </a>
+                    {x.rozmiar ? <span className="text-ink-2"> · brak rozm. {x.rozmiar}</span> : null}
                   </li>
                 ))}
               </ul>

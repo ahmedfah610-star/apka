@@ -46,6 +46,7 @@ const oferta = (id: string, nazwa: string, rozmiar: string, sztuk: number, opis:
 const OFERTY: Record<string, unknown> = {
   "1001": oferta("1001", "Dres chłopięcy z kapturem 104", "104", 2, "WZROST 104 CM. Dres z kapturem"),
   "1002": oferta("1002", "Dres chłopięcy z kapturem 110", "110", 1, "WZROST 110 CM. Dres z kapturem"),
+  "1003": oferta("1003", "Dres chłopięcy z kapturem 116", "116", 3, "WZROST 116 CM. Dres z kapturem"),
 };
 vi.mock("@/lib/allegroImport", async (orig) => ({
   ...(await orig<typeof import("@/lib/allegroImport")>()),
@@ -72,5 +73,29 @@ describe("pobierz nowe z Allegro", () => {
     const w2 = await pobierzPorcje(["1001", "1002"]);
     expect(w2.map((w) => w.wynik)).toEqual(["jest", "jest"]);
     expect(baza.produkty).toHaveLength(1);
+
+    // 3) Nowy rozmiar ISTNIEJĄCEGO produktu: domyślnie produkt nietknięty, tylko raport.
+    const przed = JSON.stringify(baza.produkty[0]);
+    const w3 = await pobierzPorcje(["1003"]);
+    expect(w3[0].wynik).toBe("brak-rozmiaru");
+    expect(JSON.stringify(baza.produkty[0])).toBe(przed);
+
+    // 4) Z zaznaczoną opcją — rozmiar dołożony z własną ilością i opisem.
+    const w4 = await pobierzPorcje(["1003"], { dokladajRozmiary: true });
+    expect(w4[0].wynik).toBe("nowy-rozmiar");
+    expect(baza.produkty[0].rozmiary).toEqual(["104", "110", "116"]);
+    expect(baza.produkty[0].opis_rozmiary["116"]).toContain("116 CM");
+  });
+
+  it("kolejne rozmiary nowości z następnej porcji trafiają do tego samego nowego produktu", async () => {
+    baza.produkty = [];
+    baza.allegro_oferty = [];
+    const { pobierzPorcje } = await import("@/lib/allegroNowe");
+    const p1 = await pobierzPorcje(["1001"]);
+    expect(p1[0].wynik).toBe("dodany");
+    const p2 = await pobierzPorcje(["1002"], { noweProdukty: [p1[0].produkt!] });
+    expect(p2[0].wynik).toBe("nowy-rozmiar");
+    expect(baza.produkty).toHaveLength(1);
+    expect(baza.produkty[0].rozmiary).toEqual(["104", "110"]);
   });
 });

@@ -168,7 +168,7 @@ export async function GET(req: Request) {
 // Akcje: start (device flow), poll (sprawdź autoryzację), import (pobierz oferty).
 export async function POST(req: Request) {
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
-  const b = (await req.json().catch(() => ({}))) as { akcja?: string; deviceCode?: string; tylkoAktywne?: boolean; offset?: number; usunNieaktualne?: boolean; ids?: string[] };
+  const b = (await req.json().catch(() => ({}))) as { akcja?: string; deviceCode?: string; tylkoAktywne?: boolean; offset?: number; usunNieaktualne?: boolean; ids?: string[]; dokladajRozmiary?: boolean; noweProdukty?: string[] };
 
   if (b.akcja === "start") {
     const r = await rozpocznijDevice();
@@ -228,7 +228,8 @@ export async function POST(req: Request) {
     const ids = (Array.isArray(b.ids) ? b.ids : []).map(String).filter((x) => /^\d{5,20}$/.test(x)).slice(0, 15);
     if (!ids.length) return Response.json({ ok: false, blad: "Brak ofert" }, { status: 400 });
     try {
-      const wyniki = await pobierzPorcje(ids);
+      const noweProdukty = (Array.isArray(b.noweProdukty) ? b.noweProdukty : []).map(String).filter((x) => x.startsWith("al-m-")).slice(0, 2000);
+      const wyniki = await pobierzPorcje(ids, { dokladajRozmiary: b.dokladajRozmiary === true, noweProdukty });
       if (wyniki.some((w) => w.wynik === "dodany" || w.wynik === "nowy-rozmiar")) odswiezPoZmianieStanu();
       return Response.json({ ok: true, wyniki });
     } catch (e) {
