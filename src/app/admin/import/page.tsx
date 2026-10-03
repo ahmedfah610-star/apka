@@ -251,12 +251,18 @@ export default function AdminImport() {
                 <button onClick={poprawKategorie} disabled={busy} className="rounded-lg border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink transition-colors hover:border-ink disabled:opacity-60">
                   Popraw kategorie
                 </button>
-                <button onClick={wyczysc} disabled={busy} className="rounded-lg border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink-2 transition-colors hover:border-akcent hover:text-akcent disabled:opacity-60">
-                  Wyczyść zaimportowane
-                </button>
-                <button onClick={usunWszystko} disabled={busy} className="rounded-lg border border-akcent/50 px-5 py-2.5 text-[13px] font-medium text-akcent transition-colors hover:bg-akcent hover:text-tlo disabled:opacity-60">
-                  Usuń WSZYSTKIE produkty
-                </button>
+                {/* Operacje kasujące — schowane, żeby nie kliknąć ich przypadkiem (zwłaszcza na telefonie). */}
+                <details className="w-full">
+                  <summary className="cursor-pointer text-[13px] text-ink-2 hover:text-ink">Zaawansowane (kasowanie produktów)</summary>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    <button onClick={wyczysc} disabled={busy} className="rounded-lg border border-linia-2 px-5 py-2.5 text-[13px] font-medium text-ink-2 transition-colors hover:border-akcent hover:text-akcent disabled:opacity-60">
+                      Wyczyść zaimportowane
+                    </button>
+                    <button onClick={usunWszystko} disabled={busy} className="rounded-lg border border-akcent/50 px-5 py-2.5 text-[13px] font-medium text-akcent transition-colors hover:bg-akcent hover:text-tlo disabled:opacity-60">
+                      Usuń WSZYSTKIE produkty
+                    </button>
+                  </div>
+                </details>
               </div>
             )}
           </section>

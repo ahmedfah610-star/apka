@@ -39,3 +39,12 @@ body {
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; }
 }
+
+/* Panel admina na telefonie: pola min. 16 px — iPhone nie powiększa wtedy strony przy wpisywaniu. */
+@media (max-width: 767px) {
+  .panel-admina input:not([type="checkbox"]):not([type="radio"]),
+  .panel-admina select,
+  .panel-admina textarea {
+    font-size: 16px;
+  }
+}

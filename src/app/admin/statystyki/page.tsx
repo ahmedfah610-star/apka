@@ -136,17 +136,23 @@ export default function AdminStatystyki() {
             {dane.slupki.every((s) => s.wartosc === 0) ? (
               <p className="text-[13px] text-ink-2">Brak zrealizowanej sprzedaży w tym okresie.</p>
             ) : (
-              <div className="flex h-52 items-end gap-1 overflow-x-auto">
-                {dane.slupki.map((s) => (
-                  <div key={s.key} className="group flex min-w-[16px] flex-1 flex-col items-center justify-end gap-1.5">
-                    <span className="text-[10px] font-semibold text-ink-2 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="flex h-52 gap-[3px] md:gap-1">
+                {dane.slupki.map((s, i) => (
+                  <div key={s.key} className="group flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5 md:min-w-[16px]">
+                    <span className="hidden text-[10px] font-semibold text-ink-2 opacity-0 transition-opacity group-hover:opacity-100 md:block">
                       {s.wartosc > 0 ? formatCena(s.wartosc) : ""}
                     </span>
-                    <div
-                      className="w-full rounded-t bg-akcent/80 transition-colors group-hover:bg-akcent"
-                      style={{ height: `${Math.max(s.wartosc > 0 ? 4 : 0, (s.wartosc / dane.maxSlupek) * 100)}%` }}
-                    />
-                    <span className="text-[9.5px] text-ink-3">{s.label}</span>
+                    {/* Słupek rośnie w obszarze nad podpisem (procent liczony od tego obszaru). */}
+                    <div className="flex w-full min-h-0 flex-1 items-end">
+                      <div
+                        className="w-full rounded-t bg-akcent/80 transition-colors group-hover:bg-akcent"
+                        style={{ height: `${Math.max(s.wartosc > 0 ? 4 : 0, (s.wartosc / dane.maxSlupek) * 100)}%` }}
+                      />
+                    </div>
+                    {/* Na telefonie co któryś podpis — przy 30 dniach wszystkie się nie mieszczą. */}
+                    <span className={`whitespace-nowrap text-[9.5px] text-ink-3 ${dane.slupki.length > 10 && i % Math.ceil(dane.slupki.length / 6) !== 0 ? "invisible md:visible" : ""}`}>
+                      {s.label}
+                    </span>
                   </div>
                 ))}
               </div>

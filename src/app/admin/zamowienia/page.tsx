@@ -144,6 +144,132 @@ export default function AdminZamowienia() {
     return m;
   }, [lista]);
 
+  // Szczegóły zamówienia — wspólne dla tabeli (komputer) i kart (telefon).
+  const szczegoly = (z: Zamowienie) => (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_260px]">
+      <div>
+        <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-2">Produkty</p>
+        <div className="flex flex-col gap-1.5">
+          {z.pozycje.map((p, i) => (
+            <div key={i} className="flex items-center justify-between gap-3 text-[13.5px]">
+              <span className="flex min-w-0 items-center gap-3">
+                {p.zdjecie ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={zdjecie(p.zdjecie, "s128")} alt="" className="h-12 w-12 shrink-0 rounded-md border border-linia bg-white object-contain" />
+                ) : null}
+                <span className="min-w-0">
+                  <a href={`/produkty/${p.id}`} target="_blank" rel="noopener noreferrer" className="block text-ink underline-offset-2 hover:underline">
+                    {p.nazwa}
+                  </a>
+                  <span className="text-[12.5px] text-ink-2">
+                    {p.kolor ? <>kolor: <strong className="text-ink">{p.kolor}</strong> · </> : null}
+                    {p.rozmiar ? <>rozmiar: <strong className="text-ink">{p.rozmiar}</strong> · </> : null}
+                    ilość: <strong className="text-ink">{p.ilosc}</strong>
+                  </span>
+                </span>
+              </span>
+              <span className="shrink-0 font-medium">{formatCena(p.cena * p.ilosc)} zł</span>
+            </div>
+          ))}
+          <div className="mt-1 flex justify-between border-t border-linia pt-1.5 text-[13px] text-ink-2">
+            <span>Dostawa: {z.metoda}</span>
+            <span>{z.dostawa === 0 ? "gratis" : `${formatCena(z.dostawa)} zł`}</span>
+          </div>
+          {z.rabat && z.rabat > 0 ? (
+            <div className="flex justify-between text-[13px] text-[oklch(45%_0.13_150)]">
+              <span>Rabat{z.kodRabatowy ? ` · ${z.kodRabatowy}` : ""}</span>
+              <span>−{formatCena(z.rabat)} zł</span>
+            </div>
+          ) : null}
+          <div className="flex justify-between text-[14px] font-bold">
+            <span>Razem</span>
+            <span>{formatCena(z.razem)} zł</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-2">Dostawa</p>
+        <p className="text-[13.5px] leading-relaxed">
+          <strong>{z.klient?.imie || "—"}</strong>
+          <br />
+          {z.klient?.email || ""}
+          {z.klient?.telefon ? (
+            <>
+              <br />
+              {z.klient.telefon}
+            </>
+          ) : null}
+          <br />
+          {z.klient?.paczkomat
+            ? `Paczkomat: ${z.klient.paczkomat}${z.klient?.paczkomatOpis ? ` — ${z.klient.paczkomatOpis}` : ""}`
+            : z.klient?.punkt
+            ? `Punkt: ${z.klient.punkt}${z.klient?.punktOpis ? ` — ${z.klient.punktOpis}` : ""}`
+            : [z.klient?.adres, [z.klient?.kod, z.klient?.miasto].filter(Boolean).join(" ")].filter(Boolean).join(", ") || "—"}
+        </p>
+        {z.klient?.uwagi ? (
+          <div className="mt-3 rounded-lg border border-[oklch(85%_0.1_85)] bg-[oklch(97%_0.04_90)] px-3 py-2 text-[13.5px]">
+            <p className="text-[11.5px] font-bold uppercase tracking-wide text-ink-2">Informacja dla sprzedawcy</p>
+            <p className="whitespace-pre-wrap">{z.klient.uwagi}</p>
+          </div>
+        ) : null}
+
+        {/* Nadanie paczki */}
+        <div className="mt-5 border-t border-linia pt-4">
+          <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-2">Nadanie paczki</p>
+          {(() => {
+            const p = polaWysylki(z);
+            const link = linkSledzenia(p.przewoznik, p.numer);
+            return (
+              <div className="flex flex-col gap-2">
+                <select
+                  value={p.przewoznik}
+                  onChange={(e) => setWys((w) => ({ ...w, [z.id]: { ...polaWysylki(z), przewoznik: e.target.value } }))}
+                  className="rounded-md border border-linia-2 bg-white px-2.5 py-2.5 text-[16px] outline-none focus:border-ink md:py-2 md:text-[13px]"
+                >
+                  <option value="">Wybierz przewoźnika…</option>
+                  {PRZEWOZNICY.map((pr) => (
+                    <option key={pr.id} value={pr.id}>{pr.nazwa}</option>
+                  ))}
+                </select>
+                <input
+                  value={p.numer}
+                  onChange={(e) => setWys((w) => ({ ...w, [z.id]: { ...polaWysylki(z), numer: e.target.value } }))}
+                  placeholder="Numer przesyłki / listu"
+                  className="rounded-md border border-linia-2 bg-white px-2.5 py-2.5 text-[16px] outline-none focus:border-ink md:py-2 md:text-[13px]"
+                />
+                {link ? (
+                  <a href={link} target="_blank" rel="noopener noreferrer" className="text-[12px] text-akcent underline underline-offset-2">
+                    Podgląd śledzenia →
+                  </a>
+                ) : null}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => void nadajPaczke(z, true)}
+                    disabled={wysylanie === z.id}
+                    className="flex-1 rounded-lg bg-ink px-3.5 py-2.5 text-[13px] font-semibold text-tlo transition-colors hover:bg-akcent disabled:opacity-60 md:flex-none md:py-2 md:text-[12.5px]"
+                  >
+                    {wysylanie === z.id ? "…" : "Oznacz wysłane + powiadom"}
+                  </button>
+                  <button
+                    onClick={() => void nadajPaczke(z, false)}
+                    disabled={wysylanie === z.id}
+                    className="flex-1 rounded-lg border border-linia-2 px-3.5 py-2.5 text-[13px] font-medium text-ink hover:border-ink disabled:opacity-60 md:flex-none md:py-2 md:text-[12.5px]"
+                  >
+                    Zapisz bez maila
+                  </button>
+                </div>
+                {komWys[z.id] ? <p className="text-[12px] text-ink-2">{komWys[z.id]}</p> : null}
+              </div>
+            );
+          })()}
+        </div>
+      </div>
+    </div>
+  );
+
+  const data = (z: Zamowienie) =>
+    new Date(z.data).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
@@ -162,7 +288,7 @@ export default function AdminZamowienia() {
       </div>
 
       {/* Filtry statusów */}
-      <div className="mb-5 flex flex-wrap gap-2">
+      <div className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0 [&::-webkit-scrollbar]:hidden">
         {[{ key: "wszystkie", label: "Wszystkie" }, ...STATUSY].map((s) => {
           const on = filtr === s.key;
           const n = s.key === "wszystkie" ? lista.length : liczby[s.key] ?? 0;
@@ -170,7 +296,7 @@ export default function AdminZamowienia() {
             <button
               key={s.key}
               onClick={() => setFiltr(s.key)}
-              className={`rounded-full border px-3 py-1.5 text-[13px] transition-colors ${on ? "border-ink bg-ink text-tlo" : "border-linia-2 text-ink hover:border-ink"}`}
+              className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-[13px] transition-colors ${on ? "border-ink bg-ink text-tlo" : "border-linia-2 text-ink hover:border-ink"}`}
             >
               {s.label} <span className={on ? "opacity-80" : "text-ink-2"}>{n}</span>
             </button>
@@ -186,7 +312,53 @@ export default function AdminZamowienia() {
           <p className="mt-1 text-[13px]">Zamówienia ze sklepu pojawią się tutaj.</p>
         </div>
       ) : (
-        <div className="rounded-xl bg-white overflow-x-auto border border-linia">
+        <>
+        {/* Telefon: karty */}
+        <div className="flex flex-col gap-3 md:hidden">
+          {widoczne.map((z) => {
+            const info = statusInfo(z.status);
+            const szt = z.pozycje.reduce((s, p) => s + p.ilosc, 0);
+            const otwarty = rozwiniety === z.id;
+            return (
+              <div key={z.id} className="overflow-hidden rounded-xl border border-linia bg-white">
+                <button onClick={() => setRozwiniety((r) => (r === z.id ? null : z.id))} className="block w-full px-4 pb-2 pt-3.5 text-left">
+                  <span className="flex items-start justify-between gap-3">
+                    <span className="min-w-0">
+                      <span className="block text-[15px] font-semibold">
+                        #{z.id.slice(0, 8)}
+                        {z.klient?.test ? <span className="ml-1.5 rounded bg-[oklch(92%_0.07_85)] px-1.5 py-0.5 text-[10.5px] font-bold text-[oklch(45%_0.12_75)]">TEST</span> : null}
+                      </span>
+                      <span className="block truncate text-[14px]">{z.klient?.imie || "—"}</span>
+                      <span className="block text-[12.5px] text-ink-2">{data(z)} · {szt} szt.</span>
+                    </span>
+                    <span className="shrink-0 text-right">
+                      <span className="block text-[16px] font-bold">{formatCena(z.razem)} zł</span>
+                      <span className="text-[12.5px] text-ink-2 underline underline-offset-2">{otwarty ? "Zwiń" : "Szczegóły"}</span>
+                    </span>
+                  </span>
+                </button>
+                <div className="px-4 pb-3.5">
+                  <select
+                    value={z.status}
+                    onChange={(e) => void zmienStatus(z.id, e.target.value)}
+                    aria-label="Status zamówienia"
+                    className={`w-full rounded-lg border-0 px-3 py-2.5 text-[14px] font-semibold outline-none ${info.klasa}`}
+                  >
+                    {STATUSY.map((s) => (
+                      <option key={s.key} value={s.key}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {otwarty ? <div className="border-t border-linia bg-szary/40 px-4 py-4">{szczegoly(z)}</div> : null}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Komputer: tabela */}
+        <div className="hidden overflow-x-auto rounded-xl border border-linia bg-white md:block">
           <table className="w-full min-w-[760px] text-left text-[14px]">
             <thead className="border-b border-linia bg-szary text-[12px] uppercase tracking-wide text-ink-2">
               <tr>
@@ -210,9 +382,7 @@ export default function AdminZamowienia() {
                           #{z.id.slice(0, 8)}
                           {z.klient?.test ? <span className="ml-1.5 rounded bg-[oklch(92%_0.07_85)] px-1.5 py-0.5 text-[10.5px] font-bold text-[oklch(45%_0.12_75)]">TEST</span> : null}
                         </span>
-                        <span className="text-[12px] text-ink-2">
-                          {new Date(z.data).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                        </span>
+                        <span className="text-[12px] text-ink-2">{data(z)}</span>
                       </td>
                       <td className="px-4 py-3">
                         <span className="block leading-tight">{z.klient?.imie || "—"}</span>
@@ -247,125 +417,7 @@ export default function AdminZamowienia() {
                     {otwarty ? (
                       <tr className="bg-szary/40">
                         <td colSpan={5} className="px-4 py-4">
-                          <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_260px]">
-                            <div>
-                              <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-2">Produkty</p>
-                              <div className="flex flex-col gap-1.5">
-                                {z.pozycje.map((p, i) => (
-                                  <div key={i} className="flex items-center justify-between gap-3 text-[13.5px]">
-                                    <span className="flex min-w-0 items-center gap-3">
-                                      {p.zdjecie ? (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={zdjecie(p.zdjecie, "s128")} alt="" className="h-12 w-12 shrink-0 rounded-md border border-linia bg-white object-contain" />
-                                      ) : null}
-                                      <span className="min-w-0">
-                                        <a href={`/produkty/${p.id}`} target="_blank" rel="noopener noreferrer" className="block text-ink underline-offset-2 hover:underline">
-                                          {p.nazwa}
-                                        </a>
-                                        <span className="text-[12.5px] text-ink-2">
-                                          {p.kolor ? <>kolor: <strong className="text-ink">{p.kolor}</strong> · </> : null}
-                                          {p.rozmiar ? <>rozmiar: <strong className="text-ink">{p.rozmiar}</strong> · </> : null}
-                                          ilość: <strong className="text-ink">{p.ilosc}</strong>
-                                        </span>
-                                      </span>
-                                    </span>
-                                    <span className="shrink-0 font-medium">{formatCena(p.cena * p.ilosc)} zł</span>
-                                  </div>
-                                ))}
-                                <div className="mt-1 flex justify-between border-t border-linia pt-1.5 text-[13px] text-ink-2">
-                                  <span>Dostawa: {z.metoda}</span>
-                                  <span>{z.dostawa === 0 ? "gratis" : `${formatCena(z.dostawa)} zł`}</span>
-                                </div>
-                                {z.rabat && z.rabat > 0 ? (
-                                  <div className="flex justify-between text-[13px] text-[oklch(45%_0.13_150)]">
-                                    <span>Rabat{z.kodRabatowy ? ` · ${z.kodRabatowy}` : ""}</span>
-                                    <span>−{formatCena(z.rabat)} zł</span>
-                                  </div>
-                                ) : null}
-                                <div className="flex justify-between text-[14px] font-bold">
-                                  <span>Razem</span>
-                                  <span>{formatCena(z.razem)} zł</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div>
-                              <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-2">Dostawa</p>
-                              <p className="text-[13.5px] leading-relaxed">
-                                <strong>{z.klient?.imie || "—"}</strong>
-                                <br />
-                                {z.klient?.email || ""}
-                                {z.klient?.telefon ? (
-                                  <>
-                                    <br />
-                                    {z.klient.telefon}
-                                  </>
-                                ) : null}
-                                <br />
-                                {z.klient?.paczkomat
-                                  ? `Paczkomat: ${z.klient.paczkomat}${z.klient?.paczkomatOpis ? ` — ${z.klient.paczkomatOpis}` : ""}`
-                                  : z.klient?.punkt
-                                  ? `Punkt: ${z.klient.punkt}${z.klient?.punktOpis ? ` — ${z.klient.punktOpis}` : ""}`
-                                  : [z.klient?.adres, [z.klient?.kod, z.klient?.miasto].filter(Boolean).join(" ")].filter(Boolean).join(", ") || "—"}
-                              </p>
-                              {z.klient?.uwagi ? (
-                                <div className="mt-3 rounded-lg border border-[oklch(85%_0.1_85)] bg-[oklch(97%_0.04_90)] px-3 py-2 text-[13.5px]">
-                                  <p className="text-[11.5px] font-bold uppercase tracking-wide text-ink-2">Informacja dla sprzedawcy</p>
-                                  <p className="whitespace-pre-wrap">{z.klient.uwagi}</p>
-                                </div>
-                              ) : null}
-
-                              {/* Nadanie paczki */}
-                              <div className="mt-5 border-t border-linia pt-4">
-                                <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-2">Nadanie paczki</p>
-                                {(() => {
-                                  const p = polaWysylki(z);
-                                  const link = linkSledzenia(p.przewoznik, p.numer);
-                                  return (
-                                    <div className="flex flex-col gap-2">
-                                      <select
-                                        value={p.przewoznik}
-                                        onChange={(e) => setWys((w) => ({ ...w, [z.id]: { ...polaWysylki(z), przewoznik: e.target.value } }))}
-                                        className="rounded-md border border-linia-2 bg-white px-2.5 py-2 text-[13px] outline-none focus:border-ink"
-                                      >
-                                        <option value="">Wybierz przewoźnika…</option>
-                                        {PRZEWOZNICY.map((pr) => (
-                                          <option key={pr.id} value={pr.id}>{pr.nazwa}</option>
-                                        ))}
-                                      </select>
-                                      <input
-                                        value={p.numer}
-                                        onChange={(e) => setWys((w) => ({ ...w, [z.id]: { ...polaWysylki(z), numer: e.target.value } }))}
-                                        placeholder="Numer przesyłki / listu"
-                                        className="rounded-md border border-linia-2 bg-white px-2.5 py-2 text-[13px] outline-none focus:border-ink"
-                                      />
-                                      {link ? (
-                                        <a href={link} target="_blank" rel="noopener noreferrer" className="text-[12px] text-akcent underline underline-offset-2">
-                                          Podgląd śledzenia →
-                                        </a>
-                                      ) : null}
-                                      <div className="flex flex-wrap gap-2">
-                                        <button
-                                          onClick={() => void nadajPaczke(z, true)}
-                                          disabled={wysylanie === z.id}
-                                          className="rounded-lg bg-ink px-3.5 py-2 text-[12.5px] font-semibold text-tlo transition-colors hover:bg-akcent disabled:opacity-60"
-                                        >
-                                          {wysylanie === z.id ? "…" : "Oznacz wysłane + powiadom"}
-                                        </button>
-                                        <button
-                                          onClick={() => void nadajPaczke(z, false)}
-                                          disabled={wysylanie === z.id}
-                                          className="rounded-lg border border-linia-2 px-3.5 py-2 text-[12.5px] font-medium text-ink hover:border-ink disabled:opacity-60"
-                                        >
-                                          Zapisz bez maila
-                                        </button>
-                                      </div>
-                                      {komWys[z.id] ? <p className="text-[12px] text-ink-2">{komWys[z.id]}</p> : null}
-                                    </div>
-                                  );
-                                })()}
-                              </div>
-                            </div>
-                          </div>
+                          {szczegoly(z)}
                         </td>
                       </tr>
                     ) : null}
@@ -375,6 +427,7 @@ export default function AdminZamowienia() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   );

@@ -176,12 +176,16 @@ export default function PulpitAdmina() {
               {ostatnie.map((z) => {
                 const s = STATUS[z.status ?? "nowe"] ?? STATUS.nowe;
                 return (
-                  <div key={z.id} className="flex items-center gap-3 py-3 text-[13.5px]">
-                    <span className="w-24 shrink-0 text-ink-2">{new Date(z.data).toLocaleDateString("pl-PL")}</span>
-                    <span className="min-w-0 flex-1 truncate text-ink-2">{z.pozycje.reduce((a, p) => a + p.ilosc, 0)} szt.</span>
-                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold ${s.klasa}`}>{s.label}</span>
-                    <span className="w-20 shrink-0 text-right font-semibold tabular-nums">{formatCena(z.razem)} zł</span>
-                  </div>
+                  <Link key={z.id} href="/admin/zamowienia" className="flex items-center gap-3 py-3 text-[13.5px] text-ink no-underline">
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-ink-2">
+                        {new Date(z.data).toLocaleDateString("pl-PL")} · {z.pozycje.reduce((a, p) => a + p.ilosc, 0)} szt.
+                      </span>
+                      <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold md:hidden ${s.klasa}`}>{s.label}</span>
+                    </span>
+                    <span className={`hidden shrink-0 rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold md:inline ${s.klasa}`}>{s.label}</span>
+                    <span className="shrink-0 text-right font-semibold tabular-nums">{formatCena(z.razem)} zł</span>
+                  </Link>
                 );
               })}
             </div>

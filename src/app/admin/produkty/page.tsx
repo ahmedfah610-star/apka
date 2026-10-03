@@ -186,7 +186,7 @@ export default function AdminProdukty() {
                             const v = parseFloat(e.target.value.replace(",", "."));
                             if (Number.isFinite(v) && v !== p.cena) void edytuj(p.id, { cena: v });
                           }}
-                          className="rounded-md w-20 border border-linia-2 bg-white px-2 py-1 text-[13px] outline-none focus:border-ink"
+                          className="w-24 rounded-md border border-linia-2 bg-white px-2 py-2 text-[13px] outline-none focus:border-ink md:w-20 md:py-1"
                         />
                         <span className="text-[12px] text-ink-2">zł</span>
                       </div>
@@ -202,7 +202,7 @@ export default function AdminProdukty() {
                         </button>
                       ) : (
                         <div className="flex items-center">
-                          <button onClick={() => void edytuj(p.id, { stan: Math.max(0, (typeof p.stan === "number" ? p.stan : 0) - 1) })} className="rounded-lg border border-linia-2 px-2 py-1 text-ink-2 hover:text-ink" aria-label="Zmniejsz stan">
+                          <button onClick={() => void edytuj(p.id, { stan: Math.max(0, (typeof p.stan === "number" ? p.stan : 0) - 1) })} className="rounded-lg border border-linia-2 px-3 py-2 text-ink-2 hover:text-ink md:px-2 md:py-1" aria-label="Zmniejsz stan">
                             −
                           </button>
                           <input
@@ -214,9 +214,9 @@ export default function AdminProdukty() {
                               const v = t === "" ? undefined : Math.max(0, parseInt(t, 10) || 0);
                               if (v !== p.stan) void edytuj(p.id, { stan: v });
                             }}
-                            className="w-14 border-y border-linia-2 bg-white px-2 py-1 text-center text-[13px] outline-none focus:border-ink"
+                            className="w-14 border-y border-linia-2 bg-white px-2 py-2 text-center text-[13px] outline-none focus:border-ink md:py-1"
                           />
-                          <button onClick={() => void edytuj(p.id, { stan: (typeof p.stan === "number" ? p.stan : 0) + 1 })} className="rounded-lg border border-linia-2 px-2 py-1 text-ink-2 hover:text-ink" aria-label="Zwiększ stan">
+                          <button onClick={() => void edytuj(p.id, { stan: (typeof p.stan === "number" ? p.stan : 0) + 1 })} className="rounded-lg border border-linia-2 px-3 py-2 text-ink-2 hover:text-ink md:px-2 md:py-1" aria-label="Zwiększ stan">
                             +
                           </button>
                         </div>
@@ -233,7 +233,7 @@ export default function AdminProdukty() {
                     </td>
                     <td className="text-right md:px-4 md:py-2.5">
                       <div className="flex items-center justify-end gap-3">
-                        <button onClick={() => setEdytowany(p)} className="text-[13px] font-medium text-ink underline underline-offset-2 hover:text-akcent">
+                        <button onClick={() => setEdytowany(p)} className="rounded-lg border border-ink px-4 py-2 text-[13px] font-semibold text-ink hover:bg-ink hover:text-tlo md:border-0 md:p-0 md:font-medium md:underline md:underline-offset-2 md:hover:bg-transparent md:hover:text-akcent">
                           Edytuj
                         </button>
                         <button onClick={() => void usun(p.id)} className="text-[13px] text-ink-2 underline underline-offset-2 hover:text-akcent">
@@ -260,7 +260,7 @@ export default function AdminProdukty() {
                                   const akt = p.stanRozmiary?.[s] ?? 0;
                                   if (v !== akt) void edytuj(p.id, { stanRozmiary: { ...(p.stanRozmiary ?? {}), [s]: v } });
                                 }}
-                                className="rounded-md w-14 border border-linia-2 bg-white px-1.5 py-1 text-center text-[13px] outline-none focus:border-ink"
+                                className="w-14 rounded-md border border-linia-2 bg-white px-1.5 py-1.5 text-center text-[13px] outline-none focus:border-ink md:py-1"
                               />
                             </label>
                           ))}

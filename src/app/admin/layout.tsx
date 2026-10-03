@@ -69,7 +69,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <StrazAdmina>
-      <div className="min-h-screen bg-[oklch(97.5%_0.006_80)] md:flex">
+      <div className="panel-admina min-h-screen bg-[oklch(97.5%_0.006_80)] md:flex">
         {/* Boczne menu — komputer */}
         <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-linia bg-white px-4 py-6 md:flex">
           <Link href="/admin" className="mb-8 px-3 text-[17px] font-bold tracking-tight text-ink no-underline">

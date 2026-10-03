@@ -79,7 +79,7 @@ export default function AdminKlienci() {
       </div>
 
       <input
-        className="rounded-md mb-4 w-full max-w-sm border border-linia-2 bg-white px-3 py-2 text-[14px] outline-none focus:border-ink"
+        className="mb-4 w-full max-w-sm rounded-md border border-linia-2 bg-white px-3 py-2.5 text-[16px] outline-none focus:border-ink md:py-2 md:text-[14px]"
         placeholder="Szukaj po e-mailu, imieniu, telefonie…"
         value={szukaj}
         onChange={(e) => setSzukaj(e.target.value)}
@@ -93,7 +93,40 @@ export default function AdminKlienci() {
           <p className="mt-1 text-[13px]">Gdy pojawią się zamówienia, klienci znajdą się tutaj.</p>
         </div>
       ) : (
-        <div className="rounded-xl bg-white overflow-x-auto border border-linia">
+        <>
+        {/* Telefon: karty */}
+        <div className="flex flex-col gap-3 md:hidden">
+          {widoczne.map((k) => (
+            <div key={k.email} className="rounded-xl border border-linia bg-white px-4 py-3.5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold leading-tight">{k.imie || "—"}</p>
+                  {k.wydane > 0 && k.liczba > 1 ? <span className="text-[11px] font-semibold text-akcent">stały klient</span> : null}
+                </div>
+                <p className="shrink-0 text-right">
+                  <span className="block text-[16px] font-bold">{formatCena(k.wydane)} zł</span>
+                  <span className="text-[12px] text-ink-2">
+                    {k.liczba} zam. · {k.sztuk} szt.
+                  </span>
+                </p>
+              </div>
+              <div className="mt-2 flex flex-col gap-0.5 text-[13.5px]">
+                <a href={`mailto:${k.email}`} className="break-all text-ink underline underline-offset-2">
+                  {k.email}
+                </a>
+                {k.telefon ? (
+                  <a href={`tel:${k.telefon.replace(/\s+/g, "")}`} className="text-ink-2 underline-offset-2 hover:underline">
+                    {k.telefon}
+                  </a>
+                ) : null}
+                <span className="text-[12px] text-ink-2">Ostatnie zamówienie: {DATA_PL(k.ostatnie)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Komputer: tabela */}
+        <div className="hidden overflow-x-auto rounded-xl border border-linia bg-white md:block">
           <table className="w-full min-w-[720px] text-left text-[14px]">
             <thead className="border-b border-linia bg-szary text-[12px] uppercase tracking-wide text-ink-2">
               <tr>
@@ -126,6 +159,7 @@ export default function AdminKlienci() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       <p className="mt-5 max-w-2xl text-[12px] leading-relaxed text-ink-2">

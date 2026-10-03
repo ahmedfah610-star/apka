@@ -108,7 +108,10 @@ export default function AdminKody() {
           </select>
           <input className={input} placeholder={form.typ === "procent" ? "Ile % (np. 10)" : "Ile zł (np. 20)"} value={form.wartosc} onChange={(e) => setForm({ ...form, wartosc: e.target.value })} />
           <input className={input} placeholder="Min. koszyk zł (opcjonalnie)" value={form.minKoszyk} onChange={(e) => setForm({ ...form, minKoszyk: e.target.value })} />
-          <input className={input} type="date" title="Ważny do" value={form.waznyDo} onChange={(e) => setForm({ ...form, waznyDo: e.target.value })} />
+          <label className="flex flex-col gap-1 text-[12.5px] text-ink-2">
+            Ważny do (opcjonalnie)
+            <input className={input} type="date" value={form.waznyDo} onChange={(e) => setForm({ ...form, waznyDo: e.target.value })} />
+          </label>
           <input className={input} placeholder="Limit użyć (opcjonalnie)" value={form.limitUzyc} onChange={(e) => setForm({ ...form, limitUzyc: e.target.value })} />
         </div>
         <div className="mt-4 flex items-center gap-4">
@@ -128,7 +131,38 @@ export default function AdminKody() {
           <p className="mt-1 text-[13px]">Utwórz pierwszy kod powyżej.</p>
         </div>
       ) : (
-        <div className="rounded-xl bg-white overflow-x-auto border border-linia">
+        <>
+        {/* Telefon: karty */}
+        <div className="flex flex-col gap-3 md:hidden">
+          {lista.map((k) => (
+            <div key={k.kod} className="rounded-xl border border-linia bg-white px-4 py-3.5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-mono text-[16px] font-bold">{k.kod}</p>
+                  <p className="font-semibold text-akcent">{opisRabatu(k)}</p>
+                </div>
+                <button
+                  onClick={() => void przelacz(k)}
+                  className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold ${k.aktywny ? "bg-[oklch(72%_0.12_150)] text-tlo" : "bg-szary text-ink-2"}`}
+                >
+                  {k.aktywny ? "Aktywny" : "Wyłączony"}
+                </button>
+              </div>
+              <p className="mt-1.5 text-[13px] text-ink-2">
+                {k.minKoszyk > 0 ? `od ${formatCena(k.minKoszyk)} zł` : "bez minimum"}
+                {k.waznyDo ? ` · do ${DATA_PL(k.waznyDo)}` : ""}
+                {" · "}użyto {k.uzyto}
+                {k.limitUzyc ? ` / ${k.limitUzyc}` : ""}
+              </p>
+              <button onClick={() => void usun(k)} className="mt-2 text-[13px] text-ink-2 underline underline-offset-2 hover:text-akcent">
+                Usuń kod
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Komputer: tabela */}
+        <div className="hidden overflow-x-auto rounded-xl border border-linia bg-white md:block">
           <table className="w-full min-w-[720px] text-left text-[14px]">
             <thead className="border-b border-linia bg-szary text-[12px] uppercase tracking-wide text-ink-2">
               <tr>
@@ -167,6 +201,7 @@ export default function AdminKody() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   );
