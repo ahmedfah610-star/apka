@@ -1,6 +1,7 @@
 // Wspólny, markowy szablon e-maili (tabelaryczny HTML + style inline — zgodny
 // z Gmail, Outlook, Apple Mail). Jeden spójny wygląd dla wszystkich wiadomości.
 
+import { zdjecie } from "@/lib/zdjecia";
 export const BAZA = (process.env.NEXT_PUBLIC_BAZOWY_URL || "https://bobas-shopping.pl").replace(/\/$/, "");
 
 // Paleta marki (hex, bo klienty pocztowe nie wspierają oklch).
@@ -104,7 +105,7 @@ ${preheader}
 export function kartaProduktuMail(p: { nazwa: string; cena: number; zdjecie?: string | null; url: string }): string {
   const zl = `${p.cena.toFixed(2).replace(".", ",")} zł`;
   const img = p.zdjecie
-    ? `<img src="${p.zdjecie}" alt="${esc(p.nazwa)}" width="252" style="display:block;width:100%;max-width:252px;height:190px;object-fit:contain;background:${M.tlo};border-radius:12px">`
+    ? `<img src="${zdjecie(p.zdjecie, "s512")}" alt="${esc(p.nazwa)}" width="252" style="display:block;width:100%;max-width:252px;height:190px;object-fit:contain;background:${M.tlo};border-radius:12px">`
     : `<div style="width:100%;height:190px;background:${M.tlo};border-radius:12px"></div>`;
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
     <tr><td>

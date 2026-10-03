@@ -1,5 +1,6 @@
 "use client";
 
+import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 import { useEffect, useMemo, useState } from "react";
 import { DodajDoKoszyka } from "@/components/DodajDoKoszyka";
 import { Galeria } from "@/components/Galeria";
@@ -93,7 +94,7 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
                 >
                   {w.zdjecie ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={w.zdjecie} alt={w.kolor ?? ""} className={`h-full w-full object-contain p-0.5 ${w.dostepny ? "" : "opacity-40"}`} loading="lazy" />
+                    <img src={zdjecie(w.zdjecie, "s128")} alt={w.kolor ?? ""} className={`h-full w-full object-contain p-0.5 ${w.dostepny ? "" : "opacity-40"}`} loading="lazy" />
                   ) : (
                     <span className="flex h-full w-full items-center justify-center text-[10px] text-ink-2">{w.kolor?.slice(0, 6)}</span>
                   )}

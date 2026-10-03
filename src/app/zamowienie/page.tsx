@@ -1,5 +1,6 @@
 "use client";
 
+import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -364,7 +365,7 @@ export default function StronaZamowienia() {
                 <span className="relative flex h-14 w-14 shrink-0 items-center justify-center border border-linia bg-szary/40">
                   {produkt!.zdjecie ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={produkt!.zdjecie} alt="" className="h-full w-full object-contain p-0.5" />
+                    <img src={zdjecie(produkt!.zdjecie, "s128")} alt="" className="h-full w-full object-contain p-0.5" />
                   ) : null}
                   <span className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-ink px-1 text-[11px] font-semibold text-tlo">
                     {poz.ilosc}

@@ -1,5 +1,6 @@
 "use client";
 
+import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 import Link from "next/link";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -387,7 +388,7 @@ export function Szukajka({ mobilna = false }: { mobilna?: boolean }) {
                   >
                     {p.zdjecie ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.zdjecie} alt="" className="h-full w-full object-contain p-1" loading="lazy" />
+                      <img src={zdjecie(p.zdjecie, "s128")} alt="" className="h-full w-full object-contain p-1" loading="lazy" />
                     ) : null}
                   </span>
                   <span className="min-w-0">

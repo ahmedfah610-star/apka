@@ -1,5 +1,6 @@
 "use client";
 
+import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Produkt } from "@/data/produkty";
 
@@ -213,7 +214,7 @@ export default function MagazynPage() {
             <div className="flex flex-col items-center gap-4 md:flex-row md:items-start md:gap-6">
               <div className="flex h-40 w-40 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-linia bg-white">
                 {produkt.zdjecie ? (
-                  <img src={produkt.zdjecie} alt={produkt.nazwa} className="h-full w-full object-contain p-2" />
+                  <img src={zdjecie(produkt.zdjecie, "s360")} alt={produkt.nazwa} className="h-full w-full object-contain p-2" />
                 ) : (
                   <span className="text-[13px] text-ink-2">brak zdjęcia</span>
                 )}

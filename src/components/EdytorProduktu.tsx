@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { KATEGORIE_LABEL, type Kategoria, type Produkt, type Wiek } from "@/data/produkty";
 import { bezpiecznyHtml } from "@/lib/bezpiecznyHtml";
+import { zdjecie } from "@/lib/zdjecia";
 import { EdytorOpisu, tekstNaHtml } from "@/components/EdytorOpisu";
 import { OPIS_KLASA } from "@/lib/opisStyl";
 import { nizszeNaglowki } from "@/lib/opis";
@@ -295,7 +296,7 @@ export function EdytorProduktu({
             {zdjecia.map((z, i) => (
               <div key={i} className="group relative h-20 w-20 border border-linia bg-szary">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={z} alt="" className="h-full w-full object-contain p-0.5" />
+                <img src={zdjecie(z, "s128")} alt="" className="h-full w-full object-contain p-0.5" />
                 {i === 0 ? (
                   <span className="absolute left-0 top-0 bg-ink px-1 text-[9px] font-semibold text-tlo">Główne</span>
                 ) : (
@@ -460,7 +461,7 @@ export function EdytorProduktu({
                   <div className="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-white">
                     {zdjecia[0] ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={zdjecia[0]} alt="" className="h-full w-full object-contain p-3" />
+                      <img src={zdjecie(zdjecia[0], "s720")} alt="" className="h-full w-full object-contain p-3" />
                     ) : (
                       <span className="text-[13px] text-ink-2">Brak zdjęcia</span>
                     )}
@@ -469,7 +470,7 @@ export function EdytorProduktu({
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {zdjecia.slice(1, 6).map((z, i) => (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img key={i} src={z} alt="" className="h-12 w-12 rounded-md border border-linia bg-white object-contain p-0.5" />
+                        <img key={i} src={zdjecie(z, "s128")} alt="" className="h-12 w-12 rounded-md border border-linia bg-white object-contain p-0.5" />
                       ))}
                     </div>
                   ) : null}

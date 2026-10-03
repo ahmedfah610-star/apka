@@ -1,5 +1,6 @@
 "use client";
 
+import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Nawigacja } from "@/components/Nawigacja";
@@ -109,7 +110,7 @@ export default function StronaKoszyka() {
                     <Link href={`/produkty/${produkt!.id}`} className="flex h-28 w-24 shrink-0 items-center justify-center rounded-lg border border-linia bg-szary/40">
                       {produkt!.zdjecie ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={produkt!.zdjecie} alt={produkt!.nazwa} className="h-full w-full object-contain p-1.5" />
+                        <img src={zdjecie(produkt!.zdjecie, "s360")} alt={produkt!.nazwa} className="h-full w-full object-contain p-1.5" />
                       ) : null}
                     </Link>
 

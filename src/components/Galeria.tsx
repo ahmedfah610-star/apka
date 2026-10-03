@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { CSSProperties } from "react";
+import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 
 // Galeria jak w poście: zdjęcia przesuwa się palcem, myszką (przeciągnij) albo strzałkami;
 // kropki, licznik i miniatury pokazują, gdzie jesteś. Klik w zdjęcie → pełny ekran.
@@ -148,8 +149,9 @@ function PelnyEkran({ zdjecia, alt, start, onZamknij }: { zdjecia: string[]; alt
             // eslint-disable-next-line @next/next/no-img-element
             <img
               key={i}
-              src={z}
+              src={zdjecie(z, "s1024")}
               alt={`${alt} — zdjęcie ${i + 1}`}
+              loading={Math.abs(i - idx) <= 1 ? "eager" : "lazy"}
               draggable={false}
               className="h-full w-full shrink-0 snap-center select-none object-contain px-2 md:px-16"
             />
@@ -217,7 +219,9 @@ export function Galeria({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               key={i}
-              src={z}
+              src={zdjecie(z, "s720")}
+              srcSet={zestawZdjec(z, ["s512", "s720", "s1024"])}
+              sizes="(max-width: 768px) 100vw, 600px"
               alt={i === 0 ? alt : `${alt} — zdjęcie ${i + 1}`}
               loading={i === 0 ? "eager" : "lazy"}
               draggable={false}
@@ -271,7 +275,7 @@ export function Galeria({
               aria-label={`Zdjęcie ${i + 1}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={z} alt="" loading="lazy" className="h-full w-full object-contain p-1" />
+              <img src={zdjecie(z, "s128")} alt="" loading="lazy" className="h-full w-full object-contain p-1" />
             </button>
           ))}
         </div>

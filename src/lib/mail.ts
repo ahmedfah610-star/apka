@@ -4,6 +4,7 @@
 
 import { M, BAZA, powloka, esc, kartaProduktuMail } from "@/lib/mailSzablon";
 import { linkWypisu } from "@/lib/newsletterToken";
+import { zdjecie } from "@/lib/zdjecia";
 import { znajdzPrzewoznika, linkSledzenia } from "@/lib/przewoznicy";
 
 const API = "https://api.resend.com/emails";
@@ -93,7 +94,7 @@ function tabelaPozycji(d: DaneMaila): string {
       (x) => `<tr>
         <td style="padding:11px 0;border-bottom:1px solid ${M.linia};font-size:14px;color:${M.ink}">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-            ${/^https:\/\//.test(x.zdjecie ?? "") ? `<td style="padding-right:12px;vertical-align:top"><img src="${esc(x.zdjecie!)}" width="52" height="52" alt="" style="display:block;width:52px;height:52px;object-fit:contain;border:1px solid ${M.linia};border-radius:8px;background:#fff"></td>` : ""}
+            ${/^https:\/\//.test(x.zdjecie ?? "") ? `<td style="padding-right:12px;vertical-align:top"><img src="${esc(zdjecie(x.zdjecie, "s128"))}" width="52" height="52" alt="" style="display:block;width:52px;height:52px;object-fit:contain;border:1px solid ${M.linia};border-radius:8px;background:#fff"></td>` : ""}
             <td style="vertical-align:top;font-size:14px;color:${M.ink}">
               ${esc(x.nazwa)}<br>
               <span style="font-size:13px;color:${M.ink2}">${[x.kolor ? `kolor: <strong style="color:${M.ink}">${esc(x.kolor)}</strong>` : "", x.rozmiar ? `rozmiar: <strong style="color:${M.ink}">${esc(x.rozmiar)}</strong>` : "", `ilość: <strong style="color:${M.ink}">${x.ilosc}</strong>`].filter(Boolean).join(" · ")}</span>

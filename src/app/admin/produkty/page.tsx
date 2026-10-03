@@ -1,5 +1,6 @@
 "use client";
 
+import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { KATEGORIE_LABEL, type Kategoria, type Produkt, type Wiek } from "@/data/produkty";
 import { glowneZdjecie } from "@/lib/sklepStore";
@@ -167,7 +168,7 @@ export default function AdminProdukty() {
                         <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-szary">
                           {zdj ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={zdj} alt="" className="h-full w-full object-contain p-0.5" />
+                            <img src={zdjecie(zdj, "s128")} alt="" className="h-full w-full object-contain p-0.5" />
                           ) : null}
                         </span>
                         <span>

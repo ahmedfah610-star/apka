@@ -1,5 +1,6 @@
 "use client";
 
+import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { formatCena } from "@/lib/filtrowanie";
 import { PRZEWOZNICY, linkSledzenia } from "@/lib/przewoznicy";
@@ -255,7 +256,7 @@ export default function AdminZamowienia() {
                                     <span className="flex min-w-0 items-center gap-3">
                                       {p.zdjecie ? (
                                         // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={p.zdjecie} alt="" className="h-12 w-12 shrink-0 rounded-md border border-linia bg-white object-contain" />
+                                        <img src={zdjecie(p.zdjecie, "s128")} alt="" className="h-12 w-12 shrink-0 rounded-md border border-linia bg-white object-contain" />
                                       ) : null}
                                       <span className="min-w-0">
                                         <a href={`/produkty/${p.id}`} target="_blank" rel="noopener noreferrer" className="block text-ink underline-offset-2 hover:underline">

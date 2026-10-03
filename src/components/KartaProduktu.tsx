@@ -1,3 +1,4 @@
+import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 import Link from "next/link";
 import type { Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
@@ -27,7 +28,9 @@ export function KartaProduktu({ produkt, liczbaKolorow, cenaOd }: { produkt: Pro
         {produkt.zdjecie ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={produkt.zdjecie}
+            src={zdjecie(produkt.zdjecie, "s512")}
+            srcSet={zestawZdjec(produkt.zdjecie, ["s360", "s512"])}
+            sizes="(max-width: 768px) 46vw, 240px"
             alt={produkt.nazwa}
             className="h-full w-full object-contain p-2.5 transition-transform duration-300 group-hover:scale-[1.04]"
             loading="lazy"

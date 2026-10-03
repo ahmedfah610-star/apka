@@ -1,5 +1,6 @@
 "use client";
 
+import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -184,7 +185,7 @@ export function BramkaZamowienia() {
                   <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-linia bg-szary/40">
                     {produkt.zdjecie ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={produkt.zdjecie} alt="" className="h-full w-full object-contain p-0.5" />
+                      <img src={zdjecie(produkt.zdjecie, "s128")} alt="" className="h-full w-full object-contain p-0.5" />
                     ) : null}
                     <span className="absolute -right-1.5 -top-1.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-ink px-1 text-[10.5px] font-semibold text-tlo">
                       {poz.ilosc}

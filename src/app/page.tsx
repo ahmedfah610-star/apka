@@ -1,3 +1,4 @@
+import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
 import { KartaProduktu } from "@/components/KartaProduktu";
@@ -144,7 +145,7 @@ export default async function StronaGlowna() {
             <div className="absolute bottom-3 right-3 flex items-end gap-3 md:bottom-6 md:right-8">
               {kompletyFoto.map(({ produkt: p }, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img key={p.id} src={p.zdjecie!} alt="" className={`h-[170px] w-[160px] object-contain mix-blend-multiply md:h-[250px] md:w-[210px] ${i > 0 ? "hidden sm:block" : ""}`} />
+                <img key={p.id} src={zdjecie(p.zdjecie, "s512")} alt="" className={`h-[170px] w-[160px] object-contain mix-blend-multiply md:h-[250px] md:w-[210px] ${i > 0 ? "hidden sm:block" : ""}`} />
               ))}
             </div>
             <span className="relative z-10 mt-auto self-start rounded-lg bg-ink px-4 py-2.5 text-[13.5px] font-bold text-white md:px-5 md:py-3 md:text-[14px]">Zobacz komplety</span>
@@ -158,7 +159,7 @@ export default async function StronaGlowna() {
             </p>
             {tanieFoto ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={tanieFoto.zdjecie!} alt="" className="absolute bottom-2 right-2 h-[88px] w-[96px] object-contain mix-blend-multiply md:bottom-3 md:right-4 md:h-[140px] md:w-[130px]" />
+              <img src={zdjecie(tanieFoto.zdjecie, "s360")} alt="" className="absolute bottom-2 right-2 h-[88px] w-[96px] object-contain mix-blend-multiply md:bottom-3 md:right-4 md:h-[140px] md:w-[130px]" />
             ) : null}
           </Link>
 
@@ -169,7 +170,7 @@ export default async function StronaGlowna() {
             </p>
             {meskieFoto ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={meskieFoto.zdjecie!} alt="" className="absolute bottom-2 right-2 h-[88px] w-[96px] object-contain mix-blend-multiply md:bottom-3 md:right-4 md:h-[140px] md:w-[130px]" />
+              <img src={zdjecie(meskieFoto.zdjecie, "s360")} alt="" className="absolute bottom-2 right-2 h-[88px] w-[96px] object-contain mix-blend-multiply md:bottom-3 md:right-4 md:h-[140px] md:w-[130px]" />
             ) : null}
           </Link>
         </div>
@@ -188,7 +189,7 @@ export default async function StronaGlowna() {
                 <span className="mb-1.5 flex aspect-square w-full max-w-[76px] items-center justify-center rounded-full bg-szary p-2 md:mb-2 md:max-w-none transition-colors group-hover:bg-akcent-2 md:h-[112px] md:w-[112px] md:p-3.5">
                   {r.foto?.zdjecie ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={r.foto.zdjecie} alt="" className="h-full w-full object-contain mix-blend-multiply" />
+                    <img src={zdjecie(r.foto.zdjecie, "s360")} alt="" className="h-full w-full object-contain mix-blend-multiply" />
                   ) : null}
                 </span>
                 <span className="text-[13px] font-bold text-ink md:text-[14px]">{r.label}</span>
