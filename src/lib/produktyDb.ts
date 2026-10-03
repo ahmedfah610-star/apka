@@ -50,9 +50,11 @@ function tekstZHtml(h: string): string {
 }
 
 // Każdy opis wychodzący do strony przechodzi przez białą listę znaczników (ochrona przed XSS).
-const bezpieczny = (h: string | null | undefined) => (h ? bezpiecznyHtml(h) || null : (h ?? null));
+// Grafiki w opisie: wersja 720 px z Allegro zamiast pełnej rozdzielczości (szybciej na telefonie).
+const lzejszeGrafiki = (h: string) => h.replace(/(https:\/\/a\.allegroimg\.com\/)original\//g, "$1s720/");
+const bezpieczny = (h: string | null | undefined) => (h ? lzejszeGrafiki(bezpiecznyHtml(h)) || null : (h ?? null));
 const bezpieczneOpisy = (m: Record<string, string> | null) =>
-  m ? Object.fromEntries(Object.entries(m).map(([k, v]) => [k, bezpiecznyHtml(v)]).filter(([, v]) => v)) : null;
+  m ? Object.fromEntries(Object.entries(m).map(([k, v]) => [k, lzejszeGrafiki(bezpiecznyHtml(v))]).filter(([, v]) => v)) : null;
 
 function zRzedu(r: any): Produkt {
   const pop = poprawki(r);
