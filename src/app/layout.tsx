@@ -61,8 +61,12 @@ export const metadata: Metadata = {
   },
   verification: {
     // Weryfikacja Google Search Console (metoda „znacznik HTML" / usługa typu „Prefiks URL").
-    // Token można nadpisać zmienną NEXT_PUBLIC_GOOGLE_VERIFICATION.
-    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "O6bHjQAk8ppz3H1qghd6jf-h039XwR-aRImryDw8lk4",
+    // Kolejne tokeny (np. Google Merchant Center) — dopisz tutaj albo w zmiennej
+    // NEXT_PUBLIC_GOOGLE_VERIFICATION (kilka rozdzielonych przecinkami).
+    google: [
+      "O6bHjQAk8ppz3H1qghd6jf-h039XwR-aRImryDw8lk4",
+      ...(process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION ?? "").split(",").map((t) => t.trim()).filter(Boolean),
+    ],
   },
   category: "shopping",
 };
