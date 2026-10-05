@@ -106,7 +106,7 @@ export const PRODUKTY_W_ARTYKULACH: Record<string, PasProduktow[]> = {
     { po: "Klimatyzacja i chłodniejsze wieczory", tytul: "Lekkie bluzy na wieczór", link: "/produkty?szukaj=bluza", wybor: { fraza: "bluza" } },
   ],
   "bawelna-organiczna-czy-warto": [
-    { po: "Kiedy szczególnie warto dopłacić", tytul: "Body niemowlęce", link: K("body-niemowlece"), wybor: { kolekcja: "body-niemowlece" } },
+    { po: "A jak jest w naszym sklepie?", tytul: "Body niemowlęce z bawełny", link: K("body-niemowlece"), wybor: { kolekcja: "body-niemowlece" } },
     { po: "Czy trzeba kupować tylko organiczne?", tytul: "Komplety niemowlęce", link: K("komplety-niemowlece"), wybor: { kolekcja: "komplety-niemowlece" } },
   ],
   "jak-ubrac-dziecko-na-zime": [
