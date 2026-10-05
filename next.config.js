@@ -35,7 +35,16 @@ const nextConfig = {
   },
   // Stary adres artykułu (zastąpiony poradnikiem o składzie bawełny) — przekierowanie, żeby linki i Google trafiały dalej.
   async redirects() {
-    return [{ source: "/blog/bawelna-organiczna-czy-warto", destination: "/blog/bawelna-w-ubrankach-dzieciecych", permanent: true }];
+    return [
+      // Jeden adres sklepu: www → bez www (bez duplikatu witryny w Google).
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.bobas-shopping.pl" }],
+        destination: "https://bobas-shopping.pl/:path*",
+        permanent: true,
+      },
+      { source: "/blog/bawelna-organiczna-czy-warto", destination: "/blog/bawelna-w-ubrankach-dzieciecych", permanent: true },
+    ];
   },
   async headers() {
     return [{ source: "/:path*", headers: naglowkiBezpieczenstwa }];
