@@ -33,6 +33,10 @@ const nextConfig = {
       { protocol: "https", hostname: "allegroimg.com" },
     ],
   },
+  // Stary adres artykułu (zastąpiony poradnikiem o składzie bawełny) — przekierowanie, żeby linki i Google trafiały dalej.
+  async redirects() {
+    return [{ source: "/blog/bawelna-organiczna-czy-warto", destination: "/blog/bawelna-w-ubrankach-dzieciecych", permanent: true }];
+  },
   async headers() {
     return [{ source: "/:path*", headers: naglowkiBezpieczenstwa }];
   },

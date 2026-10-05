@@ -38,7 +38,6 @@ export const ARTYKULY: Artykul[] = [
       { typ: "p", tekst: "Zasada jest prosta: im bliżej skóry, tym bardziej naturalny i przewiewny materiał. Warstwa, która dotyka ciała (body, koszulka, pajacyk), powinna być miękka i oddychająca." },
       { typ: "ul", punkty: [
         "Bawełna — miękka, przewiewna, oddychająca; podstawa garderoby wrażliwej skóry.",
-        "Bawełna organiczna — uprawiana bez syntetycznych pestycydów, zwykle mniej przetworzona; dobra dla skóry skłonnej do podrażnień.",
         "Wiskoza bambusowa i miękkie dzianiny — jedwabiście gładkie, przyjemne przy AZS, dobrze odprowadzają wilgoć.",
         "Len (latem) — naturalny, chłodzący i przewiewny, choć nieco sztywniejszy; sprawdza się w upały.",
         "Miękkie, gęste dzianiny bawełniane — mniej prześwitują i nie „gryzą” jak luźno tkane, szorstkie materiały.",
@@ -57,12 +56,11 @@ export const ARTYKULY: Artykul[] = [
       { typ: "h2", tekst: "Na co zwrócić uwagę przy AZS" },
       { typ: "p", tekst: "Przy atopowym zapaleniu skóry liczą się detale, które przy zdrowej skórze są nieistotne. Dobre ubranko dla dziecka z AZS to najczęściej:" },
       { typ: "ul", punkty: [
-        "gładka bawełna lub bawełna organiczna jako warstwa przy ciele,",
+        "gładka, miękka bawełna (najlepiej 100%) jako warstwa przy ciele,",
         "metki nadrukowane zamiast wszywanych (albo takie, które można odciąć bez ostrej krawędzi),",
         "płaskie lub zewnętrzne szwy, brak gum uciskających skórę,",
         "luźniejszy krój, który nie ociera i pozwala skórze oddychać,",
         "jasne, spokojne kolory — mniej barwników to mniejsze ryzyko podrażnień,",
-        "jeśli zależy Ci na certyfikacie — oznaczenie OEKO-TEX STANDARD 100 na metce, potwierdzające brak szkodliwych substancji.",
       ] },
       { typ: "p", tekst: "Ważne: ten artykuł to poradnik zakupowy, a nie porada medyczna. Jeśli skóra dziecka jest przewlekle podrażniona, swędząca albo zmieniona chorobowo, skonsultuj się z pediatrą lub dermatologiem — dobór ubranek wspiera pielęgnację, ale jej nie zastępuje." },
 
@@ -75,9 +73,6 @@ export const ARTYKULY: Artykul[] = [
         "Nowe ubranka wypierz przed pierwszym założeniem — usuwa to pozostałości z produkcji i transportu.",
         "Pierz w 30–40°C; wyższe temperatury szybciej niszczą miękkość dzianiny.",
       ] },
-
-      { typ: "h2", tekst: "Certyfikaty, którym można ufać" },
-      { typ: "p", tekst: "Najbardziej rozpoznawalny znak przy ubrankach dziecięcych to OEKO-TEX STANDARD 100 — oznacza, że tkanina i dodatki (nici, guziki, nadruki) zostały przebadane pod kątem substancji szkodliwych. Dla najmłodszych obowiązuje najostrzejsza klasa wymagań. To dobry punkt orientacyjny, gdy zależy Ci na bezpieczeństwie skóry dziecka. Więcej o oznaczeniach piszemy w [poradniku o metkach](/blog/co-znacza-metki-ubranek-dzieciecych)." },
 
       { typ: "h2", tekst: "Krótko: garderoba dla wrażliwej skóry" },
       { typ: "p", tekst: "Postaw na miękką, oddychającą bawełnę przy skórze, wybieraj ubranka z nadrukowanymi metkami i płaskimi szwami, unikaj syntetyków oraz sztywnych wykończeń, a do tego pierz łagodnym środkiem z dodatkowym płukaniem. Te kilka nawyków sprawia, że skóra dziecka ma spokój — a Ty mniej zmartwień przy codziennym ubieraniu. W naszym sklepie większość body i pajacyków jest ze 100% bawełny, zapinana na zatrzaski, a skład każdego ubranka podajemy w opisie — zajrzyj do [ubranek dla niemowląt](/produkty?kategoria=niemowleta)." },
@@ -212,41 +207,42 @@ export const ARTYKULY: Artykul[] = [
     ],
   },
   {
-    slug: "bawelna-organiczna-czy-warto",
-    tytul: "Bawełna organiczna — czy warto dopłacać do ubranek dziecięcych?",
-    opis: "Coraz częściej na metkach widać „bawełna organiczna” i certyfikat GOTS. Wyjaśniamy, czym różni się od zwykłej bawełny i kiedy naprawdę warto dopłacić.",
+    slug: "bawelna-w-ubrankach-dzieciecych",
+    tytul: "Bawełna w ubrankach dziecięcych — 100% czy z domieszką?",
+    opis: "100% bawełny, bawełna z elastanem czy z poliestrem? Wyjaśniamy, co oznacza skład na metce, gdzie który materiał sprawdza się najlepiej i jak dbać o bawełniane ubranka.",
     data: "2026-08-14",
     czasCzytania: 5,
     kategoria: "Poradnik",
-    hue: 130,
-    zdjecie: "/img/blog/bawelna-organiczna-czy-warto.jpg",
+    hue: 95,
+    zdjecie: "/img/blog/bawelna-w-ubrankach-dzieciecych.jpg",
     tresc: [
-      { typ: "p", tekst: "„Bawełna organiczna”, „GOTS”, „eko” — takie hasła coraz częściej pojawiają się na metkach ubranek dziecięcych, zwykle z wyższą ceną. Czy to marketing, czy realna różnica? Sprawdźmy, co oznacza bawełna organiczna i kiedy dopłata rzeczywiście ma sens." },
-      { typ: "h2", tekst: "Czym jest bawełna organiczna" },
-      { typ: "p", tekst: "To bawełna uprawiana i przetwarzana bez wielu syntetycznych pestycydów i nawozów, często z certyfikatem GOTS (Global Organic Textile Standard), który kontroluje cały łańcuch produkcji. W efekcie tkanina zawiera mniej pozostałości chemicznych, a jej wytwarzanie jest bardziej przyjazne środowisku." },
-      { typ: "h2", tekst: "Czym różni się od zwykłej bawełny" },
-      { typ: "ul", punkty: [
-        "mniej chemii w procesie uprawy i barwienia,",
-        "często wyjątkowa miękkość i przyjemny dotyk,",
-        "bardziej ekologiczna produkcja,",
-        "zwykle wyższa cena.",
-      ] },
-      { typ: "p", tekst: "Warto wiedzieć, że dobra zwykła bawełna też jest miękka i bezpieczna — organiczna to „krok dalej”, a nie warunek konieczny udanego ubranka." },
-      { typ: "h2", tekst: "Kiedy szczególnie warto dopłacić" },
-      { typ: "ul", punkty: [
-        "przy noworodkach i najmłodszych niemowlętach,",
-        "gdy dziecko ma wrażliwą lub skłonną do podrażnień skórę (np. AZS),",
-        "przy ubrankach noszonych bezpośrednio przy skórze — [body niemowlęce](/kolekcje/body-niemowlece), piżamy, koszulki,",
-        "gdy zależy Ci na aspekcie ekologicznym.",
-      ] },
-      { typ: "h2", tekst: "OEKO-TEX a bawełna organiczna — to nie to samo" },
-      { typ: "p", tekst: "Łatwo je pomylić. Certyfikat OEKO-TEX potwierdza, że gotowa tkanina jest przebadana pod kątem substancji szkodliwych i bezpieczna dla skóry — niezależnie od tego, jak uprawiano bawełnę. GOTS/organiczna mówi o sposobie uprawy i produkcji. OEKO-TEX to najczęściej spotykany znak przebadania tkaniny, a „organiczna” to dodatkowa wartość — żaden z nich nie jest jednak warunkiem dobrego ubranka." },
-      { typ: "h2", tekst: "Czy trzeba kupować tylko organiczne?" },
-      { typ: "p", tekst: "Nie. Najważniejsze jest, by ubranko było z dobrej, przewiewnej bawełny, miało wygodny krój i staranne wykończenie bez drapiących elementów; jeśli chcesz dodatkowej pewności, szukaj oznaczenia OEKO-TEX. Bawełna organiczna to miły dodatek, zwłaszcza przy najmłodszych i wrażliwej skórze — ale udane, bezpieczne ubranko możesz mieć również ze zwykłej, dobrej jakości bawełny." },
-      { typ: "p", tekst: "Podsumowując: bawełna organiczna ma realne zalety — mniej chemii, miękkość, ekologia — i warto po nią sięgać przy najmłodszych i wrażliwej skórze. Ale to opcja „premium”, nie obowiązek. Zdrowy rozsądek: dobra bawełna i wygodny krój wystarczą na co dzień." },
+      { typ: "p", tekst: "Bawełna to podstawa dziecięcej garderoby, ale na metkach rzadko widać samo „100% bawełna”. Często obok pojawia się elastan, poliester albo — w sweterkach — akryl. To nie znaczy, że ubranko jest gorsze: każda domieszka ma swoje zadanie. Podpowiadamy, jak czytać skład i co wybrać do body, bluzeczki, dresu czy sweterka." },
 
-      { typ: "h2", tekst: "A jak jest w naszym sklepie?" },
-      { typ: "p", tekst: "Mówimy wprost: nie sprzedajemy ubranek z certyfikatem bawełny organicznej (GOTS) i nie nazywamy ich „eko”. Stawiamy na zwykłą, dobrą bawełnę tam, gdzie liczy się najbardziej — większość naszych body i pajacyków jest ze 100% bawełny, a bluzeczki najczęściej z 95% bawełny i 5% elastanu, który pomaga im się dopasować. Skład każdego produktu znajdziesz w jego opisie, razem z wymiarami w centymetrach." },
+      { typ: "h2", tekst: "Dlaczego bawełna przy skórze" },
+      { typ: "p", tekst: "Bawełna jest miękka, przewiewna i dobrze chłonie wilgoć, dlatego skóra dziecka się w niej nie poci. Łatwo ją też prać, a z każdym praniem staje się jeszcze milsza w dotyku. Właśnie dlatego to ona powinna dotykać ciała malucha — w body, pajacykach, koszulkach i śpioszkach." },
+
+      { typ: "h2", tekst: "100% bawełny — body, pajacyki, śpioszki" },
+      { typ: "p", tekst: "Przy ubrankach dla niemowląt najlepiej sprawdza się czysta bawełna. Body i pajacyk noszone są przez całą dobę, także do snu, więc liczy się przewiewność i miękkość. Zwróć uwagę na zatrzaski — w body przy szyjce i w kroku, w pajacyku od góry do nóżek — bo to one najbardziej ułatwiają przewijanie." },
+
+      { typ: "h2", tekst: "Bawełna z elastanem — bluzeczki i legginsy" },
+      { typ: "p", tekst: "Skład „95% bawełny, 5% elastanu” to częsty wybór przy bluzeczkach, koszulkach i legginsach. Kilka procent elastanu sprawia, że materiał się rozciąga, lepiej układa na sylwetce i wraca do kształtu po praniu. Dziecko ma pełną swobodę ruchów, a ubranko „wybacza” drobne różnice w rozmiarze." },
+
+      { typ: "h2", tekst: "Bawełna z poliestrem — dresy na co dzień" },
+      { typ: "p", tekst: "W dresach i spodniach do przedszkola często spotkasz mieszankę bawełny z poliestrem i odrobiną elastanu, np. 75% bawełny, 20% poliestru i 5% elastanu. Poliester dodaje trwałości: spodnie mniej się mechacą na kolanach, mniej gniotą i szybciej schną. Bawełna w przewadze dba o to, żeby wciąż były miękkie i wygodne. Ocieplane modele mają od środka polar albo meszek — idealne na chłodniejsze dni." },
+
+      { typ: "h2", tekst: "Akryl — sweterki i kamizelki" },
+      { typ: "p", tekst: "Sweterki i kamizelki dziecięce często robi się ze 100% akrylu. To lekka, ciepła dzianina, która — w przeciwieństwie do wełny — nie gryzie. Najlepiej zakładać ją jako warstwę na bawełniane body lub koszulkę: skóry dotyka bawełna, a sweterek grzeje i dobrze wygląda, także od święta." },
+
+      { typ: "h2", tekst: "Jak dbać o bawełniane ubranka" },
+      { typ: "ul", punkty: [
+        "pierz w 30°C, a ubranka z nadrukiem na lewej stronie — nadruk dłużej zachowa kolor,",
+        "nowe ubranka wypierz przed pierwszym założeniem,",
+        "susz na płasko lub na wieszaku, z dala od kaloryfera — bawełna nie lubi wysokiej temperatury,",
+        "sweterki z akrylu pierz delikatnie i nie wykręcaj, żeby nie straciły kształtu.",
+      ] },
+
+      { typ: "h2", tekst: "Krótko: co wybrać" },
+      { typ: "p", tekst: "Przy skórze niemowlęcia — 100% bawełny. Do bluzeczek i legginsów — bawełna z elastanem, która się dopasowuje. Na co dzień do przedszkola — dres z bawełny z poliestrem, trwalszy i łatwy w praniu. Na chłodne dni — akrylowy sweterek założony na bawełnę. Skład każdego ubranka podajemy w jego opisie, więc łatwo dobierzesz materiał do okazji." },
     ],
   },
   {
@@ -587,19 +583,15 @@ export const ARTYKULY: Artykul[] = [
   },
   {
     slug: "co-znacza-metki-ubranek-dzieciecych",
-    tytul: "Co znaczą metki ubranek dziecięcych? OEKO-TEX, bawełna organiczna i skład",
-    opis: "OEKO-TEX, GOTS, symbole prania, procenty składu — metka ubranka to kopalnia informacji. Tłumaczymy, na co patrzeć, żeby wybrać bezpieczne i trwałe ubranka dla dziecka.",
+    tytul: "Co znaczą metki ubranek dziecięcych? Skład, rozmiar i pranie",
+    opis: "Skład materiału, rozmiar i symbole prania — metka ubranka to kopalnia informacji. Tłumaczymy, na co patrzeć, żeby wybrać wygodne i trwałe ubranka dla dziecka.",
     data: "2026-08-04",
     czasCzytania: 5,
     kategoria: "Poradnik",
     hue: 110,
     zdjecie: "/img/blog/co-znacza-metki-ubranek-dzieciecych.jpg",
     tresc: [
-      { typ: "p", tekst: "Metka ubranka wygląda niepozornie, a kryje mnóstwo informacji, które pomagają wybrać dobrze: skład materiału, certyfikaty bezpieczeństwa i zasady pielęgnacji. Gdy nauczysz się ją czytać, łatwiej odróżnisz ubranko, które posłuży sezonami, od takiego, które rozczaruje po pierwszym praniu. Oto krótki przewodnik." },
-      { typ: "h2", tekst: "OEKO-TEX Standard 100 — co gwarantuje" },
-      { typ: "p", tekst: "To jeden z najważniejszych certyfikatów przy odzieży dziecięcej. Oznacza, że materiał został przebadany pod kątem substancji szkodliwych i jest bezpieczny dla skóry — również tej najbardziej wrażliwej, noworodkowej. Jeśli widzisz OEKO-TEX na metce, masz pewność, że tkanina nie zawiera niepożądanych związków w ilościach mogących szkodzić dziecku." },
-      { typ: "h2", tekst: "Bawełna organiczna (GOTS) — czy warto?" },
-      { typ: "p", tekst: "Bawełna organiczna z certyfikatem GOTS jest uprawiana i przetwarzana bez wielu szkodliwych chemikaliów. Bywa nieco droższa, ale jest miękka, przyjemna w dotyku i przyjazna wrażliwej skórze — dlatego często wybiera się ją przy ubrankach dla najmłodszych. Nie jest obowiązkowa, ale to solidny znak jakości." },
+      { typ: "p", tekst: "Metka ubranka wygląda niepozornie, a kryje mnóstwo informacji, które pomagają wybrać dobrze: skład materiału, rozmiar i zasady pielęgnacji. Gdy nauczysz się ją czytać, łatwiej odróżnisz ubranko, które posłuży sezonami, od takiego, które rozczaruje po pierwszym praniu. Oto krótki przewodnik." },
       { typ: "h2", tekst: "Skład materiału — na co patrzeć" },
       { typ: "ul", punkty: [
         "bawełna — podstawa dobrej odzieży dziecięcej; oddycha i jest miękka,",
@@ -886,7 +878,7 @@ const POLECANE: Record<string, LinkSklep[]> = {
     { tekst: "Sukienki dla dziewczynki", url: "/kolekcje/sukienki-dla-dziewczynki" },
     { tekst: "Body dziecięce", url: "/kolekcje/body-dzieciece" },
   ],
-  "bawelna-organiczna-czy-warto": [
+  "bawelna-w-ubrankach-dzieciecych": [
     { tekst: "Body niemowlęce", url: "/kolekcje/body-niemowlece" },
     { tekst: "Ubranka dla niemowląt", url: "/produkty?kategoria=niemowleta" },
     { tekst: "Cała oferta", url: "/produkty" },

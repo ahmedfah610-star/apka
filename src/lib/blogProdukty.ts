@@ -105,9 +105,10 @@ export const PRODUKTY_W_ARTYKULACH: Record<string, PasProduktow[]> = {
     { po: "Ochrona przed słońcem", tytul: "Czapki i kapelusze", link: K("czapki-dzieciece"), wybor: { kolekcja: "czapki-dzieciece" } },
     { po: "Klimatyzacja i chłodniejsze wieczory", tytul: "Lekkie bluzy na wieczór", link: "/produkty?szukaj=bluza", wybor: { fraza: "bluza" } },
   ],
-  "bawelna-organiczna-czy-warto": [
-    { po: "A jak jest w naszym sklepie?", tytul: "Body niemowlęce z bawełny", link: K("body-niemowlece"), wybor: { kolekcja: "body-niemowlece" } },
-    { po: "Czy trzeba kupować tylko organiczne?", tytul: "Komplety niemowlęce", link: K("komplety-niemowlece"), wybor: { kolekcja: "komplety-niemowlece" } },
+  "bawelna-w-ubrankach-dzieciecych": [
+    { po: "100% bawełny — body, pajacyki, śpioszki", tytul: "Body niemowlęce", link: K("body-niemowlece"), wybor: { kolekcja: "body-niemowlece" } },
+    { po: "Bawełna z poliestrem — dresy na co dzień", tytul: "Dresy dziecięce", link: K("dresy-dzieciece"), wybor: { kolekcja: "dresy-dzieciece" } },
+    { po: "Akryl — sweterki i kamizelki", tytul: "Sweterki i kamizelki", link: "/produkty?szukaj=sweter", wybor: { fraza: "sweter" } },
   ],
   "jak-ubrac-dziecko-na-zime": [
     { po: "Zasada trzech warstw", tytul: "Body na pierwszą warstwę", link: K("body-dzieciece"), wybor: { kolekcja: "body-dzieciece" } },
