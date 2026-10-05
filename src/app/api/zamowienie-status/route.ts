@@ -47,3 +47,21 @@ export async function POST(req: Request) {
     },
   });
 }
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Strona podziękowania: czy płatność już potwierdzona (do zgłoszenia zakupu w GA4/Google Ads).
+// Tylko status i kwota — po pełnym, niezgadywalnym id zamówienia (z adresu powrotu z płatności).
+export async function GET(req: Request) {
+  if (!wLimicie(`status-id:${ipZadania(req)}`, 30, 60 * 1000)) return limitOdpowiedz();
+  const id = new URL(req.url).searchParams.get("id") ?? "";
+  if (!UUID.test(id)) return Response.json({ ok: false }, { status: 400 });
+  const sb = supabaseWlaczony() ? sbService() : null;
+  if (!sb) return Response.json({ ok: false }, { status: 503 });
+  const { data } = await sb.from("zamowienia").select("status, razem").eq("id", id).maybeSingle();
+  if (!data) return Response.json({ ok: false }, { status: 404 });
+  return Response.json(
+    { ok: true, status: data.status, razem: Number(data.razem) },
+    { headers: { "Cache-Control": "no-store" } },
+  );
+}

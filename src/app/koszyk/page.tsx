@@ -2,7 +2,7 @@
 
 import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
 import { useKoszyk } from "@/components/KoszykContext";
@@ -13,6 +13,8 @@ import { EdycjaDostaw } from "@/components/EdycjaDostaw";
 import { ZAMOWIENIA_WYLACZONE } from "@/lib/sklep";
 import { PrzerwaTechniczna } from "@/components/PrzerwaTechniczna";
 import { pobierzKatalog } from "@/lib/katalogKlient";
+import { pomiarKoszyka } from "@/lib/analityka";
+import { pozycjaPomiaru } from "@/components/DodajDoKoszyka";
 
 const ZAUFANIE = [
   { t: "Wysyłka InPost", o: "Paczkomaty i kurier" },
@@ -23,12 +25,14 @@ const ZAUFANIE = [
 export default function StronaKoszyka() {
   const { pozycje, usun, ustawIlosc, usunieteNiedostepne } = useKoszyk();
   const [katalog, setKatalog] = useState<Produkt[]>(PRODUKTY);
+  const [katalogGotowy, setKatalogGotowy] = useState(false);
 
   useEffect(() => {
     pobierzKatalog().then((k) => {
       if (k) {
         setKatalog(k);
       }
+      setKatalogGotowy(true);
     });
   }, []);
 
@@ -41,6 +45,14 @@ export default function StronaKoszyka() {
   const suma = pozycjeZDanymi.reduce((s, { poz, produkt }) => s + produkt!.cena * poz.ilosc, 0);
   // Liczone z tego, co widać na liście (nie z surowego zapisu koszyka).
   const sztuk = pozycjeZDanymi.reduce((s, { poz }) => s + poz.ilosc, 0);
+
+  // GA4: obejrzenie koszyka — raz, po wczytaniu aktualnych cen z katalogu.
+  const zgloszonyKoszyk = useRef(false);
+  useEffect(() => {
+    if (!katalogGotowy || zgloszonyKoszyk.current || pozycjeZDanymi.length === 0) return;
+    zgloszonyKoszyk.current = true;
+    pomiarKoszyka("view_cart", pozycjeZDanymi.map(({ poz, produkt }) => ({ ...pozycjaPomiaru(produkt!, poz.ilosc), rozmiar: poz.rozmiar })));
+  }, [katalogGotowy, pozycjeZDanymi]);
 
   const { darmowaOd } = useDostawa();
   const doDarmowej = Math.max(0, darmowaOd - suma);

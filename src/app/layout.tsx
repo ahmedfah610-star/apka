@@ -6,6 +6,7 @@ import { KoszykProvider } from "@/components/KoszykContext";
 import { UlubioneProvider } from "@/components/UlubioneContext";
 import { BannerCookies } from "@/components/BannerCookies";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { ZGODY_DOMYSLNE } from "@/lib/zgody";
 import { BAZA_URL, NAZWA_SKLEPU, OPIS_SKLEPU, jsonLd } from "@/lib/seo";
 import { TrybAdminaProvider } from "@/components/TrybAdmina";
 
@@ -117,6 +118,10 @@ const daneStrukturalne = [
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pl" className={fontSans.variable}>
+      <head>
+        {/* Consent Mode v2: domyślnie brak zgody — przed jakimkolwiek tagiem Google. */}
+        <script dangerouslySetInnerHTML={{ __html: ZGODY_DOMYSLNE }} />
+      </head>
       <body className="min-h-screen bg-strona font-sans text-ink antialiased">
         <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(daneStrukturalne)} />
         <AuthProvider>

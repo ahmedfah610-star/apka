@@ -9,6 +9,16 @@ import { TabelaRozmiarow } from "@/components/TabelaRozmiarow";
 import { PrzyciskUlubione } from "@/components/PrzyciskUlubione";
 import type { Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
+import { pomiarProduktu } from "@/lib/analityka";
+
+export const pozycjaPomiaru = (p: Produkt, ilosc = 1) => ({
+  id: p.id,
+  nazwa: p.nazwa,
+  cena: p.cena,
+  ilosc,
+  kolor: p.kolor ?? null,
+  kategoria: p.kategoria,
+});
 
 export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
   const { dodaj } = useKoszyk();
@@ -58,6 +68,7 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
     }
     if (typeof dostepneTeraz === "number" && dostepneTeraz <= 0) return;
     dodaj(produkt.id, rozmiar, 1);
+    pomiarProduktu("add_to_cart", { ...pozycjaPomiaru(produkt), rozmiar });
     setDodano(true);
     setBlad(false);
     setTimeout(() => setDodano(false), 2500);

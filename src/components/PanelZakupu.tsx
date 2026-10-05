@@ -2,7 +2,8 @@
 
 import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 import { useEffect, useMemo, useState } from "react";
-import { DodajDoKoszyka } from "@/components/DodajDoKoszyka";
+import { DodajDoKoszyka, pozycjaPomiaru } from "@/components/DodajDoKoszyka";
+import { pomiarProduktu } from "@/lib/analityka";
 import { Galeria } from "@/components/Galeria";
 import { TerminDostawy } from "@/components/TerminDostawy";
 import { KATEGORIE_LABEL, type Produkt } from "@/data/produkty";
@@ -33,6 +34,12 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
       window.history.replaceState(null, "", `/produkty/${aktywnyId}`);
     }
   }, [aktywnyId, startId]);
+
+  // GA4: obejrzenie produktu (także po zmianie koloru — to inny wariant/oferta).
+  useEffect(() => {
+    pomiarProduktu("view_item", pozycjaPomiaru(p));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.id]);
 
   const kolory = useMemo(() => wariantyKoloru(warianty, p), [warianty, p]);
   const zdjecia = p.zdjecia?.length ? p.zdjecia : p.zdjecie ? [p.zdjecie] : [];

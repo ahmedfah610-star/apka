@@ -1,7 +1,7 @@
 "use client";
 
 import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
@@ -21,6 +21,8 @@ import { kosztDostawy } from "@/lib/dostawa";
 import { useDostawa } from "@/lib/dostawaKlient";
 import { EdycjaDostaw } from "@/components/EdycjaDostaw";
 import { pobierzKatalog } from "@/lib/katalogKlient";
+import { pomiarKoszyka, zapamietajZakup } from "@/lib/analityka";
+import { pozycjaPomiaru } from "@/components/DodajDoKoszyka";
 
 // Płatności obsługuje w całości Przelewy24 — to na jego bezpiecznej stronie
 // klient wybiera BLIK / przelew / kartę. Nie dublujemy tu tego wyboru.
@@ -51,11 +53,13 @@ export default function StronaZamowienia() {
   const [kodBlad, setKodBlad] = useState("");
   const [kodSprawdzanie, setKodSprawdzanie] = useState(false);
 
+  const [katalogGotowy, setKatalogGotowy] = useState(false);
   useEffect(() => {
     pobierzKatalog().then((k) => {
       if (k) {
         setKatalog(k);
       }
+      setKatalogGotowy(true);
     });
     fetch("/api/konfiguracja")
       .then((r) => r.json())
@@ -114,6 +118,18 @@ export default function StronaZamowienia() {
   const dostawa = kosztDostawy(metoda, suma, ustawieniaDostawy.darmowaOd);
   const rabat = kodPrzyjety ? Math.min(kodPrzyjety.rabat, suma) : 0;
   const razem = Math.max(0, suma - rabat) + dostawa;
+
+  const pozycjePomiaru = () =>
+    pozycjeZDanymi.map(({ poz, produkt }) => ({ ...pozycjaPomiaru(produkt!, poz.ilosc), rozmiar: poz.rozmiar }));
+
+  // GA4: rozpoczęcie zamówienia — raz, po wczytaniu aktualnych cen z katalogu.
+  const zgloszonyStart = useRef(false);
+  useEffect(() => {
+    if (!katalogGotowy || zgloszonyStart.current || pozycjeZDanymi.length === 0) return;
+    zgloszonyStart.current = true;
+    pomiarKoszyka("begin_checkout", pozycjePomiaru());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [katalogGotowy, pozycjeZDanymi.length]);
 
   if (pozycjeZDanymi.length === 0) {
     return (
@@ -175,6 +191,9 @@ export default function StronaZamowienia() {
     if (!akceptacja) return setBlad("Zaakceptuj Regulamin i Politykę prywatności.");
     setBlad("");
     setWysylka(true);
+    // Zakup zgłosimy do GA4/Google Ads na stronie podziękowania, gdy serwer potwierdzi opłacenie.
+    zapamietajZakup({ pozycje: pozycjePomiaru(), dostawa, rabat, kod: kodPrzyjety?.kod ?? null });
+    let idZamowienia = "";
     try {
       const res = await fetch("/api/platnosc/checkout", {
         method: "POST",
@@ -205,7 +224,7 @@ export default function StronaZamowienia() {
           },
         }),
       });
-      const dane2 = (await res.json().catch(() => ({}))) as { ok?: boolean; blad?: string; url?: string };
+      const dane2 = (await res.json().catch(() => ({}))) as { ok?: boolean; blad?: string; url?: string; id?: string };
       if (!res.ok || dane2.ok === false) {
         setWysylka(false);
         return setBlad(dane2.blad || "Nie udało się złożyć zamówienia. Spróbuj ponownie.");
@@ -215,13 +234,14 @@ export default function StronaZamowienia() {
         window.location.href = dane2.url;
         return;
       }
+      idZamowienia = dane2.id ? String(dane2.id) : "";
     } catch {
       setWysylka(false);
       return setBlad("Błąd połączenia. Spróbuj ponownie.");
     }
     // Tryb bez płatności online — od razu potwierdzenie.
     wyczysc();
-    router.push("/zamowienie/dziekujemy");
+    router.push(idZamowienia ? `/zamowienie/dziekujemy?zamowienie=${encodeURIComponent(idZamowienia)}` : "/zamowienie/dziekujemy");
   }
 
   const input = "w-full rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[16px] outline-none transition-colors focus:border-ink md:text-[14px]";

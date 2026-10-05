@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
+import { ZglosZakup } from "@/components/ZglosZakup";
 
 export const metadata = { title: "Dziękujemy za zamówienie" };
 
@@ -9,6 +10,7 @@ export default function StronaDziekujemy({ searchParams }: { searchParams: { zam
   return (
     <div className="overflow-x-clip">
       <Nawigacja />
+      {searchParams.zamowienie ? <ZglosZakup id={searchParams.zamowienie} /> : null}
       <div className="mx-auto max-w-content px-6 py-24 text-center md:px-12">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[oklch(66%_0.13_150)] text-2xl text-tlo">✓</div>
         <h1 className="mb-3 text-[30px] font-extrabold tracking-tight md:text-[34px]">Dziękujemy za zamówienie!</h1>
