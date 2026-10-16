@@ -13,7 +13,7 @@ export default async function DostawaZwroty() {
   return (
     <StronaInfo
       tytul="Dostawa i zwroty"
-      wstep="Wygodna wysyłka InPost oraz 14 dni na zwrot bez podania przyczyny. Poniżej znajdziesz wszystkie zasady i wzór formularza odstąpienia."
+      wstep="Wysyłka do paczkomatu, punktu odbioru lub kurierem oraz 14 dni na zwrot bez podania przyczyny. Poniżej znajdziesz wszystkie zasady i wzór formularza odstąpienia."
     >
       <Sekcja tytul="Sposoby i koszt dostawy">
         <EdycjaDostaw klasa="mb-3" />

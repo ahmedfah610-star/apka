@@ -2,41 +2,56 @@ import { StronaInfo, Sekcja, Lista, DaneSprzedawcy } from "@/components/StronaIn
 
 export const metadata = { title: "O nas" };
 
+const ALLEGRO = "https://allegro.pl/uzytkownik/bobas-shopping/oceny";
+
 export default function ONas() {
   return (
-    <StronaInfo tytul="O nas" wstep="bobas-shopping to sklep z ubrankami dla dzieci w wieku 0–12 lat. Wybieramy rzeczy miękkie, bezpieczne i wygodne — takie, w których dzieci mogą swobodnie się bawić, a rodzice mają pewność jakości.">
-      <p>
-        Wiemy, jak szybko rosną dzieci i jak wiele dzieje się w ciągu dnia — dlatego stawiamy na ubranka, które wytrzymują
-        zabawę, pranie i codzienne przygody. Kompletujemy asortyment od wyprawki dla noworodka po ubrania dla starszaków
-        gotowych na przedszkole i szkołę.
-      </p>
-
-      <Sekcja tytul="Co dla nas ważne">
-        <Lista
-          punkty={[
-            "Bezpieczne, przyjazne skórze tkaniny — miękkie i oddychające.",
-            "Solidne wykończenie, które znosi wielokrotne pranie i noszenie.",
-            "Wygoda dziecka i swoboda ruchu na pierwszym miejscu.",
-            "Uczciwe ceny i przejrzyste zasady zakupów.",
-            "Szybka i wygodna wysyłka InPost.",
-          ]}
-        />
-      </Sekcja>
-
-      <Sekcja tytul="Nasza historia">
+    <StronaInfo
+      tytul="O nas"
+      wstep="bobas-shopping to sklep internetowy z ubrankami dla dzieci w wieku 0–12 lat i odzieżą męską. Sklep prowadzi AMIN.KIDS Sp. z o.o. z siedzibą w Lublinie."
+    >
+      <Sekcja tytul="Kim jesteśmy">
         <p>
-          bobas-shopping tworzymy z myślą o rodzicach, którzy — jak my — szukają dla dzieci ubranek wygodnych, bezpiecznych
-          i w rozsądnej cenie. Zaczynaliśmy od sprzedaży online, poznając na co dzień, co naprawdę sprawdza się w praniu,
-          zabawie i codziennym noszeniu. Dziś prowadzimy własny sklep, w którym stawiamy na sprawdzone tkaniny, solidne
-          wykonanie i szybką wysyłkę — tak, aby zakupy dla dziecka były po prostu proste i przyjemne.
+          Jesteśmy polską firmą — AMIN.KIDS Sp. z o.o. (KRS 0000984936, NIP 7123438950), ul. Tomasza Zana 43/2.1, 20-601
+          Lublin. Sprzedajemy ubranka od wyprawki dla noworodka po rzeczy dla starszaków do przedszkola i szkoły, a także
+          męskie bluzy, swetry i dresy. Przy każdym produkcie podajemy skład, wymiary dla każdego rozmiaru i zdjęcia
+          rzeczywistego towaru.
         </p>
       </Sekcja>
 
-      <Sekcja tytul="Jak kupować i zwracać">
+      <Sekcja tytul="Sprzedajemy też na Allegro">
         <p>
-          Zakupy zrobisz bez zakładania konta, a płatność zrealizujesz szybko przez BLIK, kartę lub Przelewy24. Masz 14 dni
-          na zwrot bez podania przyczyny — szczegóły znajdziesz na stronie{" "}
-          <a href="/dostawa-i-zwroty" className="underline underline-offset-2 hover:text-akcent">Dostawa i zwroty</a>.
+          Pod tą samą nazwą — <strong>bobas-shopping</strong> — sprzedajemy na Allegro. To ten sam sprzedawca, ten sam
+          towar i te same zasady. Oceny i komentarze naszych kupujących znajdziesz na{" "}
+          <a href={ALLEGRO} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-akcent">
+            profilu sprzedawcy bobas-shopping na Allegro
+          </a>
+          .
+        </p>
+      </Sekcja>
+
+      <Sekcja tytul="Jak działamy">
+        <Lista
+          punkty={[
+            "Płatność online przez Przelewy24 (BLIK, szybki przelew, karta) — zamówienie realizujemy po zaksięgowaniu wpłaty.",
+            "Zamówienia pakujemy i nadajemy zwykle w 1–2 dni robocze od zaksięgowania płatności.",
+            "Dostawa: InPost (Paczkomaty i kurier), ORLEN Paczka, DPD Pickup, Pocztex, kurier DHL. Darmowa dostawa od 150 zł.",
+            "14 dni na zwrot bez podania przyczyny; bezpośredni koszt odesłania towaru ponosi kupujący.",
+            "Reklamacje rozpatrujemy w ciągu 14 dni.",
+            "Zakupy bez zakładania konta.",
+          ]}
+        />
+        <p className="mt-3">
+          Szczegóły: <a href="/dostawa-i-zwroty" className="underline underline-offset-2 hover:text-akcent">Dostawa i zwroty</a>,{" "}
+          <a href="/regulamin" className="underline underline-offset-2 hover:text-akcent">Regulamin</a>,{" "}
+          <a href="/polityka-prywatnosci" className="underline underline-offset-2 hover:text-akcent">Polityka prywatności</a>.
+        </p>
+      </Sekcja>
+
+      <Sekcja tytul="Kontakt">
+        <p>
+          Odpowiadamy w dni robocze (pon.–pt.), zwykle w ciągu jednego dnia. Napisz lub zadzwoń — dane poniżej oraz na
+          stronie <a href="/kontakt" className="underline underline-offset-2 hover:text-akcent">Kontakt</a>.
         </p>
       </Sekcja>
 

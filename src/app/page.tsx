@@ -223,6 +223,19 @@ export default async function StronaGlowna() {
           ))}
         </div>
 
+        {/* Reputacja: ten sam sprzedawca na Allegro — oceny kupujących do sprawdzenia. */}
+        <p className="mt-3 text-center text-[13.5px] text-ink-2 md:mt-4">
+          Sprzedajemy też na Allegro jako <strong className="text-ink">bobas-shopping</strong> —{" "}
+          <a
+            href="https://allegro.pl/uzytkownik/bobas-shopping/oceny"
+            target="_blank"
+            rel="noopener"
+            className="font-semibold text-ink underline underline-offset-2 hover:text-akcent"
+          >
+            zobacz oceny kupujących
+          </a>
+        </p>
+
         {/* Pomoc z rozmiarem */}
         <section className="mt-3 flex flex-col gap-4 rounded-2xl bg-white p-4 md:mt-8 md:flex-row md:items-center md:justify-between md:p-6">
           <div>

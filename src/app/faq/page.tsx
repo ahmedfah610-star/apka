@@ -21,10 +21,11 @@ const PYTANIA: { q: string; a: string }[] = [
   { q: "Czy wystawiacie fakturę?", a: "Tak, na życzenie. Zaznacz taką potrzebę w zamówieniu lub napisz do nas z danymi do faktury." },
 
   // Dostawa
-  { q: "Jakie są sposoby dostawy?", a: "Wysyłamy przez InPost (Paczkomaty 24/7 i kurier), ORLEN Paczkę oraz kurierem. Punkt odbioru lub paczkomat wybierasz wygodnie na mapie podczas składania zamówienia." },
+  { q: "Jakie są sposoby dostawy?", a: "Wysyłamy przez InPost (Paczkomaty 24/7 i kurier), ORLEN Paczkę, DPD Pickup, Pocztex oraz kurierem DHL. Punkt odbioru lub paczkomat wybierasz na mapie podczas składania zamówienia, a koszt każdej metody widzisz przed zapłatą." },
   { q: "Od jakiej kwoty jest darmowa dostawa?", a: "Dostawa jest darmowa przy zamówieniach od {darmowaOd}. Poniżej tej kwoty koszt zależy od wybranej metody — najtańsza opcja to InPost Paczkomat." },
   { q: "Jak długo czekam na paczkę?", a: "Zwykle 1–2 dni robocze na przygotowanie i nadanie oraz 1–2 dni na doręczenie — łącznie najczęściej 2–4 dni robocze od zaksięgowania płatności." },
-  { q: "Czy mogę śledzić zamówienie?", a: "Tak. Status sprawdzisz na stronie „Śledzenie zamówienia”, podając numer zamówienia i e-mail. Zalogowani klienci widzą historię w panelu konta." },
+  { q: "Czy to ten sam sprzedawca co bobas-shopping na Allegro?", a: "Tak. Sklep bobas-shopping.pl i konto bobas-shopping na Allegro prowadzi ta sama firma — AMIN.KIDS Sp. z o.o. z Lublina. Oceny i komentarze kupujących znajdziesz na naszym profilu sprzedawcy na Allegro." },
+  { q: "Czy mogę śledzić zamówienie?", a: "Tak. Status sprawdzisz na stronie „Status zamówienia”, podając numer zamówienia i e-mail. Zalogowani klienci widzą historię w panelu konta." },
 
   // Zwroty i reklamacje
   { q: "Czy mogę zwrócić towar?", a: "Tak — masz 14 dni na zwrot bez podania przyczyny. Zasady i wzór formularza znajdziesz na stronie „Dostawa i zwroty”." },

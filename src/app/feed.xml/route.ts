@@ -35,7 +35,7 @@ function opisFeed(p: Produkt): string {
 }
 
 // Koszt dostawy w Google = najtańsza aktywna metoda (0 zł od progu darmowej dostawy),
-// czas: wysyłka 0–1 dzień roboczy + 1–2 dni przewoźnika (jak „Dostawa …" na stronie produktu).
+// czas: nadanie 1–2 dni robocze + 1–2 dni przewoźnika (tak samo jak w FAQ i danych strukturalnych produktu).
 function wysylka(p: Produkt, d: UstawieniaDostawy): string {
   const aktywne = d.metody.filter((m) => m.aktywna !== false);
   if (!aktywne.length) return "";
@@ -45,8 +45,8 @@ function wysylka(p: Produkt, d: UstawieniaDostawy): string {
       <g:country>PL</g:country>
       <g:service>${cdata(najtansza.nazwa)}</g:service>
       <g:price>${cena.toFixed(2)} PLN</g:price>
-      <g:min_handling_time>0</g:min_handling_time>
-      <g:max_handling_time>1</g:max_handling_time>
+      <g:min_handling_time>1</g:min_handling_time>
+      <g:max_handling_time>2</g:max_handling_time>
       <g:min_transit_time>1</g:min_transit_time>
       <g:max_transit_time>2</g:max_transit_time>
     </g:shipping>

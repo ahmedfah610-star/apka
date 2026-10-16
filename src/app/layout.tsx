@@ -81,7 +81,6 @@ const daneStrukturalne = [
     logo: `${BAZA_URL}/opengraph-image`,
     image: `${BAZA_URL}/opengraph-image`,
     email: "amin.kids1@hotmail.com",
-    priceRange: "20–120 zł",
     currenciesAccepted: "PLN",
     paymentAccepted: "BLIK, Przelewy24, karta płatnicza",
     areaServed: { "@type": "Country", name: "Polska" },
