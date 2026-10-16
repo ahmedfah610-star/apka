@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
+import { InformacjeSprzedajacego } from "@/components/InformacjeSprzedajacego";
 import { KartaProduktu } from "@/components/KartaProduktu";
 import { PanelZakupu } from "@/components/PanelZakupu";
 import { OstatnioOgladane } from "@/components/OstatnioOgladane";
@@ -60,6 +61,7 @@ export function WidokProduktu({ produkt, wszystkie }: { produkt: Produkt; wszyst
           ) : (
             <p className="text-[15px] leading-relaxed text-ink-2">{opisProduktu(p)}</p>
           )}
+          <InformacjeSprzedajacego />
         </div>
       </section>
 

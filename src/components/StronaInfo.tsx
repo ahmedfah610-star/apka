@@ -1,5 +1,6 @@
 import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
+import { rejestracjeOpakowanTekst } from "@/lib/firma";
 
 // Wspólny układ dla stron informacyjnych i prawnych (czytelna kolumna tekstu).
 export function StronaInfo({
@@ -76,6 +77,8 @@ export function DaneSprzedawcy() {
         ul. Tomasza Zana 43/2.1, 20-601 Lublin, Polska
         <br />
         NIP 7123438950 · REGON 522694079 · KRS 0000984936
+        <br />
+        Rejestracja recyklingu opakowań: {rejestracjeOpakowanTekst()}
       </p>
       <p className="mt-2 text-ink">
         Telefon: <a href="tel:+48793878222" className="underline underline-offset-2 hover:text-akcent">+48 793 878 222</a>

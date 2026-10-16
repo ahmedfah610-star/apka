@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { KOLEKCJE } from "@/data/kolekcje";
+import { rejestracjeOpakowanTekst } from "@/lib/firma";
 
 // Wybrane kolekcje do linkowania wewnętrznego w stopce (SEO — na każdej stronie).
 const POPULARNE = [
@@ -96,6 +97,8 @@ export function Stopka() {
           <br />
           E-mail: <a href="mailto:amin.kids1@hotmail.com" className="no-underline hover:text-akcent">amin.kids1@hotmail.com</a>
           {" · "}Tel.: <a href="tel:+48793878222" className="no-underline hover:text-akcent">+48 793 878 222</a>
+          <br />
+          Rejestracja recyklingu opakowań: {rejestracjeOpakowanTekst()}
         </p>
         <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
           <span>© 2026 bobas-shopping. Wszystkie prawa zastrzeżone.</span>
