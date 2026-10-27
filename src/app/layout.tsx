@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Manrope } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthContext";
@@ -136,6 +137,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </AuthProvider>
         <BannerCookies />
         <GoogleAnalytics />
+        {/* Vercel Web Analytics — bez cookies i danych osobowych, liczy wszystkie odwiedziny
+            (także osoby bez zgody na cookies Google). Działa po włączeniu Analytics w panelu Vercel. */}
+        <Script id="va-init" strategy="afterInteractive">{`window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };`}</Script>
+        <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
       </body>
     </html>
   );
