@@ -25,7 +25,9 @@ export async function POST(req: Request) {
   const sb = sbService();
   if (!sb) return new Response("Brak konfiguracji", { status: 500 });
 
-  const zamowienieId = n.sessionId;
+  // sessionId = id zamówienia; ponowna płatność z panelu klienta ma przyrostek „_…" (unikalność w P24).
+  const sesja = String(n.sessionId);
+  const zamowienieId = sesja.split("_")[0];
   const { data: zam } = await sb.from("zamowienia").select("*").eq("id", zamowienieId).single();
   if (!zam) return Response.json({ received: true }); // nic do zrobienia
 
@@ -36,7 +38,7 @@ export async function POST(req: Request) {
     console.error(`[p24] webhook: kwota/waluta nie zgadza się dla ${zamowienieId} (${n.amount} ${n.currency} ≠ ${amount} PLN)`);
     return new Response("Zła kwota", { status: 400 });
   }
-  const ok = await p24Weryfikuj({ sessionId: zamowienieId, orderId: n.orderId, amount });
+  const ok = await p24Weryfikuj({ sessionId: sesja, orderId: n.orderId, amount });
   if (!ok) {
     console.error(`[p24] webhook: weryfikacja nieudana dla ${zamowienieId}`);
     return new Response("Weryfikacja nieudana", { status: 400 });

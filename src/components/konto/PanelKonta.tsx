@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import { ZakladkiKonta } from "@/components/konto/ZakladkiKonta";
+import { OstatnieZamowienie } from "@/components/konto/OstatnieZamowienie";
 
 const KATEGORIE = [
   { href: "/produkty", label: "Wszystkie produkty" },
@@ -140,24 +141,8 @@ export function PanelKonta() {
         </p>
       </div>
 
-      {/* Status — na bieżąco */}
-      <div className="mb-6 flex flex-col items-center rounded-2xl border border-linia bg-white px-6 py-9 text-center">
-        <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-szary/60 text-ink">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M6 2 4 6v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V6l-2-4H6Z" /><path d="M4 6h16M10 10a2 2 0 0 0 4 0" />
-          </svg>
-        </span>
-        <p className="text-[17px] font-bold tracking-tight">Jesteś ze wszystkim na bieżąco :)</p>
-        <p className="mt-1.5 max-w-sm text-[13.5px] leading-relaxed text-ink-2">
-          Tutaj pojawią się wszystkie aktualizacje dotyczące Twoich zamówień i wysyłek.
-        </p>
-        <Link
-          href="/konto/zamowienia"
-          className="mt-5 rounded-lg bg-ink px-6 py-3 text-[14.5px] font-bold text-white no-underline transition-colors hover:bg-akcent"
-        >
-          Zobacz zamówienia
-        </Link>
-      </div>
+      {/* Ostatnie zamówienie: status i najważniejsza akcja */}
+      <OstatnieZamowienie />
 
       {/* Moje dane */}
       <h2 className="mt-2 text-[21px] font-bold tracking-tight md:text-[24px]">Moje dane</h2>
