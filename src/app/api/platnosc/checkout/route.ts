@@ -7,7 +7,7 @@ import { katalogWidoczny } from "@/lib/produktyDb";
 import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
 import { ZAMOWIENIA_WYLACZONE, KOMUNIKAT_PRZERWY } from "@/lib/sklep";
 import { sprawdzKod, zuzyjKod } from "@/lib/kodyDb";
-import { kosztDostawy } from "@/lib/dostawa";
+import { kosztDostawy, type MetodaDostawy } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 import { kluczTestowyOk } from "@/lib/zamowienieTestowe";
 
@@ -30,6 +30,27 @@ interface Body {
   klient?: Record<string, unknown>;
   kod?: string;
   test?: string; // klucz zamówienia testowego (bez płatności) — patrz zamowienieTestowe.ts
+}
+
+const POLA_KLIENTA: Record<string, number> = {
+  imie: 120, email: 160, telefon: 30, adres: 200, miasto: 80, kod: 12,
+  paczkomat: 40, paczkomatOpis: 240, punkt: 60, punktOpis: 240, uwagi: 500,
+};
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+function daneKlienta(we: unknown, metoda: MetodaDostawy): { klient: Record<string, string | undefined> } | { blad: string } {
+  const z = (we ?? {}) as Record<string, unknown>;
+  const k: Record<string, string | undefined> = {};
+  for (const [pole, max] of Object.entries(POLA_KLIENTA)) {
+    const v = typeof z[pole] === "string" ? (z[pole] as string).replace(/[<>]/g, "").trim().slice(0, max) : "";
+    k[pole] = v || undefined;
+  }
+  if (!k.imie) return { blad: "Podaj imię i nazwisko." };
+  if (!k.email || !EMAIL.test(k.email)) return { blad: "Podaj prawidłowy adres e-mail." };
+  if (metoda.paczkomat && !k.paczkomat) return { blad: "Wybierz paczkomat InPost." };
+  if (metoda.punkt && !k.punkt) return { blad: "Wybierz punkt odbioru." };
+  if (!metoda.paczkomat && !metoda.punkt && (!k.adres || !k.miasto || !k.kod)) return { blad: "Uzupełnij adres dostawy." };
+  return { klient: k };
 }
 
 export async function POST(req: Request) {
@@ -87,9 +108,10 @@ export async function POST(req: Request) {
   const suma = grosze(pozycje.reduce((s, p) => s + p.cena * p.ilosc, 0));
   const ustawieniaDostawy = await pobierzDostawe();
   const metodaDostawy = ustawieniaDostawy.metody.find((m) => m.id === b.metodaId && m.aktywna !== false);
-  const dostawa = metodaDostawy
-    ? kosztDostawy(metodaDostawy, suma, ustawieniaDostawy.darmowaOd)
-    : Math.max(0, Math.min(100, Number(b.dostawa) || 0));
+  // Koszt dostawy wyłącznie z cennika sklepu — bez metody nie ma zamówienia (wcześniej kwotę
+  // dostawy dało się podać w żądaniu, np. 0 zł).
+  if (!metodaDostawy) return Response.json({ ok: false, blad: "Wybierz sposób dostawy." }, { status: 400 });
+  const dostawa = kosztDostawy(metodaDostawy, suma, ustawieniaDostawy.darmowaOd);
 
   // Kod rabatowy — walidacja i naliczenie rabatu po stronie serwera.
   let rabat = 0;
@@ -103,11 +125,11 @@ export async function POST(req: Request) {
   }
   const razem = grosze(Math.max(0, suma - rabat) + dostawa);
 
-  // Dane klienta + uwagi do zamówienia (tekst od klienta — przycięty, bez znaczników).
-  const klientWe = (b.klient ?? {}) as Record<string, unknown>;
-  const uwagi = typeof klientWe.uwagi === "string" ? klientWe.uwagi.replace(/[<>]/g, "").trim().slice(0, 500) : "";
+  // Dane klienta — tylko znane pola, przycięte, bez znaczników; wymagane zależnie od metody dostawy.
+  const dk = daneKlienta(b.klient, metodaDostawy);
+  if ("blad" in dk) return Response.json({ ok: false, blad: dk.blad }, { status: 400 });
   const test = b.test ? await kluczTestowyOk(b.test) : false;
-  const klient = { ...klientWe, uwagi: uwagi || undefined, test: test || undefined };
+  const klient = { ...dk.klient, test: test || undefined };
 
   // ── Płatność online (Przelewy24) — priorytet, wymaga bazy do zapisu ──
   if (!test && p24Wlaczony() && supabaseWlaczony()) {
@@ -128,7 +150,7 @@ export async function POST(req: Request) {
     const rej = await p24Rejestruj({
       sessionId: zamowienieId,
       amount: Math.round(razem * 100),
-      email: (b.klient?.email as string) || "",
+      email: dk.klient.email ?? "",
       description: `Zamowienie ${zamowienieId.slice(0, 8)} - bobas-shopping`,
       urlReturn: `${baza}/zamowienie/dziekujemy?zamowienie=${zamowienieId}`,
       urlStatus: `${baza}/api/platnosc/p24/webhook`,
@@ -184,7 +206,7 @@ export async function POST(req: Request) {
         payment_method_types: ["card", "blik", "p24"],
         line_items,
         ...(discounts ? { discounts } : {}),
-        customer_email: (b.klient?.email as string) || undefined,
+        customer_email: dk.klient.email,
         metadata: { zamowienie_id: zamowienieId },
         success_url: `${baza}/zamowienie/dziekujemy?zamowienie=${zamowienieId}`,
         cancel_url: `${baza}/zamowienie`,

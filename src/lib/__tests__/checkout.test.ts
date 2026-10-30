@@ -7,15 +7,25 @@ vi.mock("@/lib/produktyDb", () => ({
   ],
 }));
 vi.mock("@/lib/supabase", () => ({ supabaseWlaczony: () => false, sbService: () => null }));
-vi.mock("@/lib/dostawaDb", () => ({ pobierzDostawe: async () => ({ metody: [], darmowaOd: 150 }) }));
+vi.mock("@/lib/dostawaDb", () => ({
+  pobierzDostawe: async () => ({
+    metody: [
+      { id: "paczkomat", nazwa: "Paczkomat", opis: "", cena: 10.5, paczkomat: true },
+      { id: "kurier", nazwa: "Kurier", opis: "", cena: 15 },
+    ],
+    darmowaOd: 150,
+  }),
+}));
 
 let nr = 0;
-async function zamow(pozycje: unknown[]) {
+const KLIENT = { imie: "Anna Test", email: "anna@example.com", paczkomat: "LUB01M", paczkomatOpis: "Lublin" };
+
+async function zamow(pozycje: unknown[], extra: Record<string, unknown> = {}) {
   const { POST } = await import("@/app/api/platnosc/checkout/route");
   const req = new Request("http://localhost/api/platnosc/checkout", {
     method: "POST",
     headers: { "content-type": "application/json", "x-forwarded-for": `10.0.0.${++nr}` },
-    body: JSON.stringify({ pozycje, metoda: "test", dostawa: 0 }),
+    body: JSON.stringify({ pozycje, metoda: "test", metodaId: "paczkomat", dostawa: 0, klient: KLIENT, ...extra }),
   });
   const res = await POST(req);
   return { status: res.status, dane: (await res.json()) as { ok: boolean; blad?: string } };
@@ -40,5 +50,26 @@ describe("checkout — rozmiar i stan sprawdzane na serwerze", () => {
     const r = await zamow([{ id: "p1", rozmiar: "80", ilosc: 1 }]);
     expect(r.status).toBe(409);
     expect(r.dane.blad).toMatch(/wyprzedany/);
+  });
+});
+
+describe("checkout — dostawa i dane klienta sprawdzane na serwerze", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+  const body = [{ id: "p1", rozmiar: "74", ilosc: 1 }];
+  it("bez prawidłowej metody dostawy — odmowa (nie da się podać własnej kwoty dostawy)", async () => {
+    const r = await zamow(body, { metodaId: "nie-ma-takiej", dostawa: 0 });
+    expect(r.status).toBe(400);
+    expect(r.dane.blad).toMatch(/sposób dostawy/);
+  });
+  it("wymaga imienia i poprawnego e-maila", async () => {
+    expect((await zamow(body, { klient: { ...KLIENT, imie: " " } })).status).toBe(400);
+    expect((await zamow(body, { klient: { ...KLIENT, email: "nie-email" } })).status).toBe(400);
+  });
+  it("paczkomat wymagany dla dostawy do paczkomatu, adres dla kuriera", async () => {
+    expect((await zamow(body, { klient: { ...KLIENT, paczkomat: "" } })).dane.blad).toMatch(/paczkomat/);
+    expect((await zamow(body, { metodaId: "kurier", klient: { imie: "A", email: "a@b.pl" } })).dane.blad).toMatch(/adres/);
+    expect((await zamow(body, { metodaId: "kurier", klient: { imie: "A", email: "a@b.pl", adres: "Lipowa 1", miasto: "Lublin", kod: "20-001" } })).dane.ok).toBe(true);
   });
 });

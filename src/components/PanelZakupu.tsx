@@ -1,6 +1,6 @@
 "use client";
 
-import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
+import { zdjecie } from "@/lib/zdjecia";
 import { useEffect, useMemo, useState } from "react";
 import { DodajDoKoszyka, pozycjaPomiaru } from "@/components/DodajDoKoszyka";
 import { pomiarProduktu } from "@/lib/analityka";

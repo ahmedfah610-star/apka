@@ -1,4 +1,4 @@
-import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
+import { zdjecie } from "@/lib/zdjecia";
 import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
 import { KartaProduktu } from "@/components/KartaProduktu";

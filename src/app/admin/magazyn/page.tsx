@@ -1,6 +1,6 @@
 "use client";
 
-import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
+import { zdjecie } from "@/lib/zdjecia";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Produkt } from "@/data/produkty";
 

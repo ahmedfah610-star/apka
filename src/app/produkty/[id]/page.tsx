@@ -35,6 +35,14 @@ const RETURN_POLICY = {
 // ISR: karta produktu cache'owana i odświeżana co 5 minut.
 export const revalidate = 300;
 
+// Bez tej funkcji Next 14 renderuje kartę dynamicznie przy KAŻDYM wejściu (ignorując revalidate)
+// — z pobraniem całego katalogu, co po „zimnym starcie" trwało nawet ~20 s. Pusta lista =
+// karty generowane przy pierwszym wejściu i trzymane w cache (ISR), odświeżane co 5 min
+// oraz od razu po sprzedaży / synchronizacji / edycji (odswiezPoZmianieStanu).
+export function generateStaticParams() {
+  return [];
+}
+
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const p = await znajdzProduktDb(params.id);
   if (!p) return { title: "Produkt niedostępny", robots: { index: false, follow: true } };

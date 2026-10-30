@@ -1,6 +1,6 @@
 "use client";
 
-import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
+import { zdjecie } from "@/lib/zdjecia";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -370,6 +370,7 @@ export default function StronaZamowienia() {
               onChange={(e) => setUwagi(e.target.value.slice(0, 500))}
               rows={3}
               maxLength={500}
+              placeholder="Np. dane do faktury (nazwa firmy, NIP, adres) albo uwagi do zamówienia"
               className="w-full resize-y rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[16px] outline-none focus:border-ink md:text-[14px]"
             />
             <p className="mt-1 text-right text-[12px] text-ink-2">{uwagi.length}/500</p>

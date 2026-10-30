@@ -18,7 +18,7 @@ const PYTANIA: { q: string; a: string }[] = [
   { q: "Czy muszę zakładać konto, żeby kupić?", a: "Nie. Możesz złożyć zamówienie jako gość — wystarczą dane do wysyłki. Konto jest opcjonalne i daje wygodę: historię zamówień, zapisany koszyk i szybsze zakupy." },
   { q: "Co daje założenie konta?", a: "Historię i podgląd wszystkich zamówień, koszyk i ulubione zapisane na każdym urządzeniu oraz szybsze zamawianie — dane do wysyłki uzupełniają się automatycznie." },
   { q: "Jak mogę zapłacić?", a: "Udostępniamy BLIK, kartę płatniczą i Przelewy24 (płatność online). Zamówienie realizujemy po zaksięgowaniu wpłaty." },
-  { q: "Czy wystawiacie fakturę?", a: "Tak, na życzenie. Zaznacz taką potrzebę w zamówieniu lub napisz do nas z danymi do faktury." },
+  { q: "Czy wystawiacie fakturę?", a: "Tak, na życzenie. Wpisz dane do faktury (nazwa firmy, NIP, adres) w polu „Informacja dla sprzedawcy” podczas składania zamówienia albo napisz do nas." },
 
   // Dostawa
   { q: "Jakie są sposoby dostawy?", a: "Wysyłamy przez InPost (Paczkomaty 24/7 i kurier), ORLEN Paczkę, DPD Pickup, Pocztex oraz kurierem DHL. Punkt odbioru lub paczkomat wybierasz na mapie podczas składania zamówienia, a koszt każdej metody widzisz przed zapłatą." },

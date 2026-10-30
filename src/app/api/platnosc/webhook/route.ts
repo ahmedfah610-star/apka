@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { czekaNaWplate } from "@/lib/statusyZamowien";
 import { sbService } from "@/lib/supabase";
 import { stripe } from "@/lib/platnosci";
 import { wyslijMaileZamowienia } from "@/lib/mail";
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
     const zamowienieId = sesja.metadata?.zamowienie_id;
     const sb = sbService();
     const { data: przed } = zamowienieId && sb ? await sb.from("zamowienia").select("status, razem").eq("id", zamowienieId).maybeSingle() : { data: null };
-    const pierwszePotwierdzenie = !!przed && przed.status !== "oplacone";
+    const pierwszePotwierdzenie = !!przed && czekaNaWplate(przed.status);
     // Zapłacona kwota musi pokryć zamówienie (grosze).
     const kwotaOk = !!przed && (sesja.amount_total ?? 0) >= Math.round(Number(przed.razem) * 100) && sesja.currency === "pln";
     if (zamowienieId && sb && sesja.payment_status === "paid" && pierwszePotwierdzenie && kwotaOk) {

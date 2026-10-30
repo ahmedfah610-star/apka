@@ -1,6 +1,6 @@
 "use client";
 
-import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
+import { zdjecie } from "@/lib/zdjecia";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Nawigacja } from "@/components/Nawigacja";
@@ -9,6 +9,7 @@ import { useKoszyk } from "@/components/KoszykContext";
 import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { useDostawa } from "@/lib/dostawaKlient";
+import { najtanszaDostawa } from "@/lib/dostawa";
 import { EdycjaDostaw } from "@/components/EdycjaDostaw";
 import { ZAMOWIENIA_WYLACZONE } from "@/lib/sklep";
 import { PrzerwaTechniczna } from "@/components/PrzerwaTechniczna";
@@ -17,7 +18,7 @@ import { pomiarKoszyka } from "@/lib/analityka";
 import { pozycjaPomiaru } from "@/components/DodajDoKoszyka";
 
 const ZAUFANIE = [
-  { t: "Wysyłka InPost", o: "Paczkomaty i kurier" },
+  { t: "Wysyłka w 1–2 dni robocze", o: "InPost, ORLEN, DPD, Pocztex, DHL" },
   { t: "14 dni na zwrot", o: "Bez podawania przyczyny" },
   { t: "Bezpieczne płatności", o: "BLIK, karta, Przelewy24" },
 ];
@@ -54,7 +55,21 @@ export default function StronaKoszyka() {
     pomiarKoszyka("view_cart", pozycjeZDanymi.map(({ poz, produkt }) => ({ ...pozycjaPomiaru(produkt!, poz.ilosc), rozmiar: poz.rozmiar })));
   }, [katalogGotowy, pozycjeZDanymi]);
 
-  const { darmowaOd } = useDostawa();
+  // Ile sztuk jest na stanie dla pozycji (null = brak danych o stanie).
+  const dostepneDla = (poz: { rozmiar?: string }, p: Produkt): number | null => {
+    if (poz.rozmiar && p.stanRozmiary) return p.stanRozmiary[poz.rozmiar] ?? 0;
+    return typeof p.stan === "number" ? p.stan : null;
+  };
+  const brakiStanu = katalogGotowy
+    ? pozycjeZDanymi.filter(({ poz, produkt }) => {
+        const d = dostepneDla(poz, produkt!);
+        return d !== null && poz.ilosc > d;
+      }).length
+    : 0;
+
+  const ustawieniaDostawy = useDostawa();
+  const { darmowaOd } = ustawieniaDostawy;
+  const dostawaOd = najtanszaDostawa(ustawieniaDostawy);
   const doDarmowej = Math.max(0, darmowaOd - suma);
   const procent = darmowaOd > 0 ? Math.min(100, (suma / darmowaOd) * 100) : 100;
 
@@ -139,6 +154,15 @@ export default function StronaKoszyka() {
                             <span className="mt-1.5 inline-block rounded-md border border-linia-2 px-2 py-0.5 text-[12px] text-ink-2">rozmiar {poz.rozmiar}</span>
                           ) : null}
                           <p className="mt-1.5 text-[13px] text-ink-2">{formatCena(produkt!.cena)} zł / szt.</p>
+                          {(() => {
+                            const d = katalogGotowy ? dostepneDla(poz, produkt!) : null;
+                            if (d === null || poz.ilosc <= d) return null;
+                            return (
+                              <p className="mt-1.5 text-[13px] font-semibold text-cena">
+                                {d === 0 ? "Wyprzedane — usuń z koszyka" : `Dostępne tylko ${d} szt. — zmniejsz ilość`}
+                              </p>
+                            );
+                          })()}
                         </div>
                         <p className="whitespace-nowrap text-[16px] font-bold">{formatCena(produkt!.cena * poz.ilosc)} zł</p>
                       </div>
@@ -155,7 +179,11 @@ export default function StronaKoszyka() {
                           <span className="min-w-[40px] text-center text-[14px] font-semibold">{poz.ilosc}</span>
                           <button
                             onClick={() => ustawIlosc(poz.id, poz.rozmiar, poz.ilosc + 1)}
-                            className="px-3 py-2 text-[15px] text-ink-2 transition-colors hover:bg-szary hover:text-ink"
+                            disabled={(() => {
+                              const d = dostepneDla(poz, produkt!);
+                              return d !== null && poz.ilosc >= d;
+                            })()}
+                            className="px-3 py-2 text-[15px] text-ink-2 transition-colors hover:bg-szary hover:text-ink disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
                             aria-label="Zwiększ"
                           >
                             +
@@ -192,7 +220,7 @@ export default function StronaKoszyka() {
               </div>
               <div className="mt-2.5 flex items-center justify-between text-[14.5px]">
                 <span className="text-ink-2">Dostawa</span>
-                <span className="text-ink-2">{doDarmowej > 0 ? "od 0 zł" : "gratis"}</span>
+                <span className="text-ink-2">{doDarmowej > 0 ? `od ${formatCena(dostawaOd)} zł` : "gratis"}</span>
               </div>
               <p className="mt-1 text-[12px] text-ink-2">Dokładny koszt dostawy w następnym kroku.</p>
 
@@ -212,12 +240,23 @@ export default function StronaKoszyka() {
                   </button>
                 </>
               ) : (
-                <Link
-                  href="/zamowienie/konto"
-                  className="mt-5 block rounded-lg bg-ink px-8 py-4 text-center text-[14.5px] font-bold text-white no-underline transition-colors hover:bg-akcent"
-                >
-                  Przejdź do zamówienia →
-                </Link>
+                <>
+                  {brakiStanu > 0 ? (
+                    <p className="mt-5 rounded-lg bg-[oklch(96%_0.03_25)] px-3.5 py-2.5 text-[13px] font-medium text-cena">
+                      Część produktów nie jest dostępna w wybranej ilości — popraw koszyk, aby przejść dalej.
+                    </p>
+                  ) : null}
+                  <Link
+                    href="/zamowienie/konto"
+                    aria-disabled={brakiStanu > 0}
+                    onClick={(e) => brakiStanu > 0 && e.preventDefault()}
+                    className={`mt-5 block rounded-lg px-8 py-4 text-center text-[14.5px] font-bold text-white no-underline transition-colors ${
+                      brakiStanu > 0 ? "pointer-events-none bg-szary text-ink-2" : "bg-ink hover:bg-akcent"
+                    }`}
+                  >
+                    Przejdź do zamówienia →
+                  </Link>
+                </>
               )}
               <p className="mt-3 text-center text-[11.5px] leading-relaxed text-ink-2">
                 Składając zamówienie akceptujesz{" "}

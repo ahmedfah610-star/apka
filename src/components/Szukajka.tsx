@@ -1,6 +1,6 @@
 "use client";
 
-import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
+import { zdjecie } from "@/lib/zdjecia";
 import Link from "next/link";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -443,6 +443,7 @@ export function Szukajka({ mobilna = false }: { mobilna?: boolean }) {
             onKeyDown={klawisz}
             placeholder={mobilna ? "Czego szukasz?" : "Czego szukasz? np. body 68, dres chłopięcy, legginsy"}
             aria-label="Szukaj produktów"
+            role="combobox"
             aria-expanded={otwarte}
             aria-autocomplete="list"
             autoComplete="off"

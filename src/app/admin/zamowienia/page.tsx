@@ -1,6 +1,6 @@
 "use client";
 
-import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
+import { zdjecie } from "@/lib/zdjecia";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { formatCena } from "@/lib/filtrowanie";
 import { PRZEWOZNICY, linkSledzenia } from "@/lib/przewoznicy";

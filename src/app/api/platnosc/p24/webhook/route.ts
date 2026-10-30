@@ -2,6 +2,7 @@ import { sbService } from "@/lib/supabase";
 import { p24PodpisNotyfikacjiOk, p24Weryfikuj, type P24Notyfikacja } from "@/lib/przelewy24";
 import { wyslijMaileZamowienia } from "@/lib/mail";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
+import { czekaNaWplate } from "@/lib/statusyZamowien";
 import { zuzyjKod } from "@/lib/kodyDb";
 
 export const dynamic = "force-dynamic";
@@ -44,10 +45,18 @@ export async function POST(req: Request) {
     return new Response("Weryfikacja nieudana", { status: 400 });
   }
 
-  // Czy to pierwsze potwierdzenie (idempotencja licznika kodu).
-  const pierwszePotwierdzenie = zam.status !== "oplacone";
+  // Tylko zamówienie, które czekało na wpłatę. Powtórzone powiadomienie P24 albo druga wpłata
+  // (np. ponowna płatność) nie może cofnąć wysłanego zamówienia ani drugi raz zdjąć stanu / wysłać maili.
+  const pierwszePotwierdzenie = czekaNaWplate(zam.status);
+  if (!pierwszePotwierdzenie) {
+    if (sesja !== String(zam.platnosc_id ?? zamowienieId)) {
+      console.error(`[p24] kolejna wpłata za zamówienie ${zamowienieId} (status: ${zam.status}, sesja: ${sesja}) — sprawdź, czy zwrócić`);
+    }
+    return Response.json({ received: true });
+  }
 
-  // Oznacz opłacone + zdejmij stan (idempotentnie).
+  // Oznacz opłacone + zdejmij stan.
+  await sb.from("zamowienia").update({ platnosc_id: sesja }).eq("id", zamowienieId);
   await sb.rpc("oplac_zamowienie", { p_id: zamowienieId });
   odswiezPoZmianieStanu();
 
