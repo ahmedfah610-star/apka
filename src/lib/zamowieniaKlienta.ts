@@ -86,13 +86,10 @@ export function adresDostawy(k?: Record<string, any> | null): { etykieta: string
  * Przelewy24 albo komunikat błędu do pokazania klientowi.
  */
 export async function dokonczPlatnosc(id: string): Promise<{ url?: string; blad?: string }> {
-  const sb = sbBrowser();
-  const token = sb ? (await sb.auth.getSession()).data.session?.access_token : null;
-  if (!token) return { blad: "Zaloguj się ponownie i spróbuj jeszcze raz." };
   try {
     const r = await fetch("/api/platnosc/ponow", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
     const d = (await r.json().catch(() => ({}))) as { url?: string; blad?: string };

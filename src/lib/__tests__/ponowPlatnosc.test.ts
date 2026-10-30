@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// „Dokończ płatność": tylko właściciel, tylko zamówienie czekające na zapłatę, tylko dostępny towar.
+// „Dokończ płatność": po pełnym id zamówienia (konto i strona powrotu, także bez konta),
+// tylko zamówienie czekające na zapłatę, tylko dostępny towar, kwota i e-mail z zamówienia.
 const ID = "7c41a2e9-5b1d-4e2a-9f3c-0d8e6a1b2c3d";
 const teraz = new Date().toISOString();
 let zamowienie: Record<string, unknown> | null;
@@ -21,9 +22,6 @@ vi.mock("@/lib/przelewy24", () => ({
 vi.mock("@/lib/supabase", () => ({
   supabaseWlaczony: () => true,
   sbService: () => ({
-    auth: {
-      getUser: async (t: string) => ({ data: { user: t === "dobry-token" ? { email: "Anna@Example.com" } : null } }),
-    },
     from: () => ({
       select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: zamowienie }) }) }),
     }),
@@ -31,7 +29,7 @@ vi.mock("@/lib/supabase", () => ({
 }));
 
 let nr = 0;
-async function ponow(token: string | null, id = ID) {
+async function ponow(id = ID) {
   const { POST } = await import("@/app/api/platnosc/ponow/route");
   const res = await POST(
     new Request("https://bobas-shopping.pl/api/platnosc/ponow", {
@@ -39,7 +37,6 @@ async function ponow(token: string | null, id = ID) {
       headers: {
         "content-type": "application/json",
         "x-forwarded-for": `10.1.0.${++nr}`,
-        ...(token ? { authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({ id }),
     }),
@@ -56,47 +53,42 @@ describe("ponowna płatność z panelu klienta", () => {
     zamowienie = { id: ID, created_at: teraz, status: "oczekuje_na_platnosc", razem: 30.5, pozycje: [pozycja("74")], klient: { email: "anna@example.com" } };
   });
 
-  it("właściciel dostaje nową płatność na kwotę z zamówienia (unikalne sessionId z id zamówienia)", async () => {
-    const r = await ponow("dobry-token");
+  it("nowa płatność na kwotę i e-mail z zamówienia (unikalne sessionId z id zamówienia), także bez konta", async () => {
+    const r = await ponow();
     expect(r.status).toBe(200);
     expect(r.dane.url).toContain("p24.test");
     expect(rejestracje[0].amount).toBe(3050);
+    expect(rejestracje[0].email).toBe("anna@example.com");
     expect(rejestracje[0].sessionId.startsWith(`${ID}_`)).toBe(true);
     expect(rejestracje[0].sessionId.split("_")[0]).toBe(ID);
   });
 
-  it("bez zalogowania — odmowa", async () => {
-    expect((await ponow(null)).status).toBe(401);
-    expect((await ponow("zly-token")).status).toBe(401);
-  });
-
-  it("cudze zamówienie — wygląda jak nieistniejące", async () => {
-    zamowienie = { ...zamowienie!, klient: { email: "ktos-inny@example.com" } };
-    const r = await ponow("dobry-token");
-    expect(r.status).toBe(404);
+  it("nieistniejące zamówienie — 404, bez płatności", async () => {
+    zamowienie = null;
+    expect((await ponow()).status).toBe(404);
     expect(rejestracje).toHaveLength(0);
   });
 
   it("opłacone / anulowane — nie da się zapłacić drugi raz", async () => {
     for (const status of ["oplacone", "wyslane", "anulowane"]) {
       zamowienie = { ...zamowienie!, status };
-      expect((await ponow("dobry-token")).status).toBe(409);
+      expect((await ponow()).status).toBe(409);
     }
     expect(rejestracje).toHaveLength(0);
   });
 
   it("wyprzedany towar — blokada płatności z komunikatem", async () => {
     zamowienie = { ...zamowienie!, pozycje: [pozycja("80")] };
-    const r = await ponow("dobry-token");
+    const r = await ponow();
     expect(r.status).toBe(409);
     expect(r.dane.blad).toMatch(/nie jest już dostępny/);
     zamowienie = { ...zamowienie!, pozycje: [pozycja("74", 3)] };
-    expect((await ponow("dobry-token")).status).toBe(409);
+    expect((await ponow()).status).toBe(409);
   });
 
   it("zbyt stare zamówienie i błędne id", async () => {
     zamowienie = { ...zamowienie!, created_at: new Date(Date.now() - 20 * 86400000).toISOString() };
-    expect((await ponow("dobry-token")).status).toBe(410);
-    expect((await ponow("dobry-token", "nie-uuid")).status).toBe(400);
+    expect((await ponow()).status).toBe(410);
+    expect((await ponow("nie-uuid")).status).toBe(400);
   });
 });

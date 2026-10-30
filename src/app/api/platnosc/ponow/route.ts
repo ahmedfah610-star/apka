@@ -11,9 +11,12 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const WAZNOSC_DNI = 14;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// „Dokończ płatność" z panelu klienta: nowa transakcja Przelewy24 dla zamówienia, które czeka
-// na zapłatę. Tylko właściciel zamówienia (sesja klienta, e-mail z zamówienia), tylko status
-// „oczekuje_na_platnosc", tylko gdy towar jest nadal dostępny. Kwota = zapisana w zamówieniu.
+// „Dokończ płatność": nowa transakcja Przelewy24 dla zamówienia, które czeka na zapłatę —
+// z panelu konta i ze strony powrotu z płatności (także dla zamówień bez konta).
+// Uprawnieniem jest pełny, losowy identyfikator zamówienia (UUID v4, 122 bity — znany tylko
+// klientowi z adresu powrotu / panelu konta), tak jak przy sprawdzaniu statusu. Akcja może
+// jedynie utworzyć płatność na kwotę zapisaną w zamówieniu, na e-mail z zamówienia.
+// Tylko status „oczekuje_na_platnosc", do 14 dni, tylko gdy towar jest nadal dostępny.
 export async function POST(req: Request) {
   if (!wLimicie(`ponow:${ipZadania(req)}`, 10, 10 * 60 * 1000)) return limitOdpowiedz();
   if (ZAMOWIENIA_WYLACZONE) return Response.json({ ok: false, blad: KOMUNIKAT_PRZERWY }, { status: 503 });
@@ -23,20 +26,13 @@ export async function POST(req: Request) {
   const sb = sbService();
   if (!sb) return Response.json({ ok: false, blad: "Błąd konfiguracji." }, { status: 500 });
 
-  const token = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
-  const { data: auth } = token ? await sb.auth.getUser(token) : { data: { user: null } };
-  const email = auth.user?.email?.toLowerCase();
-  if (!email) return Response.json({ ok: false, blad: "Zaloguj się ponownie i spróbuj jeszcze raz." }, { status: 401 });
-
   const b = (await req.json().catch(() => ({}))) as { id?: unknown };
   const id = String(b.id ?? "");
   if (!UUID.test(id)) return Response.json({ ok: false, blad: "Nieprawidłowe zamówienie." }, { status: 400 });
 
   const { data: zam } = await sb.from("zamowienia").select("id, created_at, status, razem, pozycje, klient").eq("id", id).maybeSingle();
-  // Cudze lub nieistniejące zamówienie — ta sama odpowiedź (bez ujawniania, że istnieje).
-  if (!zam || String((zam.klient as any)?.email ?? "").toLowerCase() !== email) {
-    return Response.json({ ok: false, blad: "Nie znaleziono zamówienia." }, { status: 404 });
-  }
+  if (!zam) return Response.json({ ok: false, blad: "Nie znaleziono zamówienia." }, { status: 404 });
+  const email = String((zam.klient as any)?.email ?? "").trim();
   if (zam.status !== "oczekuje_na_platnosc") {
     return Response.json({ ok: false, blad: "To zamówienie nie czeka już na płatność." }, { status: 409 });
   }

@@ -9,12 +9,12 @@ import { pobierzKatalog } from "@/lib/katalogKlient";
 import { zdjecie } from "@/lib/zdjecia";
 import { linkSledzenia, znajdzPrzewoznika } from "@/lib/przewoznicy";
 import type { Produkt } from "@/data/produkty";
+import { PrzyciskPlatnosci } from "@/components/PrzyciskPlatnosci";
 import {
   ETYKIETY,
   KOLOR,
   adresDostawy,
   dataPl,
-  dokonczPlatnosc,
   numer,
   pobierzZamowienie,
   zl,
@@ -27,36 +27,6 @@ const KROKI = [
   { id: "wyslane", label: "Wysłane" },
 ];
 const krokDlaStatusu = (s: string) => (s === "wyslane" ? 2 : s === "oplacone" || s === "nowe" ? 1 : 0);
-
-export function PrzyciskPlatnosci({ id, klasa }: { id: string; klasa?: string }) {
-  const [busy, setBusy] = useState(false);
-  const [blad, setBlad] = useState("");
-  return (
-    <div>
-      <button
-        onClick={async () => {
-          setBusy(true);
-          setBlad("");
-          const r = await dokonczPlatnosc(id);
-          if (r.url) {
-            window.location.href = r.url;
-            return;
-          }
-          setBlad(r.blad ?? "");
-          setBusy(false);
-        }}
-        disabled={busy}
-        className={
-          klasa ??
-          "rounded-lg bg-ink px-5 py-3 text-[14.5px] font-bold text-white transition-colors hover:bg-akcent disabled:opacity-60"
-        }
-      >
-        {busy ? "Przekierowuję do płatności…" : "Dokończ płatność"}
-      </button>
-      {blad ? <p className="mt-2 text-[13px] text-cena">{blad}</p> : null}
-    </div>
-  );
-}
 
 export function SzczegolyZamowienia({ id }: { id: string }) {
   const router = useRouter();

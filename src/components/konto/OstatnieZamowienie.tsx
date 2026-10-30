@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { PrzyciskPlatnosci } from "@/components/konto/SzczegolyZamowienia";
+import { PrzyciskPlatnosci } from "@/components/PrzyciskPlatnosci";
 import { linkSledzenia } from "@/lib/przewoznicy";
 import { ETYKIETY, KOLOR, dataPl, numer, pobierzZamowienia, zl, type ZamowienieKlienta } from "@/lib/zamowieniaKlienta";
 
