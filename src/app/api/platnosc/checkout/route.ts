@@ -136,7 +136,7 @@ export async function POST(req: Request) {
     if (!rej.ok || !rej.url) return Response.json({ ok: false, blad: rej.blad || "Błąd płatności" }, { status: 500 });
 
     await sb.from("zamowienia").update({ platnosc_id: zamowienieId }).eq("id", zamowienieId);
-    return Response.json({ ok: true, url: rej.url });
+    return Response.json({ ok: true, url: rej.url, id: zamowienieId });
   }
 
   // ── Płatność online (Stripe) — wymaga też bazy do zapisu zamówienia ──
