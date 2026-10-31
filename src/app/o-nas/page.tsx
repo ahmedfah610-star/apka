@@ -26,7 +26,11 @@ export default function ONas() {
           <a href={ALLEGRO} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-akcent">
             profilu sprzedawcy bobas-shopping na Allegro
           </a>
-          .
+          . Jesteśmy też na Facebooku —{" "}
+          <a href="https://www.facebook.com/BobasShopping/" target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-akcent">
+            Odzież dziecięca Bobas-Shopping
+          </a>{" "}
+          (ponad 1500 obserwujących).
         </p>
       </Sekcja>
 

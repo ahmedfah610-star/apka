@@ -224,7 +224,7 @@ export default async function StronaGlowna() {
         </div>
 
         {/* Reputacja: ten sam sprzedawca na Allegro — oceny kupujących do sprawdzenia. */}
-        <p className="mt-3 text-center text-[13.5px] text-ink-2 md:mt-4">
+        <p className="mt-3 text-center text-[13.5px] leading-relaxed text-ink-2 md:mt-4">
           Sprzedajemy też na Allegro jako <strong className="text-ink">bobas-shopping</strong> —{" "}
           <a
             href="https://allegro.pl/uzytkownik/bobas-shopping/oceny"
@@ -233,6 +233,15 @@ export default async function StronaGlowna() {
             className="font-semibold text-ink underline underline-offset-2 hover:text-akcent"
           >
             zobacz oceny kupujących
+          </a>
+          <span className="mx-1.5">·</span>
+          <a
+            href="https://www.facebook.com/BobasShopping/"
+            target="_blank"
+            rel="noopener"
+            className="font-semibold text-ink underline underline-offset-2 hover:text-akcent"
+          >
+            ponad 1500 obserwujących na Facebooku
           </a>
         </p>
 
