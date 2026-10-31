@@ -10,7 +10,24 @@ interface Mail {
   ok: boolean;
   blad: string | null;
   czas: string;
+  zdarzenie?: string | null; // status z Resend
+  zrodlo?: "dziennik" | "resend";
 }
+
+// Ostatni status doręczenia z Resend.
+const ZDARZENIA: Record<string, { t: string; ok: boolean }> = {
+  sent: { t: "wysłany", ok: true },
+  delivered: { t: "dostarczony", ok: true },
+  opened: { t: "otwarty", ok: true },
+  clicked: { t: "kliknięty", ok: true },
+  delivery_delayed: { t: "opóźniony", ok: true },
+  bounced: { t: "odrzucony", ok: false },
+  complained: { t: "zgłoszony jako spam", ok: false },
+  failed: { t: "nieudany", ok: false },
+  canceled: { t: "anulowany", ok: false },
+  scheduled: { t: "zaplanowany", ok: true },
+};
+const statusMaila = (m: Mail) => (m.zdarzenie && ZDARZENIA[m.zdarzenie]) || { t: m.ok ? "wysłany" : "błąd", ok: m.ok };
 
 const TYPY: Record<string, string> = {
   zamowienie: "Potwierdzenie zamówienia",
@@ -34,6 +51,7 @@ const data = (iso: string) =>
 // Podgląd wysłanych maili: lista + treść dokładnie taka, jaką dostał klient.
 export default function AdminMaile() {
   const [lista, setLista] = useState<Mail[] | null>(null);
+  const [resendBlad, setResendBlad] = useState<string | null>(null);
   const [szukaj, setSzukaj] = useState("");
   const [typ, setTyp] = useState("klienci");
   const [wybrany, setWybrany] = useState<Mail | null>(null);
@@ -45,7 +63,10 @@ export default function AdminMaile() {
     if (q) setSzukaj(q);
     fetch("/api/admin/maile")
       .then((r) => r.json())
-      .then((d) => setLista(Array.isArray(d.items) ? d.items : []))
+      .then((d) => {
+        setLista(Array.isArray(d.items) ? d.items : []);
+        setResendBlad(d.resendBlad ?? null);
+      })
       .catch(() => setLista([]));
   }, []);
 
@@ -54,7 +75,7 @@ export default function AdminMaile() {
     setHtml(null);
     fetch(`/api/admin/maile?id=${encodeURIComponent(wybrany.id)}`)
       .then((r) => r.json())
-      .then((d) => setHtml(d.mail?.html ?? "<p>Brak treści.</p>"))
+      .then((d) => setHtml(d.mail?.html ?? `<p style="font-family:sans-serif">${d.blad ? `Nie udało się pobrać treści: ${d.blad}` : "Brak treści."}</p>`))
       .catch(() => setHtml("<p>Nie udało się wczytać treści.</p>"));
   }, [wybrany]);
 
@@ -62,20 +83,27 @@ export default function AdminMaile() {
     const q = szukaj.trim().toLowerCase();
     return (lista ?? []).filter((m) => {
       if (typ === "klienci" && WEWNETRZNE.includes(m.typ)) return false;
-      if (typ === "bledy" && m.ok) return false;
+      if (typ === "bledy" && statusMaila(m).ok) return false;
       if (typ !== "klienci" && typ !== "wszystkie" && typ !== "bledy" && m.typ !== typ) return false;
       return !q || m.do?.toLowerCase().includes(q) || m.temat?.toLowerCase().includes(q);
     });
   }, [lista, szukaj, typ]);
 
-  const bledow = (lista ?? []).filter((m) => !m.ok).length;
+  const bledow = (lista ?? []).filter((m) => !statusMaila(m).ok).length;
 
   return (
     <div>
       <div className="mb-5">
         <h1 className="text-[26px] font-bold tracking-tight">Wysłane maile</h1>
-        <p className="text-[14px] text-ink-2">Co i kiedy dostali klienci — z podglądem treści. Historia z ostatnich 180 dni.</p>
+        <p className="text-[14px] text-ink-2">
+          Co i kiedy dostali klienci — z podglądem treści i statusem doręczenia. Starsze maile pochodzą z historii Resend (system wysyłki maili).
+        </p>
       </div>
+      {resendBlad ? (
+        <p className="mb-4 rounded-lg border border-[oklch(85%_0.08_85)] bg-[oklch(97%_0.03_85)] px-3.5 py-2.5 text-[13px]">
+          <strong>Nie udało się pobrać historii z Resend.</strong> {resendBlad}
+        </p>
+      ) : null}
 
       <div className="mb-4 flex flex-col gap-2.5 md:flex-row md:items-center">
         <input
@@ -105,7 +133,7 @@ export default function AdminMaile() {
             <div className="px-6 py-10 text-center text-ink-2">
               <p className="text-[14.5px] font-semibold text-ink">Brak maili</p>
               <p className="mt-1 text-[13px]">
-                {lista.length === 0 ? "Pojawią się tu wszystkie maile wysłane od teraz." : "Nic nie pasuje do wyszukiwania."}
+                {lista.length === 0 ? "Brak wysłanych maili w historii." : "Nic nie pasuje do wyszukiwania."}
               </p>
             </div>
           ) : (
@@ -123,7 +151,7 @@ export default function AdminMaile() {
                     </span>
                     <span className="shrink-0 text-right text-[12px] text-ink-2">
                       {data(m.czas)}
-                      <span className={`mt-1 block font-semibold ${m.ok ? "text-[oklch(45%_0.13_150)]" : "text-cena"}`}>{m.ok ? "wysłany" : "błąd"}</span>
+                      <span className={`mt-1 block font-semibold ${statusMaila(m).ok ? "text-[oklch(45%_0.13_150)]" : "text-cena"}`}>{statusMaila(m).t}</span>
                     </span>
                   </span>
                   <span className="mt-1.5 inline-block rounded bg-szary px-1.5 py-0.5 text-[11px] text-ink-2">{TYPY[m.typ] ?? m.typ}</span>
@@ -143,7 +171,7 @@ export default function AdminMaile() {
                 <div className="min-w-0 text-[13px]">
                   <p className="truncate text-[14.5px] font-semibold">{wybrany.temat}</p>
                   <p className="truncate text-ink-2">
-                    Do: {wybrany.do} · {data(wybrany.czas)}
+                    Do: {wybrany.do} · {data(wybrany.czas)} · {statusMaila(wybrany).t}
                   </p>
                   {!wybrany.ok ? <p className="mt-1 text-cena">Nie wysłano: {wybrany.blad || "błąd wysyłki"}</p> : null}
                 </div>
