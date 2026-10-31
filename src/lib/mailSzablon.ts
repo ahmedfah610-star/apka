@@ -65,7 +65,7 @@ export function powloka(o: OpcjePowloki): string {
 ${preheader}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${M.tlo}">
   <tr><td align="center" style="padding:28px 14px 40px">
-    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;margin:0 auto">
       <!-- Nagłówek marki -->
       <tr><td align="center" style="padding:6px 0 22px">
         <a href="${BAZA}" style="text-decoration:none">

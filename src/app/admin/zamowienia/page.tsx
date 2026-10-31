@@ -191,6 +191,11 @@ export default function AdminZamowienia() {
             <span>Razem</span>
             <span>{formatCena(z.razem)} zł</span>
           </div>
+          {z.klient?.email ? (
+            <a href={`/admin/maile?q=${encodeURIComponent(z.klient.email)}`} className="mt-3 w-fit text-[12.5px] text-ink underline underline-offset-2 hover:text-akcent">
+              Maile wysłane do tego klienta →
+            </a>
+          ) : null}
           <button
             onClick={() => void przelaczTest(z)}
             className="mt-3 w-fit text-[12px] text-ink-2 underline underline-offset-2 hover:text-akcent"

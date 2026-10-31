@@ -6,6 +6,7 @@ import { M, BAZA, powloka, esc, kartaProduktuMail } from "@/lib/mailSzablon";
 import { linkWypisu } from "@/lib/newsletterToken";
 import { zdjecie } from "@/lib/zdjecia";
 import { znajdzPrzewoznika, linkSledzenia } from "@/lib/przewoznicy";
+import { zapiszMail, type TypMaila } from "@/lib/mailLog";
 
 const API = "https://api.resend.com/emails";
 const API_BATCH = "https://api.resend.com/emails/batch";
@@ -42,9 +43,10 @@ interface DaneMaila {
 
 const zl = (n: number) => `${Number(n).toFixed(2).replace(".", ",")} zł`;
 
-async function wyslij(to: string, subject: string, html: string, replyTo?: string): Promise<{ ok: boolean; blad?: string }> {
+async function wyslij(to: string, subject: string, html: string, typ: TypMaila, replyTo?: string): Promise<{ ok: boolean; blad?: string }> {
   const { key, from } = konfiguracja();
   if (!key) return { ok: false, blad: "Brak RESEND_API_KEY" };
+  let wynik: { ok: boolean; blad?: string; idResend?: string };
   try {
     const res = await fetch(API, {
       method: "POST",
@@ -54,14 +56,19 @@ async function wyslij(to: string, subject: string, html: string, replyTo?: strin
     if (!res.ok) {
       const tekst = await res.text().catch(() => "");
       console.error(`[mail] Resend ${res.status} → ${to}: ${tekst}`);
-      return { ok: false, blad: `Resend ${res.status}: ${tekst}` };
+      wynik = { ok: false, blad: `Resend ${res.status}: ${tekst}`.slice(0, 500) };
+    } else {
+      const d = (await res.json().catch(() => ({}))) as { id?: string };
+      wynik = { ok: true, idResend: d.id };
     }
-    return { ok: true };
   } catch (e) {
     const blad = e instanceof Error ? e.message : "błąd sieci";
     console.error(`[mail] wyjątek → ${to}: ${blad}`);
-    return { ok: false, blad };
+    wynik = { ok: false, blad };
   }
+  // Dziennik (podgląd w panelu) — także nieudane próby.
+  await zapiszMail({ do: to, temat: subject, typ, html, ok: wynik.ok, blad: wynik.blad, idResend: wynik.idResend });
+  return { ok: wynik.ok, blad: wynik.blad };
 }
 
 /** Wysyłka wsadowa (do 100 na raz) — do newslettera. */
@@ -83,6 +90,15 @@ async function wyslijBatch(wiadomosci: { to: string; subject: string; html: stri
       console.error("[mail] batch wyjątek:", e);
     }
   }
+  // Newsletter: jeden wpis w dzienniku na wysyłkę (treść pierwszego maila — różnią się tylko linkiem wypisu).
+  await zapiszMail({
+    do: `${wiadomosci.length} subskrybentów (newsletter)`,
+    temat: wiadomosci[0].subject,
+    typ: "newsletter",
+    html: wiadomosci[0].html,
+    ok: wyslano === wiadomosci.length,
+    blad: wyslano === wiadomosci.length ? undefined : `Wysłano ${wyslano} z ${wiadomosci.length}`,
+  });
   return { wyslano };
 }
 
@@ -109,15 +125,15 @@ function tabelaPozycji(d: DaneMaila): string {
     ${wiersze}
     <tr>
       <td style="padding:11px 0;font-size:14px;color:${M.ink2}">Dostawa${d.metoda ? ` · ${esc(d.metoda)}` : ""}</td>
-      <td style="padding:11px 0;font-size:14px;text-align:right;color:${M.ink}">${d.dostawa === 0 ? "gratis" : zl(d.dostawa)}</td>
+      <td style="padding:11px 0;font-size:14px;text-align:right;white-space:nowrap;color:${M.ink}">${d.dostawa === 0 ? "gratis" : zl(d.dostawa)}</td>
     </tr>
     ${d.rabat && d.rabat > 0 ? `<tr>
       <td style="padding:11px 0;font-size:14px;color:${M.ink2}">Rabat${d.kod ? ` · ${esc(d.kod)}` : ""}</td>
-      <td style="padding:11px 0;font-size:14px;text-align:right;color:${M.ink}">−${zl(d.rabat)}</td>
+      <td style="padding:11px 0;font-size:14px;text-align:right;white-space:nowrap;color:${M.ink}">−${zl(d.rabat)}</td>
     </tr>` : ""}
     <tr>
       <td style="padding:14px 0 0;font-size:17px;font-weight:800;color:${M.ink}">Razem</td>
-      <td style="padding:14px 0 0;font-size:17px;font-weight:800;text-align:right;color:${M.ink}">${zl(d.razem)}</td>
+      <td style="padding:14px 0 0;font-size:17px;font-weight:800;text-align:right;white-space:nowrap;color:${M.ink}">${zl(d.razem)}</td>
     </tr>
   </table>`;
 }
@@ -151,7 +167,7 @@ export async function wyslijMailKontakt(od: { imie: string; email: string; wiado
     tresc: `<div style="margin-top:6px;padding:16px 18px;background:${M.tlo};border-left:3px solid ${M.akcent};border-radius:8px;font-size:14.5px;line-height:1.7;color:${M.ink};white-space:pre-wrap">${esc(od.wiadomosc)}</div>
       <p style="margin:16px 0 0;font-size:12.5px;color:${M.ink3}">Odpowiedz na tego e-maila, aby napisać bezpośrednio do klienta.</p>`,
   });
-  return wyslij(to, `Wiadomość ze sklepu — ${od.imie}`, html, od.email);
+  return wyslij(to, `Wiadomość ze sklepu — ${od.imie}`, html, "kontakt", od.email);
 }
 
 /** Test (panel) — zwraca odpowiedź Resend do diagnozy. */
@@ -162,7 +178,7 @@ export async function wyslijTest(to: string) {
     intro: "To testowa wiadomość z Twojego sklepu <strong>bobas-shopping</strong>. Jeśli ją widzisz — wysyłka e-maili jest poprawnie skonfigurowana.",
     cta: { tekst: "PRZEJDŹ DO SKLEPU", url: `${BAZA}/produkty` },
   });
-  return wyslij(to, "Test — bobas-shopping", html);
+  return wyslij(to, "Test — bobas-shopping", html, "test");
 }
 
 /** Powitanie po zapisie do newslettera (marketing → z wypisem). */
@@ -179,7 +195,7 @@ export async function wyslijMailPowitalny(email: string) {
     marketing: true,
     unsubUrl: linkWypisu(email),
   });
-  await wyslij(email, "Witaj w bobas-shopping 🌱", html);
+  await wyslij(email, "Witaj w bobas-shopping 🌱", html, "powitanie");
 }
 
 /** Powitanie po AKTYWACJI konta — wysyłane dopiero po potwierdzeniu e-maila. */
@@ -202,7 +218,7 @@ export async function wyslijMailRejestracja(email: string, imie?: string) {
       </table>`,
     cta: { tekst: "PRZEJDŹ DO KONTA", url: `${BAZA}/konto` },
   });
-  await wyslij(email, "Twoje konto jest aktywne — bobas-shopping 🎉", html);
+  await wyslij(email, "Twoje konto jest aktywne — bobas-shopping 🎉", html, "konto");
 }
 
 /** Produkt/rozmiar znów dostępny. */
@@ -215,7 +231,7 @@ export async function wyslijMailDostepnosci(email: string, nazwa: string, rozmia
     intro: `<strong style="color:${M.ink}">${esc(nazwa)}</strong>${rozmiar ? ` w rozmiarze <strong style="color:${M.ink}">${esc(rozmiar)}</strong>` : ""} jest znów dostępny. Ilość bywa ograniczona — lepiej nie zwlekać.`,
     cta: { tekst: "ZOBACZ PRODUKT", url },
   });
-  await wyslij(email, `Znów dostępne: ${nazwa}`, html);
+  await wyslij(email, `Znów dostępne: ${nazwa}`, html, "dostepnosc");
 }
 
 /** Potwierdzenie do klienta + powiadomienie do sklepu. */
@@ -237,7 +253,7 @@ export async function wyslijMaileZamowienia(d: DaneMaila) {
       tresc: tabelaPozycji(d) + blokDostawy(d.klient),
       cta: { tekst: "ŚLEDŹ ZAMÓWIENIE", url: `${BAZA}/status-zamowienia` },
     });
-    zadania.push(wyslij(d.klient.email, `${tag}Potwierdzenie zamówienia ${nr} — bobas-shopping`, html));
+    zadania.push(wyslij(d.klient.email, `${tag}Potwierdzenie zamówienia ${nr} — bobas-shopping`, html, "zamowienie"));
   }
 
   // Do sklepu — rzeczowe powiadomienie.
@@ -248,7 +264,7 @@ export async function wyslijMaileZamowienia(d: DaneMaila) {
     tresc: tabelaPozycji(d) + blokDostawy(d.klient),
     cta: { tekst: "PANEL ZAMÓWIEŃ", url: `${BAZA}/admin/zamowienia` },
   });
-  zadania.push(wyslij(odbiorcaSklep, `${tag}Nowe zamówienie ${nr} — ${zl(d.razem)}`, htmlSklep));
+  zadania.push(wyslij(odbiorcaSklep, `${tag}Nowe zamówienie ${nr} — ${zl(d.razem)}`, htmlSklep, "sklep"));
 
   await Promise.all(zadania);
 }
@@ -269,7 +285,7 @@ export async function wyslijMailPorzuconyKoszyk(order: {
     tresc: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${karty}</table>`,
     cta: { tekst: "WRÓĆ DO KOSZYKA", url: `${BAZA}/koszyk` },
   });
-  return wyslij(order.email, "Twój koszyk czeka 🛒 — bobas-shopping", html);
+  return wyslij(order.email, "Twój koszyk czeka 🛒 — bobas-shopping", html, "koszyk");
 }
 
 /** Powiadomienie klienta, że paczka została nadana (z numerem i śledzeniem). */
@@ -307,7 +323,7 @@ export async function wyslijMailWyslano(order: {
       ? { tekst: "ŚLEDŹ PRZESYŁKĘ", url }
       : { tekst: "SZCZEGÓŁY ZAMÓWIENIA", url: `${BAZA}/status-zamowienia` },
   });
-  return wyslij(order.email, `Zamówienie ${nr} zostało wysłane 📦 — bobas-shopping`, html);
+  return wyslij(order.email, `Zamówienie ${nr} zostało wysłane 📦 — bobas-shopping`, html, "wysylka");
 }
 
 /** Prośba o opinię po zakupie (wysyłana kilka dni po zamówieniu). */
@@ -342,7 +358,7 @@ export async function wyslijMailProsbaOOpinie(order: {
     tresc: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0">${lista}</table>
       <p style="margin:16px 0 0;font-size:12.5px;color:${M.ink3}">Opinię możesz dodać tylko jako osoba, która kupiła produkt — dlatego przy dodawaniu podaj ten sam e-mail (jest już wpisany w linku).</p>`,
   });
-  await wyslij(order.email, "Jak oceniasz swoje zakupy? — bobas-shopping ⭐", html);
+  await wyslij(order.email, "Jak oceniasz swoje zakupy? — bobas-shopping ⭐", html, "opinia");
 }
 
 // ── Cotygodniowy newsletter ─────────────────────────────────────────────

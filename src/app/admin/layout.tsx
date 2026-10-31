@@ -30,6 +30,7 @@ const DZIALY: Dzial[] = [
     strony: [
       { href: "/admin/zamowienia", label: "Zamówienia" },
       { href: "/admin/pakowanie", label: "Do pakowania" },
+      { href: "/admin/maile", label: "Maile" },
       { href: "/admin/klienci", label: "Klienci" },
     ],
   },
