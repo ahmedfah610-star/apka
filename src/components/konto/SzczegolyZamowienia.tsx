@@ -203,6 +203,22 @@ export function SzczegolyZamowienia({ id }: { id: string }) {
             <dd>{zl(z.razem)}</dd>
           </div>
         </dl>
+
+        {/* Braki i zwroty rozliczone przez sklep */}
+        {Array.isArray(z.klient?.korekty) && z.klient!.korekty.length > 0 ? (
+          <div className="mt-4 flex flex-col gap-2 rounded-xl bg-szary/50 p-3.5 text-[13.5px]">
+            {(z.klient!.korekty as { id: string; typ: string; kwota: number; dostawa: number; pozycje: { nazwa: string; ilosc: number; rozmiar?: string | null }[] }[]).map((k) => (
+              <div key={k.id} className="flex justify-between gap-3">
+                <span className="text-ink-2">
+                  <strong className="text-ink">{k.typ === "brak" ? "Brak produktu" : "Zwrot"}:</strong>{" "}
+                  {k.pozycje.map((p) => `${p.nazwa}${p.rozmiar ? ` (${p.rozmiar})` : ""} × ${p.ilosc}`).join(", ")}
+                  {k.dostawa > 0 ? `${k.pozycje.length ? " + " : ""}koszt dostawy` : ""}
+                </span>
+                <span className="shrink-0 font-semibold text-[oklch(45%_0.13_150)]">zwrot {zl(k.kwota)}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {/* Dostawa i dane */}

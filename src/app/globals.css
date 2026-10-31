@@ -48,3 +48,22 @@ body {
     font-size: 16px;
   }
 }
+
+/* Wydruk z panelu (np. lista do pakowania): bez menu i pasków panelu. */
+@media print {
+  .panel-admina aside,
+  .panel-admina header,
+  .panel-admina nav,
+  .nie-drukuj {
+    display: none !important;
+  }
+  .panel-admina,
+  .panel-admina main {
+    background: #fff !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+  .panel-admina .druk-bez-podzialu {
+    break-inside: avoid;
+  }
+}

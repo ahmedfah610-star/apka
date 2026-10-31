@@ -63,6 +63,8 @@ export default function PulpitAdmina() {
   const [produkty, setProdukty] = useState<Produkt[]>([]);
   const [zamowienia, setZamowienia] = useState<Zamowienie[]>([]);
   const [ga4, setGa4] = useState<any>(null);
+  const [opinieDoZatw, setOpinieDoZatw] = useState(0);
+  const [raport, setRaport] = useState<{ czas: string; ok: boolean; niedopasowane: number; blad?: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/produkty")
@@ -81,15 +83,36 @@ export default function PulpitAdmina() {
       .then((r) => r.json())
       .then((d) => setGa4(d))
       .catch(() => {});
+    fetch("/api/admin/opinie")
+      .then((r) => r.json())
+      .then((d) => setOpinieDoZatw(Array.isArray(d.items) ? d.items.filter((o: any) => !o.zatwierdzona).length : 0))
+      .catch(() => {});
+    fetch("/api/admin/allegro?synchronizacja=1")
+      .then((r) => r.json())
+      .then((d) => setRaport(d.raport ?? null))
+      .catch(() => {});
   }, []);
 
   const widoczne = useMemo(() => produkty.filter((p) => !p.ukryty), [produkty]);
   const kat = useMemo(() => statystykiKatalogu(widoczne), [widoczne]);
   // Realne = opłacone/wysłane (prawdziwa sprzedaż przez P24). Nowe/oczekujące/anulowane nie liczą się do obrotu.
-  const realne = useMemo(() => zamowienia.filter((z) => z.status === "oplacone" || z.status === "wyslane"), [zamowienia]);
+  const realne = useMemo(() => zamowienia.filter((z) => (z.status === "oplacone" || z.status === "wyslane") && !z.klient?.test), [zamowienia]);
   const zam = useMemo(() => statystykiZamowien(realne), [realne]);
-  const doWyslania = zamowienia.filter((z) => z.status === "oplacone").length;
+  // „Na dziś": zamówienia bez znacznika TEST.
+  const prawdziwe = useMemo(() => zamowienia.filter((z) => !z.klient?.test), [zamowienia]);
+  const teraz = Date.now();
+  const doWyslaniaLista = prawdziwe.filter((z) => z.status === "oplacone" || z.status === "nowe");
+  const doWyslania = doWyslaniaLista.length;
+  const spoznione = doWyslaniaLista.filter((z) => teraz - new Date(z.data).getTime() > 24 * 3600 * 1000).length;
+  const nieoplacone = prawdziwe.filter((z) => z.status === "oczekuje_na_platnosc" && teraz - new Date(z.data).getTime() < 3 * 86400 * 1000).length;
   const bezStanu = widoczne.filter((p) => (p.stan ?? 1) <= 0).length;
+  const ostatniaSztuka = widoczne.reduce((n, p) => {
+    if (p.rozmiary?.length && p.stanRozmiary) return n + p.rozmiary.filter((r) => p.stanRozmiary?.[r] === 1).length;
+    return n + (p.stan === 1 ? 1 : 0);
+  }, 0);
+  const syncStara = raport ? teraz - new Date(raport.czas).getTime() > 30 * 3600 * 1000 : false;
+  const syncProblem = !!raport && (!raport.ok || syncStara);
+  const zadan = [doWyslania, nieoplacone, bezStanu, ostatniaSztuka, opinieDoZatw, raport?.niedopasowane ?? 0, syncProblem ? 1 : 0].filter((n) => n > 0).length;
   const maxKat = Math.max(1, ...KATEGORIE.map((k) => kat.wgKategorii[k]));
   const ostatnie = useMemo(
     () => [...zamowienia].filter((z) => z.status !== "anulowane").sort((a, b) => +new Date(b.data) - +new Date(a.data)).slice(0, 6),
@@ -105,23 +128,56 @@ export default function PulpitAdmina() {
         </p>
       </div>
 
-      {/* Do zrobienia */}
+      {/* Na dziś */}
       <section className="mb-8">
-        <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-ink-2">Do zrobienia</h2>
-        {doWyslania === 0 && bezStanu === 0 ? (
+        <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-ink-2">Na dziś</h2>
+        {zadan === 0 ? (
           <div className="rounded-xl border border-linia bg-white px-5 py-4 text-[14px] text-ink-2">
-            ✓ Wszystko ogarnięte — brak zamówień do wysłania i produktów bez stanu.
+            ✓ Wszystko ogarnięte — nic do wysłania, stany w porządku, synchronizacja działa.
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {syncProblem ? (
+              <Zadanie
+                href="/admin/magazyn"
+                ile={1}
+                tytul={raport?.ok ? "Synchronizacja z Allegro nie działała od ponad doby" : "Ostatnia synchronizacja z Allegro nieudana"}
+                opis="Stany w sklepie mogą być nieaktualne — sprawdź i uruchom ręcznie"
+                pilne
+              />
+            ) : null}
             {doWyslania > 0 ? (
-              <Zadanie href="/admin/zamowienia" ile={doWyslania} tytul="Zamówienia do wysłania" opis="Opłacone — spakuj i nadaj paczkę" pilne />
+              <Zadanie
+                href="/admin/pakowanie"
+                ile={doWyslania}
+                tytul="Zamówienia do wysłania"
+                opis={spoznione ? `${spoznione} czeka ponad 24 h — wyślij jak najszybciej` : "Opłacone — lista do pakowania"}
+                pilne
+              />
+            ) : null}
+            {nieoplacone > 0 ? (
+              <Zadanie href="/admin/zamowienia" ile={nieoplacone} tytul="Czekają na płatność" opis="Klient nie dokończył płatności (ostatnie 3 dni) — możesz się odezwać" />
+            ) : null}
+            {ostatniaSztuka > 0 ? (
+              <Zadanie href="/admin/magazyn" ile={ostatniaSztuka} tytul="Ostatnie sztuki" opis="Rozmiary z 1 szt. — sprawdź, czy dobrać towar" />
             ) : null}
             {bezStanu > 0 ? (
-              <Zadanie href="/admin/magazyn" ile={bezStanu} tytul="Produkty bez stanu" opis="Widoczne w sklepie, ale 0 sztuk — uzupełnij lub ukryj" />
+              <Zadanie href="/admin/magazyn" ile={bezStanu} tytul="Wyprzedane w sklepie" opis="Widoczne, ale 0 sztuk — uzupełnij na Allegro lub ukryj" />
+            ) : null}
+            {raport?.niedopasowane ? (
+              <Zadanie href="/admin/import" ile={raport.niedopasowane} tytul="Oferty z Allegro, których nie ma w sklepie" opis="Pobierz nowe produkty jednym kliknięciem" />
+            ) : null}
+            {opinieDoZatw > 0 ? (
+              <Zadanie href="/admin/opinie" ile={opinieDoZatw} tytul="Opinie do zatwierdzenia" opis="Nowe opinie klientów czekają na publikację" />
             ) : null}
           </div>
         )}
+        {raport && !syncProblem ? (
+          <p className="mt-2 text-[12px] text-ink-2">
+            Synchronizacja z Allegro: ✓ {new Date(raport.czas).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })} · o każdym nowym opłaconym
+            zamówieniu dostajesz e-mail.
+          </p>
+        ) : null}
       </section>
 
       {/* Wskaźniki */}

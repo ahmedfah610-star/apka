@@ -1,6 +1,7 @@
 import { czyAdmin } from "@/lib/adminAuth";
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { wyslijMailWyslano } from "@/lib/mail";
+import { zwroconoLacznie, type Korekta } from "@/lib/korekty";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,8 @@ export async function GET() {
     przewoznik: r.przewoznik ?? null,
     rabat: Number(r.rabat ?? 0),
     kodRabatowy: r.kod_rabatowy ?? null,
+    wyslanoAt: r.wyslano_at ?? null,
+    zwrocono: zwroconoLacznie((r.klient as { korekty?: Korekta[] } | null)?.korekty),
   }));
   return Response.json({ items });
 }
@@ -44,6 +47,7 @@ export async function PATCH(req: Request) {
     numerPrzesylki?: string | null;
     przewoznik?: string | null;
     powiadom?: boolean;
+    test?: boolean;
   };
   const { id } = body;
   if (!id) return Response.json({ ok: false, blad: "Brak id" }, { status: 400 });
@@ -56,6 +60,11 @@ export async function PATCH(req: Request) {
   }
   if (body.numerPrzesylki !== undefined) zmiany.numer_przesylki = (body.numerPrzesylki || "").trim() || null;
   if (body.przewoznik !== undefined) zmiany.przewoznik = body.przewoznik || null;
+  // Znacznik TEST (zamówienia próbne — nie liczą się do statystyk, można je usunąć po anulowaniu).
+  if (body.test !== undefined) {
+    const { data: obecne } = await sb.from("zamowienia").select("klient").eq("id", id).maybeSingle();
+    zmiany.klient = { ...((obecne?.klient as Record<string, unknown>) ?? {}), test: body.test ? true : undefined };
+  }
   if (Object.keys(zmiany).length === 0) return Response.json({ ok: false, blad: "Brak zmian" }, { status: 400 });
 
   const { data, error } = await sb.from("zamowienia").update(zmiany).eq("id", id).select("*").single();

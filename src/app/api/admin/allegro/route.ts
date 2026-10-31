@@ -19,6 +19,13 @@ export async function GET(req: Request) {
   if (url.searchParams.get("synchronizacja")) {
     return Response.json({ ok: true, raport: await ostatniRaport() });
   }
+  // Produkty sklepu powiązane z ofertami Allegro (ich stany ustawia synchronizacja).
+  if (url.searchParams.get("powiazane")) {
+    const sb = sbService();
+    if (!sb) return Response.json({ ok: false, ids: [] });
+    const { data } = await sb.from("allegro_oferty").select("produkt_id").not("produkt_id", "is", null).limit(10000);
+    return Response.json({ ok: true, ids: [...new Set((data ?? []).map((r: any) => String(r.produkt_id)))] });
+  }
   if (url.searchParams.get("diag") === "stany") {
     const sb = sbService();
     if (!sb) return Response.json({ ok: false, blad: "Brak bazy" });

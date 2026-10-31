@@ -4,6 +4,7 @@ import { zdjecie } from "@/lib/zdjecia";
 import { useEffect, useMemo, useState } from "react";
 import { DodajDoKoszyka, pozycjaPomiaru } from "@/components/DodajDoKoszyka";
 import { pomiarProduktu } from "@/lib/analityka";
+import { licz } from "@/lib/licznikKlient";
 import { Galeria } from "@/components/Galeria";
 import { TerminDostawy } from "@/components/TerminDostawy";
 import { KATEGORIE_LABEL, type Produkt } from "@/data/produkty";
@@ -38,6 +39,7 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
   // GA4: obejrzenie produktu (także po zmianie koloru — to inny wariant/oferta).
   useEffect(() => {
     pomiarProduktu("view_item", pozycjaPomiaru(p));
+    licz(p.id, "w");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.id]);
 

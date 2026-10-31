@@ -45,7 +45,7 @@ export function statystykiZamowien(zamowienia: Zamowienie[]): StatystykiZamowien
   let obrot = 0;
   let sztuk = 0;
   for (const z of zamowienia) {
-    obrot += z.razem;
+    obrot += z.razem - (z.zwrocono ?? 0);
     for (const poz of z.pozycje) sztuk += poz.ilosc;
   }
   const liczba = zamowienia.length;

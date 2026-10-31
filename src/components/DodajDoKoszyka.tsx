@@ -10,6 +10,7 @@ import { PrzyciskUlubione } from "@/components/PrzyciskUlubione";
 import type { Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { pomiarProduktu } from "@/lib/analityka";
+import { licz } from "@/lib/licznikKlient";
 
 export const pozycjaPomiaru = (p: Produkt, ilosc = 1) => ({
   id: p.id,
@@ -69,6 +70,7 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
     if (typeof dostepneTeraz === "number" && dostepneTeraz <= 0) return;
     dodaj(produkt.id, rozmiar, 1);
     pomiarProduktu("add_to_cart", { ...pozycjaPomiaru(produkt), rozmiar });
+    licz(produkt.id, "k");
     setDodano(true);
     setBlad(false);
     setTimeout(() => setDodano(false), 2500);

@@ -29,6 +29,7 @@ const DZIALY: Dzial[] = [
     ikona: ikona("M6 7h12l-1 13H7L6 7Zm3 0V5.5a3 3 0 0 1 6 0V7"),
     strony: [
       { href: "/admin/zamowienia", label: "Zamówienia" },
+      { href: "/admin/pakowanie", label: "Do pakowania" },
       { href: "/admin/klienci", label: "Klienci" },
     ],
   },
@@ -37,7 +38,7 @@ const DZIALY: Dzial[] = [
     ikona: ikona("M4 8 12 4l8 4v8l-8 4-8-4V8Zm0 0 8 4 8-4M12 12v8"),
     strony: [
       { href: "/admin/produkty", label: "Lista produktów" },
-      { href: "/admin/magazyn", label: "Stany magazynowe" },
+      { href: "/admin/magazyn", label: "Kontrola stanów" },
       { href: "/admin/import", label: "Allegro" },
     ],
   },
@@ -46,6 +47,7 @@ const DZIALY: Dzial[] = [
     ikona: ikona("M4 20V10m6 10V4m6 16v-7m4 7H3"),
     strony: [
       { href: "/admin/statystyki", label: "Sprzedaż" },
+      { href: "/admin/lejek", label: "Produkty: wejścia" },
       { href: "/admin/analityka", label: "Ruch na stronie" },
     ],
   },
@@ -122,7 +124,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <main className="mx-auto max-w-[1180px] px-4 py-6 md:px-10 md:py-9">
             {/* Podzakładki działu */}
             {dzial.strony.length > 1 ? (
-              <div className="-mx-4 mb-7 overflow-x-auto px-4 md:mx-0 md:px-0">
+              <div className="nie-drukuj -mx-4 mb-7 overflow-x-auto px-4 md:mx-0 md:px-0">
                 <div className="inline-flex gap-1 rounded-xl border border-linia bg-white p-1">
                   {dzial.strony.map((s) => {
                     const on = sciezka.startsWith(s.href);

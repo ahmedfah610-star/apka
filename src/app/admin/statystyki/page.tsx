@@ -12,6 +12,8 @@ interface Zamowienie {
   dostawa: number;
   razem: number;
   status: string;
+  zwrocono?: number;
+  klient?: { test?: boolean };
 }
 
 // Statusy liczone jako zrealizowana sprzedaż.
@@ -59,15 +61,17 @@ export default function AdminStatystyki() {
   const dane = useMemo(() => {
     const granica = Date.now() - okres * 24 * 60 * 60 * 1000;
     const wOkresie = lista.filter((z) => new Date(z.data).getTime() >= granica);
-    const zrealizowane = wOkresie.filter((z) => ZREALIZOWANE.includes(z.status));
+    // Zrealizowane bez zamówień TEST; obrót pomniejszony o zwroty i braki.
+    const zrealizowane = wOkresie.filter((z) => ZREALIZOWANE.includes(z.status) && !z.klient?.test);
+    const netto = (z: Zamowienie) => z.razem - (z.zwrocono ?? 0);
 
-    const obrot = zrealizowane.reduce((s, z) => s + z.razem, 0);
+    const obrot = zrealizowane.reduce((s, z) => s + netto(z), 0);
     const sztuk = zrealizowane.reduce((s, z) => s + z.pozycje.reduce((a, p) => a + p.ilosc, 0), 0);
     const sredniaWartosc = zrealizowane.length ? obrot / zrealizowane.length : 0;
 
     // Obrót wg dni (zrealizowane).
     const wgDni = new Map<string, number>();
-    for (const z of zrealizowane) wgDni.set(dzienKey(z.data), (wgDni.get(dzienKey(z.data)) ?? 0) + z.razem);
+    for (const z of zrealizowane) wgDni.set(dzienKey(z.data), (wgDni.get(dzienKey(z.data)) ?? 0) + netto(z));
     // Uzupełnij brakujące dni zerami (do 30 słupków maks. dla czytelności).
     const iloscSlupkow = Math.min(okres, 30);
     const slupki: { key: string; label: string; wartosc: number }[] = [];
