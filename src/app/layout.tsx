@@ -7,6 +7,7 @@ import { KoszykProvider } from "@/components/KoszykContext";
 import { UlubioneProvider } from "@/components/UlubioneContext";
 import { BannerCookies } from "@/components/BannerCookies";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { PasekPromocji } from "@/components/PasekPromocji";
 import { ZGODY_DOMYSLNE } from "@/lib/zgody";
 import { BAZA_URL, NAZWA_SKLEPU, OPIS_SKLEPU, jsonLd } from "@/lib/seo";
 import { TrybAdminaProvider } from "@/components/TrybAdmina";
@@ -144,6 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen bg-strona font-sans text-ink antialiased">
         <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(daneStrukturalne)} />
+        <PasekPromocji />
         <AuthProvider>
           <UlubioneProvider>
             <KoszykProvider>

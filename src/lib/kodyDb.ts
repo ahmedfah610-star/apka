@@ -1,4 +1,5 @@
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
+import { PROMOCJA, stanPromocji } from "@/lib/promocja";
 
 // Kody rabatowe — warstwa danych. Walidacja zawsze po stronie serwera.
 
@@ -55,6 +56,26 @@ export async function sprawdzKod(kodTekst: string, suma: number): Promise<WynikW
 
   const { data, error } = await sb.from("kody_rabatowe").select("*").eq("kod", kodU).maybeSingle();
   if (error) return { ok: false, blad: "Błąd sprawdzania kodu." };
+  // Kod bieżącej promocji (lib/promocja) — działa bez wpisu w panelu, tylko w oknie promocji.
+  // Wpis w panelu o tej samej nazwie ma pierwszeństwo.
+  if (!data && PROMOCJA && kodU === PROMOCJA.kod) {
+    const stan = stanPromocji(PROMOCJA);
+    if (stan === "przed") return { ok: false, blad: "Promocja jeszcze się nie rozpoczęła." };
+    if (stan === "po") return { ok: false, blad: "Promocja już się zakończyła." };
+    const kodPromo: Kod = {
+      kod: PROMOCJA.kod,
+      typ: "procent",
+      wartosc: PROMOCJA.procent,
+      minKoszyk: PROMOCJA.minKoszyk,
+      aktywny: true,
+      waznyDo: PROMOCJA.do,
+      limitUzyc: null,
+      uzyto: 0,
+      createdAt: PROMOCJA.od,
+    };
+    if (suma < kodPromo.minKoszyk) return { ok: false, blad: `Kod działa od ${kodPromo.minKoszyk.toFixed(2).replace(".", ",")} zł w koszyku (bez dostawy).` };
+    return { ok: true, kod: kodPromo, rabat: Math.min(Math.round(((suma * kodPromo.wartosc) / 100) * 100) / 100, suma) };
+  }
   if (!data) return { ok: false, blad: "Nieprawidłowy kod." };
   const k = zRzedu(data);
 

@@ -10,6 +10,7 @@ import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { useDostawa } from "@/lib/dostawaKlient";
 import { najtanszaDostawa } from "@/lib/dostawa";
+import { promocjaTrwa } from "@/lib/promocja";
 import { EdycjaDostaw } from "@/components/EdycjaDostaw";
 import { ZAMOWIENIA_WYLACZONE } from "@/lib/sklep";
 import { PrzerwaTechniczna } from "@/components/PrzerwaTechniczna";
@@ -129,6 +130,25 @@ export default function StronaKoszyka() {
                 <div className="h-2 w-full overflow-hidden rounded-full bg-szary">
                   <div className="h-full rounded-full bg-akcent transition-all duration-500" style={{ width: `${procent}%` }} />
                 </div>
+                {(() => {
+                  const promo = promocjaTrwa();
+                  if (!promo) return null;
+                  return (
+                    <p className="mt-3 border-t border-linia pt-3 text-[13.5px] text-ink-2">
+                      {suma >= promo.minKoszyk ? (
+                        <>
+                          🎁 Wpisz kod <strong className="text-akcent">{promo.kod}</strong> w następnym kroku — <strong className="text-ink">−{promo.procent}%</strong>{" "}
+                          (oszczędzasz {formatCena(Math.round(suma * promo.procent) / 100)} zł).
+                        </>
+                      ) : (
+                        <>
+                          🎁 Dodaj jeszcze <strong className="text-ink">{formatCena(promo.minKoszyk - suma)} zł</strong>, aby użyć kodu{" "}
+                          <strong className="text-akcent">{promo.kod}</strong> (−{promo.procent}% od {promo.minKoszyk} zł).
+                        </>
+                      )}
+                    </p>
+                  );
+                })()}
               </div>
 
               <div className="divide-y divide-linia overflow-hidden rounded-2xl border border-linia bg-white">
