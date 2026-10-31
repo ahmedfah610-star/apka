@@ -18,6 +18,13 @@ function konfiguracja() {
   return { key, from, sklep };
 }
 
+// Powiadomienie o nowym zamówieniu: adres(y) z MAIL_SKLEP (można po przecinku) + zawsze skrzynka firmy.
+const MAIL_FIRMY = "amin.kids1@hotmail.com";
+export function odbiorcyZamowien(mailSklep = process.env.MAIL_SKLEP): string[] {
+  const adresy = [...(mailSklep ?? "").split(","), MAIL_FIRMY].map((a) => a.trim()).filter((a) => a.includes("@"));
+  return adresy.filter((a, i) => adresy.findIndex((b) => b.toLowerCase() === a.toLowerCase()) === i);
+}
+
 export function mailWlaczony(): boolean {
   return !!process.env.RESEND_API_KEY;
 }
@@ -236,9 +243,8 @@ export async function wyslijMailDostepnosci(email: string, nazwa: string, rozmia
 
 /** Potwierdzenie do klienta + powiadomienie do sklepu. */
 export async function wyslijMaileZamowienia(d: DaneMaila) {
-  const { key, sklep } = konfiguracja();
+  const { key } = konfiguracja();
   if (!key) return;
-  const odbiorcaSklep = sklep || "amin.kids1@hotmail.com";
   const nr = d.id.slice(0, 8);
   const tag = d.klient.test ? "[TEST] " : ""; // zamówienie testowe — od razu widać w skrzynce
   const zadania: Promise<{ ok: boolean; blad?: string }>[] = [];
@@ -264,7 +270,9 @@ export async function wyslijMaileZamowienia(d: DaneMaila) {
     tresc: tabelaPozycji(d) + blokDostawy(d.klient),
     cta: { tekst: "PANEL ZAMÓWIEŃ", url: `${BAZA}/admin/zamowienia` },
   });
-  zadania.push(wyslij(odbiorcaSklep, `${tag}Nowe zamówienie ${nr} — ${zl(d.razem)}`, htmlSklep, "sklep"));
+  for (const adres of odbiorcyZamowien()) {
+    zadania.push(wyslij(adres, `${tag}Nowe zamówienie ${nr} — ${zl(d.razem)}`, htmlSklep, "sklep"));
+  }
 
   await Promise.all(zadania);
 }
