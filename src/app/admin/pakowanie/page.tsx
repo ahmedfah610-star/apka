@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { zdjecie } from "@/lib/zdjecia";
-import { skorygowano, type Korekta } from "@/lib/korekty";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface Pozycja {
@@ -22,17 +21,14 @@ interface Zamowienie {
   metoda: string;
   status: string;
   razem: number;
-  klient: Record<string, any> & { korekty?: Korekta[]; test?: boolean };
+  klient: Record<string, any> & { test?: boolean };
 }
 
 const DO_PAKOWANIA = ["oplacone", "nowe"];
 const KLUCZ_SPAKOWANE = "bobas-admin-spakowane";
 
-/** Pozycje do wysłania — bez sztuk oznaczonych jako „brak”. */
 function doWyslania(z: Zamowienie) {
-  return z.pozycje
-    .map((p, i) => ({ ...p, ilosc: p.ilosc - skorygowano(z.klient?.korekty, i, "brak") }))
-    .filter((p) => p.ilosc > 0);
+  return z.pozycje.filter((p) => p.ilosc > 0);
 }
 
 function dostawa(k: Record<string, any>): string {
@@ -152,7 +148,6 @@ export default function AdminPakowanie() {
             {zamowienia.map((z) => {
               const k = z.klient ?? {};
               const pozycje = doWyslania(z);
-              const braki = z.pozycje.some((_, i) => skorygowano(k.korekty, i, "brak") > 0);
               return (
                 <div key={z.id} className={`druk-bez-podzialu rounded-xl border bg-white p-4 ${spakowane[z.id] ? "border-[oklch(75%_0.1_150)] opacity-60" : "border-linia"}`}>
                   <div className="mb-2 flex items-start justify-between gap-2">
@@ -181,7 +176,6 @@ export default function AdminPakowanie() {
                       <strong>Uwagi:</strong> {k.uwagi}
                     </p>
                   ) : null}
-                  {braki ? <p className="mt-2 text-[12.5px] font-semibold text-cena">Część produktów oznaczona jako brak — nie pakuj ich.</p> : null}
                   <ul className="mt-3 flex flex-col gap-2 border-t border-linia pt-3">
                     {pozycje.map((p, i) => (
                       <li key={i} className="flex items-center gap-2.5 text-[13px]">

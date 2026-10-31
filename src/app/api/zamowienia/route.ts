@@ -1,7 +1,6 @@
 import { czyAdmin } from "@/lib/adminAuth";
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { wyslijMailWyslano } from "@/lib/mail";
-import { zwroconoLacznie, type Korekta } from "@/lib/korekty";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +27,6 @@ export async function GET() {
     rabat: Number(r.rabat ?? 0),
     kodRabatowy: r.kod_rabatowy ?? null,
     wyslanoAt: r.wyslano_at ?? null,
-    zwrocono: zwroconoLacznie((r.klient as { korekty?: Korekta[] } | null)?.korekty),
   }));
   return Response.json({ items });
 }

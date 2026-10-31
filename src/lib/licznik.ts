@@ -48,14 +48,14 @@ export interface WierszLejka {
   id: string;
   wejscia: number;
   koszyk: number;
-  kupione: number; // sztuki z opłaconych zamówień (bez braków i zwrotów)
+  kupione: number; // sztuki z opłaconych zamówień
   zamowien: number;
 }
 
 /** Zsumowanie dni licznika i sprzedaży w jeden lejek na produkt. */
 export function agregujLejek(
   dni: DzienLicznika[],
-  zamowienia: { pozycje: { id: string; ilosc: number }[]; korekty?: { pozycje: { indeks: number; ilosc: number }[] }[] }[],
+  zamowienia: { pozycje: { id: string; ilosc: number }[] }[],
 ): WierszLejka[] {
   const m = new Map<string, WierszLejka>();
   const wiersz = (id: string) => {
@@ -71,11 +71,9 @@ export function agregujLejek(
     }
   }
   for (const z of zamowienia) {
-    const odjete = new Map<number, number>();
-    for (const k of z.korekty ?? []) for (const p of k.pozycje) odjete.set(p.indeks, (odjete.get(p.indeks) ?? 0) + p.ilosc);
     const wZamowieniu = new Set<string>();
-    z.pozycje.forEach((p, i) => {
-      const szt = (Number(p.ilosc) || 0) - (odjete.get(i) ?? 0);
+    z.pozycje.forEach((p) => {
+      const szt = Number(p.ilosc) || 0;
       if (szt <= 0) return;
       wiersz(p.id).kupione += szt;
       wZamowieniu.add(p.id);

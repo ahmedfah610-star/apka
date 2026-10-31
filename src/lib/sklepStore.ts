@@ -21,8 +21,6 @@ export interface Zamowienie {
   metoda: string;
   /** Status: nowe | oczekuje_na_platnosc | oplacone | wyslane | anulowane. */
   status?: string;
-  /** Zwrócone kwoty (braki / zwroty) — odejmowane od obrotu. */
-  zwrocono?: number;
   klient?: { test?: boolean };
 }
 

@@ -14,17 +14,17 @@ describe("licznik wejść", () => {
     expect(d.p1).toEqual([2, 1]);
   });
 
-  it("lejek: sumuje dni i sprzedaż, odejmuje braki/zwroty", () => {
+  it("lejek: sumuje dni i sprzedaż", () => {
     const wiersze = agregujLejek(
       [{ p1: [10, 2] }, { p1: [5, 1], p2: [3, 0] }],
       [
-        { pozycje: [{ id: "p1", ilosc: 2 }, { id: "p2", ilosc: 1 }], korekty: [{ pozycje: [{ indeks: 1, ilosc: 1 }] }] },
+        { pozycje: [{ id: "p1", ilosc: 2 }, { id: "p2", ilosc: 1 }] },
         { pozycje: [{ id: "p1", ilosc: 1 }] },
       ],
     );
     const p1 = wiersze.find((w) => w.id === "p1")!;
     const p2 = wiersze.find((w) => w.id === "p2")!;
     expect(p1).toMatchObject({ wejscia: 15, koszyk: 3, kupione: 3, zamowien: 2 });
-    expect(p2).toMatchObject({ wejscia: 3, koszyk: 0, kupione: 0, zamowien: 0 });
+    expect(p2).toMatchObject({ wejscia: 3, koszyk: 0, kupione: 1, zamowien: 1 });
   });
 });

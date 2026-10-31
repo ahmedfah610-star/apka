@@ -6,7 +6,7 @@ import { PREFIKS, agregujLejek, dzien, type DzienLicznika } from "@/lib/licznik"
 export const dynamic = "force-dynamic";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// Lejek na produkt: wejścia → dodania do koszyka → zakupy (opłacone/wysłane, bez TEST, bez braków/zwrotów).
+// Lejek na produkt: wejścia → dodania do koszyka → zakupy (opłacone/wysłane, bez TEST).
 export async function GET(req: Request) {
   if (!czyAdmin()) return odmowa();
   const sb = sbService();
@@ -23,7 +23,7 @@ export async function GET(req: Request) {
 
   const zamowienia = (zam ?? [])
     .filter((z: any) => !z.klient?.test)
-    .map((z: any) => ({ pozycje: (z.pozycje ?? []).map((p: any) => ({ id: String(p.id), ilosc: Number(p.ilosc) || 0 })), korekty: z.klient?.korekty ?? [] }));
+    .map((z: any) => ({ pozycje: (z.pozycje ?? []).map((p: any) => ({ id: String(p.id), ilosc: Number(p.ilosc) || 0 })) }));
   const wiersze = agregujLejek((paczki ?? []).map((p: any) => p.wartosc as DzienLicznika), zamowienia);
   const mapa = new Map(katalog.map((p) => [p.id, p]));
   const items = wiersze

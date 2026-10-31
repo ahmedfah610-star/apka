@@ -4,8 +4,6 @@ import { zdjecie } from "@/lib/zdjecia";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { formatCena } from "@/lib/filtrowanie";
 import { PRZEWOZNICY, linkSledzenia } from "@/lib/przewoznicy";
-import { KorektyZamowienia } from "@/components/admin/KorektyZamowienia";
-import { skorygowano, type Korekta } from "@/lib/korekty";
 
 interface Pozycja {
   id: string;
@@ -29,7 +27,6 @@ interface Klient {
   punktOpis?: string;
   uwagi?: string;
   test?: boolean;
-  korekty?: Korekta[];
 }
 interface Zamowienie {
   id: string;
@@ -45,7 +42,6 @@ interface Zamowienie {
   przewoznik?: string | null;
   rabat?: number;
   kodRabatowy?: string | null;
-  zwrocono?: number;
 }
 
 const STATUSY: { key: string; label: string; klasa: string }[] = [
@@ -132,6 +128,12 @@ export default function AdminZamowienia() {
     }
   }
 
+  // Znacznik TEST — zamówienie próbne (poza statystykami; po anulowaniu można je usunąć).
+  async function przelaczTest(z: Zamowienie) {
+    await fetch("/api/zamowienia", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: z.id, test: !z.klient?.test }) });
+    void odswiez();
+  }
+
   // Zamówienia testowe (znaczek TEST, anulowane) — do usunięcia jednym kliknięciem.
   const testowe = lista.filter((z) => z.klient?.test && z.status === "anulowane").length;
   async function usunTestowe() {
@@ -169,12 +171,6 @@ export default function AdminZamowienia() {
                     {p.kolor ? <>kolor: <strong className="text-ink">{p.kolor}</strong> · </> : null}
                     {p.rozmiar ? <>rozmiar: <strong className="text-ink">{p.rozmiar}</strong> · </> : null}
                     ilość: <strong className="text-ink">{p.ilosc}</strong>
-                    {skorygowano(z.klient?.korekty, i, "brak") ? (
-                      <span className="ml-1.5 rounded bg-[oklch(93%_0.05_25)] px-1.5 py-0.5 text-[11px] font-bold text-cena">brak: {skorygowano(z.klient?.korekty, i, "brak")}</span>
-                    ) : null}
-                    {skorygowano(z.klient?.korekty, i, "zwrot") ? (
-                      <span className="ml-1.5 rounded bg-szary px-1.5 py-0.5 text-[11px] font-bold text-ink-2">zwrot: {skorygowano(z.klient?.korekty, i, "zwrot")}</span>
-                    ) : null}
                   </span>
                 </span>
               </span>
@@ -195,13 +191,12 @@ export default function AdminZamowienia() {
             <span>Razem</span>
             <span>{formatCena(z.razem)} zł</span>
           </div>
-          {z.zwrocono ? (
-            <div className="flex justify-between text-[13px] text-cena">
-              <span>Zwrócono (braki / zwroty)</span>
-              <span>−{formatCena(z.zwrocono)} zł</span>
-            </div>
-          ) : null}
-          <KorektyZamowienia z={z} poZmianie={() => void odswiez()} />
+          <button
+            onClick={() => void przelaczTest(z)}
+            className="mt-3 w-fit text-[12px] text-ink-2 underline underline-offset-2 hover:text-akcent"
+          >
+            {z.klient?.test ? "Usuń znacznik TEST" : "Oznacz jako TEST (zamówienie próbne — nie liczy się do statystyk)"}
+          </button>
         </div>
       </div>
       <div>

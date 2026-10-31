@@ -310,47 +310,6 @@ export async function wyslijMailWyslano(order: {
   return wyslij(order.email, `Zamówienie ${nr} zostało wysłane 📦 — bobas-shopping`, html);
 }
 
-/** Brak produktu w zamówieniu albo przyjęty zwrot — informacja o kwocie zwrotu. */
-export async function wyslijMailKorekta(o: {
-  id: string;
-  email?: string;
-  imie?: string;
-  typ: "brak" | "zwrot";
-  pozycje: { nazwa: string; ilosc: number; rozmiar?: string | null; kolor?: string | null; kwota: number }[];
-  dostawa: number;
-  kwota: number;
-  notatka?: string;
-}): Promise<{ ok: boolean; blad?: string }> {
-  if (!mailWlaczony() || !o.email) return { ok: false, blad: "Brak maila/adresu" };
-  const nr = o.id.slice(0, 8);
-  const zl = (n: number) => `${n.toFixed(2).replace(".", ",")} zł`;
-  const wiersze = o.pozycje
-    .map(
-      (p) => `<tr><td style="padding:8px 0;font-size:14px;color:${M.ink};border-bottom:1px solid ${M.linia}">${esc(p.nazwa)}<br>
-        <span style="font-size:12.5px;color:${M.ink2}">${[p.kolor, p.rozmiar ? `rozm. ${p.rozmiar}` : "", `${p.ilosc} szt.`].filter(Boolean).map((x) => esc(String(x))).join(" · ")}</span></td>
-        <td align="right" style="padding:8px 0;font-size:14px;color:${M.ink};border-bottom:1px solid ${M.linia};white-space:nowrap">${zl(p.kwota)}</td></tr>`,
-    )
-    .join("");
-  const dost = o.dostawa > 0 ? `<tr><td style="padding:8px 0;font-size:14px;color:${M.ink2}">Koszt dostawy</td><td align="right" style="padding:8px 0;font-size:14px;color:${M.ink2}">${zl(o.dostawa)}</td></tr>` : "";
-  const tabela = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 0">${wiersze}${dost}
-    <tr><td style="padding:12px 0 0;font-size:15px;font-weight:700;color:${M.ink}">Do zwrotu</td><td align="right" style="padding:12px 0 0;font-size:15px;font-weight:700;color:${M.ink}">${zl(o.kwota)}</td></tr></table>`;
-  const notatka = o.notatka ? `<p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:${M.ink2}">${esc(o.notatka)}</p>` : "";
-  const brak = o.typ === "brak";
-  const html = powloka({
-    emoji: brak ? "🙏" : "↩️",
-    naglowek: brak ? "Brak produktu w Twoim zamówieniu" : "Zwrot przyjęty",
-    preheader: brak ? `Zamówienie ${nr}: jednego produktu nie możemy wysłać — zwracamy ${zl(o.kwota)}.` : `Zamówienie ${nr}: zwracamy ${zl(o.kwota)}.`,
-    intro: `${o.imie ? `Cześć ${esc(o.imie.split(" ")[0])}! ` : ""}${
-      brak
-        ? `Bardzo przepraszamy — podczas kompletowania zamówienia <strong style="color:${M.ink}">#${nr}</strong> okazało się, że poniższego produktu nie mamy już na stanie. Pozostałe produkty wyślemy normalnie, a za brakujący zwracamy pieniądze na konto, z którego zapłacono.`
-        : `Otrzymaliśmy zwrot z zamówienia <strong style="color:${M.ink}">#${nr}</strong>. Pieniądze zwracamy na konto, z którego zapłacono.`
-    } Środki powinny być na koncie w ciągu kilku dni roboczych.`,
-    tresc: tabela + notatka,
-    cta: { tekst: "ZOBACZ SKLEP", url: BAZA },
-  });
-  return wyslij(o.email, brak ? `Zamówienie ${nr}: brak produktu — zwrot ${zl(o.kwota)}` : `Zamówienie ${nr}: zwrot przyjęty — ${zl(o.kwota)}`, html);
-}
-
 /** Prośba o opinię po zakupie (wysyłana kilka dni po zamówieniu). */
 export async function wyslijMailProsbaOOpinie(order: {
   id: string;
