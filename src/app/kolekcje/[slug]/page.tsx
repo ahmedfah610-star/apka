@@ -11,7 +11,7 @@ import { zProgiem } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 
 // ISR — treść statyczna, produkty odświeżane co 5 minut.
-export const revalidate = 300;
+export const revalidate = 900;
 
 export function generateStaticParams() {
   return KOLEKCJE.map((k) => ({ slug: k.slug }));

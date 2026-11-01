@@ -51,9 +51,12 @@ export function KoszykProvider({ children }: { children: React.ReactNode }) {
   const [katalog, setKatalog] = useState<Map<string, Produkt> | null>(null);
   const [usunieteNiedostepne, setUsunieteNiedostepne] = useState(0);
 
+  // Katalog (~1,2 MB) tylko, gdy coś jest w koszyku — pusty koszyk nie ma czego sprawdzać.
+  const jestCos = pozycje.length > 0;
   useEffect(() => {
+    if (!jestCos || katalog) return;
     pobierzKatalog().then((k) => k && setKatalog(new Map(k.map((p) => [p.id, p]))));
-  }, []);
+  }, [jestCos, katalog]);
 
   // Produkty, których już nie ma w sklepie (zakończone/scalone oferty), wypadają z koszyka —
   // inaczej licznik pokazywał sztuki, których klient nie widzi i nie może kupić.

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Katalog z serwera: rozmiar 74 — 2 szt., 80 — wyprzedany.
 vi.mock("@/lib/produktyDb", () => ({
-  katalogWidoczny: async () => [
+  katalogWidocznySwiezy: async () => [
     { id: "p1", nazwa: "Body testowe", cena: 20, kategoria: "niemowleta", rozmiary: ["74", "80"], stanRozmiary: { "74": 2, "80": 0 }, stan: 2, kolor: "biały", zdjecie: null },
   ],
 }));

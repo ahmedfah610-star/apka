@@ -13,7 +13,7 @@ import { kwotaTekst, najtanszaDostawa } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 
 // ISR: strona buduje się i odświeża co 5 minut zamiast przy każdym żądaniu.
-export const revalidate = 300;
+export const revalidate = 900;
 
 // „Kupuj według rodzaju" — strony kolekcji (te same filtry co na stronie kolekcji,
 // więc cena „od" zgadza się z tym, co klient zobaczy po kliknięciu).

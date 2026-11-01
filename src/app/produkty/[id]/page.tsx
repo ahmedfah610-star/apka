@@ -33,7 +33,7 @@ const RETURN_POLICY = {
 // Strona produktu czytana z bazy przy żądaniu (świeże ceny/stany, także dla
 // pozycji dodanych w panelu). Bez bazy — fallback do katalogu z kodu.
 // ISR: karta produktu cache'owana i odświeżana co 5 minut.
-export const revalidate = 300;
+export const revalidate = 3600; // zmiany stanów odświeżają od razu (lib/rewalidacja)
 
 // Bez tej funkcji Next 14 renderuje kartę dynamicznie przy KAŻDYM wejściu (ignorując revalidate)
 // — z pobraniem całego katalogu, co po „zimnym starcie" trwało nawet ~20 s. Pusta lista =

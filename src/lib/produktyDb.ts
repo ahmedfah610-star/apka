@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { PRODUKTY, type Produkt } from "@/data/produkty";
 import { sbAnon, sbService, supabaseWlaczony } from "@/lib/supabase";
 import { ladnaNazwa } from "@/lib/nazwa";
@@ -121,7 +122,19 @@ const KOLUMNY_KATALOG =
   "id, nazwa, cena, kategoria, wiek, wiek_label, badge, rozmiary, zdjecie, zdjecia, opis, kolor, stan, stan_rozmiary, ukryty, hue, created_at, poprawki";
 
 /** Katalog widoczny w sklepie (bez wyłączonych ofert). */
-export async function katalogWidoczny(): Promise<Produkt[]> {
+// Tag pamięci podręcznej katalogu — czyszczony po każdej zmianie stanów/produktów (lib/rewalidacja).
+export const TAG_KATALOGU = "katalog";
+
+/** Widoczny katalog. Wspólna pamięć podręczna (5 min / do zmiany stanów) — karty produktów,
+ *  strona główna i /api/katalog nie czytają już całej bazy przy każdym renderze. */
+export const katalogWidoczny = unstable_cache(katalogWidocznyZBazy, ["katalog-widoczny"], { tags: [TAG_KATALOGU], revalidate: 300 });
+
+/** Katalog prosto z bazy, bez pamięci podręcznej — dla zamówień i płatności (ceny i stany na teraz). */
+export async function katalogWidocznySwiezy(): Promise<Produkt[]> {
+  return katalogWidocznyZBazy();
+}
+
+async function katalogWidocznyZBazy(): Promise<Produkt[]> {
   if (supabaseWlaczony()) {
     // Service role (serwerowo) — omija RLS/limity klucza anon, który zwracał tylko część wierszy.
     const sb = sbService() ?? sbAnon();

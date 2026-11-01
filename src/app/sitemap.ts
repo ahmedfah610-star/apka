@@ -4,7 +4,7 @@ import { katalogWidoczny } from "@/lib/produktyDb";
 import { ARTYKULY } from "@/data/blog";
 import { KOLEKCJE } from "@/data/kolekcje";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600; // wcześniej liczona od nowa przy każdym pobraniu przez roboty
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const teraz = new Date();

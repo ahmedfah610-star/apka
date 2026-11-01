@@ -22,9 +22,12 @@ export function UlubioneProvider({ children }: { children: React.ReactNode }) {
   const zaladowanyUser = useRef<string | null>(null);
   const [znane, setZnane] = useState<Set<string> | null>(null);
 
+  // Katalog tylko, gdy są jakieś ulubione do sprawdzenia.
+  const jestCos = ids.length > 0;
   useEffect(() => {
+    if (!jestCos || znane) return;
     pobierzKatalog().then((k) => k && setZnane(new Set(k.map((p) => p.id))));
-  }, []);
+  }, [jestCos, znane]);
 
   // Produkty, których nie ma już w sklepie, znikają z ulubionych (licznik = to, co widać).
   useEffect(() => {
