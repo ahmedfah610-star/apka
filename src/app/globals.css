@@ -67,3 +67,8 @@ body {
     break-inside: avoid;
   }
 }
+
+/* Podczas promocji jeden pasek (pomarańczowy) zamiast dwóch — patrz PasekPromocji. */
+html[data-promocja] .pasek-info {
+  display: none;
+}

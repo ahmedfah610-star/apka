@@ -122,7 +122,8 @@ export default async function StronaGlowna() {
   return (
     <div className="overflow-x-clip bg-strona">
       {/* Pasek informacyjny */}
-      <div className="flex justify-center gap-5 bg-akcent px-4 py-2 text-[12.5px] font-semibold text-white md:gap-9">
+      {/* Ustępuje pomarańczowemu paskowi promocji, gdy promocja trwa (PasekPromocji → html[data-promocja]). */}
+      <div className="pasek-info flex justify-center gap-5 bg-akcent px-4 py-2 text-[12.5px] font-semibold text-white md:gap-9">
         <span>Darmowa dostawa od {kwotaTekst(DARMOWA_DOSTAWA_OD)}</span>
         <span>14 dni na zwrot</span>
         <span className="hidden sm:inline">BLIK · karta · Przelewy24</span>
