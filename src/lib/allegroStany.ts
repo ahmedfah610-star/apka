@@ -118,7 +118,7 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
 
   try {
     if (!(await aktualnyToken())) {
-      return zakoncz({ ...raport, blad: "Brak połączenia z Allegro — połącz ponownie w panelu (Import z Allegro)." });
+      return zakoncz({ ...raport, blad: "Połączenie z Allegro wygasło — kliknij „Połącz ponownie” w Produkty → Allegro." });
     }
 
     // 1. Aktywne oferty z ilościami.

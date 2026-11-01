@@ -112,6 +112,7 @@ export default function PulpitAdmina() {
   }, 0);
   const syncStara = raport ? teraz - new Date(raport.czas).getTime() > 30 * 3600 * 1000 : false;
   const syncProblem = !!raport && (!raport.ok || syncStara);
+  const wygaslo = !!raport && !raport.ok && /wygasło|połączenia z Allegro/i.test(raport.blad ?? "");
   const zadan = [doWyslania, nieoplacone, bezStanu, ostatniaSztuka, opinieDoZatw, raport?.niedopasowane ?? 0, syncProblem ? 1 : 0].filter((n) => n > 0).length;
   const maxKat = Math.max(1, ...KATEGORIE.map((k) => kat.wgKategorii[k]));
   const ostatnie = useMemo(
@@ -139,10 +140,10 @@ export default function PulpitAdmina() {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {syncProblem ? (
               <Zadanie
-                href="/admin/magazyn"
+                href={wygaslo ? "/admin/import" : "/admin/magazyn"}
                 ile={1}
-                tytul={raport?.ok ? "Synchronizacja z Allegro nie działała od ponad doby" : "Ostatnia synchronizacja z Allegro nieudana"}
-                opis="Stany w sklepie mogą być nieaktualne — sprawdź i uruchom ręcznie"
+                tytul={wygaslo ? "Połączenie z Allegro wygasło" : raport?.ok ? "Synchronizacja z Allegro nie działała od ponad doby" : "Ostatnia synchronizacja z Allegro nieudana"}
+                opis={wygaslo ? "Stany się nie synchronizują — kliknij i połącz ponownie" : "Stany w sklepie mogą być nieaktualne — sprawdź i uruchom ręcznie"}
                 pilne
               />
             ) : null}

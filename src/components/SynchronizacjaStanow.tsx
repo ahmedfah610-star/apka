@@ -58,10 +58,20 @@ export function SynchronizacjaStanow() {
         <p className="text-[13px] text-ink-2">Jeszcze nie było synchronizacji.</p>
       ) : (
         <div className="text-[14px]">
-          <p className={`font-semibold ${raport.ok ? "text-[oklch(45%_0.13_150)]" : "text-akcent"}`}>
+          <p className={`font-semibold ${raport.ok ? "text-[oklch(45%_0.13_150)]" : "text-[oklch(50%_0.19_25)]"}`}>
             {raport.ok ? "✓ Ostatnia synchronizacja udana" : "✕ Ostatnia synchronizacja nieudana"} · {data}
           </p>
-          {raport.blad ? <p className="mt-1 text-akcent">{raport.blad}</p> : null}
+          {raport.blad ? (
+            <p className={`mt-1 ${raport.ok ? "text-ink-2" : "text-[oklch(50%_0.19_25)]"}`}>
+              {raport.blad}
+              {/wygasło|połączenia z Allegro/i.test(raport.blad) ? (
+                <>
+                  {" "}
+                  <a href="/admin/import" className="font-semibold underline">Połącz ponownie →</a>
+                </>
+              ) : null}
+            </p>
+          ) : null}
           <ul className="mt-2 grid gap-x-6 gap-y-1 text-[13px] text-ink-2 sm:grid-cols-2">
             <li>Aktywne oferty na Allegro: <strong className="text-ink">{raport.aktywneOferty}</strong></li>
             <li>Powiązane z produktami sklepu: <strong className="text-ink">{raport.powiazane}</strong></li>

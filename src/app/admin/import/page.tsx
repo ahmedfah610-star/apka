@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { SynchronizacjaStanow } from "@/components/SynchronizacjaStanow";
 import { NoweZAllegro } from "@/components/NoweZAllegro";
 
-interface Status { skonfigurowany: boolean; polaczony: boolean }
+interface Status { skonfigurowany: boolean; polaczony: boolean; wygaslo?: boolean; bladPolaczenia?: string | null }
 interface Wynik { pobrano: number; zapisano: number; bledy: number; blad?: string }
 
 export default function AdminImport() {
@@ -18,7 +18,7 @@ export default function AdminImport() {
     try {
       const r = await fetch("/api/admin/allegro");
       const d = await r.json();
-      if (d.ok) setStatus({ skonfigurowany: d.skonfigurowany, polaczony: d.polaczony });
+      if (d.ok) setStatus({ skonfigurowany: d.skonfigurowany, polaczony: d.polaczony, wygaslo: d.wygaslo, bladPolaczenia: d.bladPolaczenia });
     } catch { /* ignoruj */ }
   };
   useEffect(() => { void odswiezStatus(); }, []);
@@ -224,13 +224,23 @@ export default function AdminImport() {
           {/* Połączenie */}
           <section className="rounded-xl border border-linia bg-white p-5">
             <div className="mb-3 flex items-center gap-2">
-              <span className={`h-2.5 w-2.5 rounded-full ${status.polaczony ? "bg-[oklch(70%_0.15_150)]" : "bg-linia-2"}`} />
-              <h2 className="text-[15px] font-bold">{status.polaczony ? "Połączono z Allegro" : "Niepołączono"}</h2>
+              <span className={`h-2.5 w-2.5 rounded-full ${status.polaczony ? "bg-[oklch(70%_0.15_150)]" : status.wygaslo ? "bg-[oklch(58%_0.2_25)]" : "bg-linia-2"}`} />
+              <h2 className="text-[15px] font-bold">
+                {status.polaczony ? "Połączono z Allegro" : status.wygaslo ? "Połączenie z Allegro wygasło" : "Niepołączono"}
+              </h2>
             </div>
             {!status.polaczony ? (
               <>
+                {status.wygaslo ? (
+                  <p className="mb-3 text-[13.5px] text-ink-2">
+                    Allegro unieważniło dostęp sklepu (dzieje się tak np. po zmianie hasła, wylogowaniu ze wszystkich urządzeń albo
+                    usunięciu aplikacji w „Powiązanych aplikacjach”). Stany się nie synchronizują — połącz ponownie, produkty i
+                    powiązania zostają bez zmian.
+                    {status.bladPolaczenia ? <span className="mt-1 block text-[12px] text-ink-3">Odpowiedź Allegro: {status.bladPolaczenia}</span> : null}
+                  </p>
+                ) : null}
                 <button onClick={polacz} disabled={busy} className="rounded-lg bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
-                  {busy ? "ŁĄCZENIE…" : "POŁĄCZ Z ALLEGRO"}
+                  {busy ? "ŁĄCZENIE…" : status.wygaslo ? "POŁĄCZ PONOWNIE Z ALLEGRO" : "POŁĄCZ Z ALLEGRO"}
                 </button>
                 {start ? (
                   <div className="mt-4 rounded-lg border border-linia bg-szary/30 p-4 text-[14px]">

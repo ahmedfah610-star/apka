@@ -1,5 +1,5 @@
 import { czyAdmin } from "@/lib/adminAuth";
-import { allegroSkonfigurowany, czyPolaczony, rozpocznijDevice, sprawdzDevice, allegroGet } from "@/lib/allegro";
+import { allegroSkonfigurowany, stanPolaczenia, rozpocznijDevice, sprawdzDevice, allegroGet } from "@/lib/allegro";
 import { bazaNazwy, czyDamski, importujStrone, przeklasyfikuj, scalProdukty } from "@/lib/allegroImport";
 import { ladnaNazwa } from "@/lib/nazwa";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
@@ -165,10 +165,13 @@ export async function GET(req: Request) {
       sizeTable: o?.sizeTable ?? null,
     });
   }
+  const polaczenie = allegroSkonfigurowany() ? await stanPolaczenia() : { stan: "brak" as const };
   return Response.json({
     ok: true,
     skonfigurowany: allegroSkonfigurowany(),
-    polaczony: await czyPolaczony(),
+    polaczony: polaczenie.stan === "ok",
+    wygaslo: polaczenie.stan === "wygaslo",
+    bladPolaczenia: polaczenie.blad ?? null,
   });
 }
 
