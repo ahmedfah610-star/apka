@@ -44,7 +44,9 @@ describe("token Allegro", () => {
     odczyty = 0;
     poPierwszymOdczycie = undefined;
   });
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
   it("odświeża i zapisuje nową parę tokenów", async () => {
     auth = { access_token: "a1", refresh_token: "r1", expires_at: przeszlosc };
