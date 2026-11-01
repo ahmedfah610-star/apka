@@ -3,6 +3,8 @@ import { wszystkieAktywne } from "@/lib/allegroStany";
 import { ladnaNazwa } from "@/lib/nazwa";
 import { porownajRozmiary } from "@/lib/rozmiary";
 import { sbService } from "@/lib/supabase";
+import { powiadomOOdblokowaniu } from "@/lib/restock";
+import { BAZA_URL } from "@/lib/seo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -171,6 +173,8 @@ export async function pobierzPorcje(
       const { error } = await sb.from("produkty").insert(nowy);
       if (error) throw new Error(error.message);
       await powiaz(idProduktu);
+      // Ten sam produkt mógł już kiedyś być w sklepie (id z nazwy/koloru) i ktoś czeka na powiadomienie.
+      await powiadomCzekajacych(sb, idProduktu, String(nowy.nazwa), 0, null, Number(nowy.stan) || 0, (nowy.stan_rozmiary as Record<string, number> | null) ?? null);
       // Kolejne oferty tej porcji mogą być innymi rozmiarami tego produktu.
       const wpis = { id: idProduktu, nazwa: w.nazwa, kolor: w.kolor, cena: w.cena, opis: w.opis, rozmiary: w.rozmiary };
       dodaj(poKluczu, klucz, wpis);
@@ -200,19 +204,39 @@ async function maRozmiar(sb: any, produktId: string, rozmiar: string): Promise<b
 // (ich ilości ustawia codzienna synchronizacja). true = coś dołożono.
 async function dolozRozmiar(sb: any, produktId: string, rozmiar: string | null, sztuk: number, opisHtml?: string): Promise<boolean> {
   if (!rozmiar) return false;
-  const { data: p } = await sb.from("produkty").select("rozmiary, stan_rozmiary, opis_rozmiary").eq("id", produktId).maybeSingle();
+  const { data: p } = await sb.from("produkty").select("nazwa, stan, rozmiary, stan_rozmiary, opis_rozmiary").eq("id", produktId).maybeSingle();
   if (!p || (p.rozmiary ?? []).map(String).includes(rozmiar)) return false;
   const sr: Record<string, number> = { ...(p.stan_rozmiary ?? {}), [rozmiar]: Math.max(0, Math.floor(sztuk) || 0) };
   const opisy = { ...(p.opis_rozmiary ?? {}) };
   if (opisHtml && !opisy[rozmiar]) opisy[rozmiar] = opisHtml;
+  const stan = Object.values(sr).reduce((s, v) => s + (Number(v) || 0), 0);
   const { error } = await sb
     .from("produkty")
     .update({
       rozmiary: [...(p.rozmiary ?? []), rozmiar].sort(porownajRozmiary),
       stan_rozmiary: sr,
-      stan: Object.values(sr).reduce((s, v) => s + (Number(v) || 0), 0),
+      stan,
       opis_rozmiary: Object.keys(opisy).length ? opisy : null,
     })
     .eq("id", produktId);
-  return !error;
+  if (error) return false;
+  // Rozmiar wrócił jako nowa oferta na Allegro — maile „znów dostępne" do czekających.
+  await powiadomCzekajacych(sb, produktId, String(p.nazwa ?? "Produkt"), p.stan ?? null, p.stan_rozmiary ?? null, stan, sr);
+  return true;
+}
+
+async function powiadomCzekajacych(
+  sb: any,
+  produktId: string,
+  nazwa: string,
+  stareStan: number | null,
+  stareSr: Record<string, number> | null,
+  noweStan: number,
+  noweSr: Record<string, number> | null,
+): Promise<void> {
+  try {
+    await powiadomOOdblokowaniu(sb, produktId, nazwa, BAZA_URL, stareStan, stareSr, noweStan, noweSr);
+  } catch {
+    /* mail nie blokuje pobierania ofert */
+  }
 }

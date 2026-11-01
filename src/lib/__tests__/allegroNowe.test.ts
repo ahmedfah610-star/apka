@@ -53,6 +53,13 @@ vi.mock("@/lib/allegroImport", async (orig) => ({
   szczegoly: async (id: string) => OFERTY[id],
 }));
 vi.mock("@/lib/allegroStany", () => ({ wszystkieAktywne: async () => [] }));
+// „Znów dostępne": zapamiętujemy wywołania zamiast wysyłać maile.
+const powiadomienia: { id: string; stareSr: unknown; noweSr: unknown }[] = [];
+vi.mock("@/lib/restock", () => ({
+  powiadomOOdblokowaniu: async (_sb: unknown, id: string, _n: string, _u: string, _s: unknown, stareSr: unknown, _ns: unknown, noweSr: unknown) => {
+    powiadomienia.push({ id, stareSr, noweSr });
+  },
+}));
 
 describe("pobierz nowe z Allegro", () => {
   it("dodaje nowy produkt, dokłada rozmiar z własnym opisem, nie dubluje", async () => {
@@ -85,6 +92,11 @@ describe("pobierz nowe z Allegro", () => {
     expect(w4[0].wynik).toBe("nowy-rozmiar");
     expect(baza.produkty[0].rozmiary).toEqual(["104", "110", "116"]);
     expect(baza.produkty[0].opis_rozmiary["116"]).toContain("116 CM");
+    // Rozmiar wrócił jako nowa oferta → czekający dostają „znów dostępne".
+    const ost = powiadomienia[powiadomienia.length - 1];
+    expect(ost.id).toBe(baza.produkty[0].id);
+    expect(ost.stareSr).toEqual({ "104": 2, "110": 1 });
+    expect(ost.noweSr).toEqual({ "104": 2, "110": 1, "116": 3 });
   });
 
   it("kolejne rozmiary nowości z następnej porcji trafiają do tego samego nowego produktu", async () => {

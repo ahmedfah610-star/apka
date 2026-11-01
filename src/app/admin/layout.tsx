@@ -57,6 +57,7 @@ const DZIALY: Dzial[] = [
     ikona: ikona("M4 13V9l11-5v14L4 13Zm0 0 2 7h3l-1.5-6M18 9a3 3 0 0 1 0 4"),
     strony: [
       { href: "/admin/kody", label: "Kody rabatowe" },
+      { href: "/admin/newsletter", label: "Newsletter" },
       { href: "/admin/opinie", label: "Opinie" },
     ],
   },

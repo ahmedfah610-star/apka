@@ -401,10 +401,14 @@ export function mailTygodniowyHtml(opts: { email: string; produkty: ProduktMail[
       </table>`
     : "";
 
+  const ile = produkty.length;
   return powloka({
-    naglowek: "Co u nas w tym tygodniu",
-    preheader: "Nowości, bestsellery i porada dla rodziców.",
-    intro: "Wybraliśmy dla Ciebie kilka rzeczy, które teraz szczególnie się podobają — plus świeży poradnik z bloga.",
+    naglowek: ile > 1 ? "Nowości tygodnia" : "Nowość tygodnia",
+    preheader: ile ? `${produkty[0].nazwa}${ile > 1 ? ` i ${ile - 1} więcej` : ""} — świeżo w sklepie.` : "Nowości i porada dla rodziców.",
+    intro:
+      ile > 1
+        ? `W tym tygodniu ${ile <= 4 ? `doszły do sklepu ${ile} nowe rzeczy` : `doszło do sklepu ${ile} nowych rzeczy`} dla dzieci — oto one. Ilości są ograniczone, a pod spodem poradnik z bloga.`
+        : "W tym tygodniu doszła do sklepu nowa rzecz dla dzieci — zobacz ją, zanim zniknie. Pod spodem poradnik z bloga.",
     tresc: siatka + blogSekcja,
     cta: { tekst: "ZOBACZ CAŁĄ OFERTĘ", url: `${BAZA}/produkty` },
     marketing: true,
@@ -416,10 +420,10 @@ export function mailTygodniowyHtml(opts: { email: string; produkty: ProduktMail[
 export async function wyslijNewsletterTygodniowy(
   adresy: string[],
   produkty: ProduktMail[],
-  artykul?: ArtykulMail,
+  artykul: ArtykulMail | undefined,
+  temat: string,
 ): Promise<{ wyslano: number }> {
   if (!mailWlaczony() || adresy.length === 0) return { wyslano: 0 };
-  const temat = `bobas-shopping — nowości i porada na ten tydzień`;
   const wiadomosci = adresy.map((email) => ({ to: email, subject: temat, html: mailTygodniowyHtml({ email, produkty, artykul }) }));
   return wyslijBatch(wiadomosci);
 }
