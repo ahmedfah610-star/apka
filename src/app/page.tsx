@@ -11,6 +11,7 @@ import { zwinWarianty, type Zwiniety } from "@/lib/warianty";
 import { formatCena, ZAKRESY_CENY } from "@/lib/filtrowanie";
 import { kwotaTekst, najtanszaDostawa } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
+import { rozmiaryTekst, sprzedazOstatnio, wybierzHit } from "@/lib/hitTygodnia";
 
 // ISR: strona buduje się i odświeża co 5 minut zamiast przy każdym żądaniu.
 export const revalidate = 900;
@@ -97,10 +98,9 @@ export default async function StronaGlowna() {
   const dostawaOd = najtanszaDostawa(ustawieniaDostawy);
   const zajete = new Set<string>();
 
-  // Banery
-  const kolKomplety = KOLEKCJE.find((k) => k.slug === "komplety-niemowlece");
-  const komplety = kolKomplety ? produktyKolekcji(naStanie, kolKomplety) : [];
-  const kompletyFoto = roznorodne(zwinWarianty([...komplety].reverse()), 2, zajete);
+  // Banery: „Hit tygodnia" (najchętniej kupowany albo co tydzień inna nowość — lib/hitTygodnia)
+  const hit = wybierzHit(naStanie, await sprzedazOstatnio());
+  if (hit) [hit.produkt.id, hit.produkt.zdjecie ?? "", hit.produkt.nazwa.toLowerCase()].forEach((k) => zajete.add(k));
   const tanie = naStanie.filter((p) => p.cena >= DO_20.min && p.cena < DO_20.max);
   const tanieFoto = okladka(tanie.filter((p) => p.kategoria !== "dorosli"), zajete);
   const meskie = naStanie.filter((p) => p.kategoria === "dorosli");
@@ -134,22 +134,35 @@ export default async function StronaGlowna() {
         <h1 className="sr-only">bobas-shopping — ubranka dla dzieci i niemowląt oraz odzież męska</h1>
         {/* Banery z cenami */}
         <div className="grid grid-cols-2 gap-2.5 md:grid-cols-[2fr_1fr] md:gap-4">
-          <Link
-            href={`/kolekcje/${kolKomplety?.slug ?? "komplety-dzieciece"}`}
-            className="relative col-span-2 flex min-h-[210px] flex-col overflow-hidden rounded-2xl bg-[oklch(95%_0.015_160)] p-5 no-underline md:col-span-1 md:row-span-2 md:min-h-[380px] md:p-9"
-          >
-            <h2 className="relative z-10 max-w-[9ch] text-[26px] font-extrabold leading-[1.05] tracking-tight text-ink md:max-w-[13ch] md:text-[42px]">Komplety dla niemowląt</h2>
-            <p className="relative z-10 mt-2 text-[14px] font-bold text-ink-2 md:mt-3 md:text-[15px]">
-              już od <span className="text-[24px] font-extrabold text-cena md:text-[28px]">{formatCena(minCena(komplety))} zł</span>
-            </p>
-            <div className="absolute bottom-3 right-3 flex items-end gap-3 md:bottom-6 md:right-8">
-              {kompletyFoto.map(({ produkt: p }, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img key={p.id} src={zdjecie(p.zdjecie, "s512")} alt="" className={`h-[170px] w-[160px] object-contain mix-blend-multiply md:h-[250px] md:w-[210px] ${i > 0 ? "hidden sm:block" : ""}`} />
-              ))}
-            </div>
-            <span className="relative z-10 mt-auto self-start rounded-lg bg-ink px-4 py-2.5 text-[13.5px] font-bold text-white md:px-5 md:py-3 md:text-[14px]">Zobacz komplety</span>
-          </Link>
+          {hit ? (
+            <Link
+              href={`/produkty/${hit.produkt.id}`}
+              className="relative col-span-2 grid min-h-[230px] grid-cols-[1fr_auto] items-center gap-4 overflow-hidden rounded-2xl bg-akcent p-5 text-white no-underline md:col-span-1 md:row-span-2 md:min-h-[380px] md:grid-cols-[1.1fr_1fr] md:gap-8 md:px-10 md:py-9"
+            >
+              <div className="flex min-w-0 flex-col">
+                <span className="mb-2 self-start rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[.08em] md:mb-3 md:text-[12px]">
+                  {hit.zrodlo === "sprzedaz" ? "Najchętniej kupowany" : "Wybór tygodnia"}
+                </span>
+                <h2 className="text-[26px] font-extrabold leading-[1.02] tracking-tight md:text-[46px]">
+                  Hit tygodnia{hit.produkt.kategoria === "niemowleta" ? " dla maluszka" : ""}
+                </h2>
+                <p className="mt-2 line-clamp-2 text-[13.5px] font-semibold text-white/90 md:mt-3.5 md:line-clamp-none md:max-w-[34ch] md:text-[16.5px]">
+                  {hit.produkt.nazwa}
+                  {hit.rozmiary.length ? <span className="hidden md:inline">. Rozmiary na stanie: {rozmiaryTekst(hit.rozmiary)}.</span> : null}
+                </p>
+                <span className="mt-4 self-start rounded-lg bg-white px-4 py-2.5 text-[13.5px] font-bold text-ink md:mt-6 md:px-5 md:py-3 md:text-[14px]">
+                  Zobacz produkt
+                </span>
+              </div>
+              <div className="relative w-[128px] rotate-[2.5deg] rounded-2xl bg-white p-1.5 shadow-[0_14px_32px_rgba(0,0,0,.2)] md:w-[300px] md:justify-self-center md:p-3">
+                <span className="absolute -left-3 -top-3 z-10 -rotate-6 rounded-full bg-cena px-2.5 py-1 text-[13px] font-extrabold text-white md:-left-5 md:-top-4 md:px-3.5 md:py-2 md:text-[18px]">
+                  {formatCena(hit.produkt.cena)} zł
+                </span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={zdjecie(hit.produkt.zdjecie, "s720")} alt={hit.produkt.nazwa} className="aspect-square w-full rounded-xl bg-white object-contain" />
+              </div>
+            </Link>
+          ) : null}
 
           <Link href={`/produkty?cena=${DO_20.slug}`} className="relative flex min-h-[172px] flex-col overflow-hidden rounded-2xl bg-[oklch(96.5%_0.02_60)] no-underline p-4 md:p-8">
             <h2 className="max-w-[11ch] text-[17px] font-extrabold leading-tight tracking-tight text-ink md:text-[23px]">Wszystko do 20&nbsp;zł</h2>
