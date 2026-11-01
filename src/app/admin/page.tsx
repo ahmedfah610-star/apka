@@ -105,15 +105,10 @@ export default function PulpitAdmina() {
   const doWyslania = doWyslaniaLista.length;
   const spoznione = doWyslaniaLista.filter((z) => teraz - new Date(z.data).getTime() > 24 * 3600 * 1000).length;
   const nieoplacone = prawdziwe.filter((z) => z.status === "oczekuje_na_platnosc" && teraz - new Date(z.data).getTime() < 3 * 86400 * 1000).length;
-  const bezStanu = widoczne.filter((p) => (p.stan ?? 1) <= 0).length;
-  const ostatniaSztuka = widoczne.reduce((n, p) => {
-    if (p.rozmiary?.length && p.stanRozmiary) return n + p.rozmiary.filter((r) => p.stanRozmiary?.[r] === 1).length;
-    return n + (p.stan === 1 ? 1 : 0);
-  }, 0);
   const syncStara = raport ? teraz - new Date(raport.czas).getTime() > 30 * 3600 * 1000 : false;
   const syncProblem = !!raport && (!raport.ok || syncStara);
   const wygaslo = !!raport && !raport.ok && /wygasło|połączenia z Allegro/i.test(raport.blad ?? "");
-  const zadan = [doWyslania, nieoplacone, bezStanu, ostatniaSztuka, opinieDoZatw, raport?.niedopasowane ?? 0, syncProblem ? 1 : 0].filter((n) => n > 0).length;
+  const zadan = [doWyslania, nieoplacone, opinieDoZatw, raport?.niedopasowane ?? 0, syncProblem ? 1 : 0].filter((n) => n > 0).length;
   const maxKat = Math.max(1, ...KATEGORIE.map((k) => kat.wgKategorii[k]));
   const ostatnie = useMemo(
     () => [...zamowienia].filter((z) => z.status !== "anulowane").sort((a, b) => +new Date(b.data) - +new Date(a.data)).slice(0, 6),
@@ -134,7 +129,7 @@ export default function PulpitAdmina() {
         <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-ink-2">Na dziś</h2>
         {zadan === 0 ? (
           <div className="rounded-xl border border-linia bg-white px-5 py-4 text-[14px] text-ink-2">
-            ✓ Wszystko ogarnięte — nic do wysłania, stany w porządku, synchronizacja działa.
+            ✓ Wszystko ogarnięte — nic do wysłania, synchronizacja działa.
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -158,12 +153,6 @@ export default function PulpitAdmina() {
             ) : null}
             {nieoplacone > 0 ? (
               <Zadanie href="/admin/zamowienia" ile={nieoplacone} tytul="Czekają na płatność" opis="Klient nie dokończył płatności (ostatnie 3 dni) — możesz się odezwać" />
-            ) : null}
-            {ostatniaSztuka > 0 ? (
-              <Zadanie href="/admin/magazyn" ile={ostatniaSztuka} tytul="Ostatnie sztuki" opis="Rozmiary z 1 szt. — sprawdź, czy dobrać towar" />
-            ) : null}
-            {bezStanu > 0 ? (
-              <Zadanie href="/admin/magazyn" ile={bezStanu} tytul="Wyprzedane w sklepie" opis="Widoczne, ale 0 sztuk — uzupełnij na Allegro lub ukryj" />
             ) : null}
             {raport?.niedopasowane ? (
               <Zadanie href="/admin/import" ile={raport.niedopasowane} tytul="Oferty z Allegro, których nie ma w sklepie" opis="Pobierz nowe produkty jednym kliknięciem" />
