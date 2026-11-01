@@ -1,7 +1,7 @@
 import { sbService } from "@/lib/supabase";
 import { p24PodpisNotyfikacjiOk, p24Weryfikuj, type P24Notyfikacja } from "@/lib/przelewy24";
 import { wyslijMaileZamowienia } from "@/lib/mail";
-import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
+import { idZPozycji, odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 import { czekaNaWplate } from "@/lib/statusyZamowien";
 import { zuzyjKod } from "@/lib/kodyDb";
 
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
   // Oznacz opłacone + zdejmij stan.
   await sb.from("zamowienia").update({ platnosc_id: sesja }).eq("id", zamowienieId);
   await sb.rpc("oplac_zamowienie", { p_id: zamowienieId });
-  odswiezPoZmianieStanu();
+  odswiezPoZmianieStanu(idZPozycji(zam.pozycje));
 
   // Policz użycie kodu rabatowego tylko przy pierwszym opłaceniu.
   if (pierwszePotwierdzenie && zam.kod_rabatowy) await zuzyjKod(String(zam.kod_rabatowy));

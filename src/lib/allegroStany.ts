@@ -300,6 +300,7 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
     }
 
     // 6. Zapis tylko zmienionych produktów + maile „znów dostępne".
+    const zmienioneId: string[] = [];
     for (let i = 0; i < aktualizacje.length; i += 10) {
       await Promise.all(
         aktualizacje.slice(i, i + 10).map(async (a) => {
@@ -309,6 +310,7 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
             .eq("id", a.p.id);
           if (error) return;
           raport.zmienione++;
+          zmienioneId.push(a.p.id);
           for (const z of a.zmiany) if (raport.zmianyLista.length < 80) raport.zmianyLista.push(z);
           try {
             await powiadomOOdblokowaniu(sb, a.p.id, a.p.nazwa ?? "Produkt", BAZA_URL, a.p.stan ?? null, a.p.stan_rozmiary ?? null, a.stan, a.sr);
@@ -328,7 +330,7 @@ export async function synchronizujStany(opcje: { zrodlo?: string; budzetMs?: num
       await sb.from("allegro_oferty").upsert(widziane.slice(i, i + 500), { onConflict: "oferta_id" });
     }
 
-    if (raport.zmienione > 0) odswiezPoZmianieStanu();
+    if (raport.zmienione > 0) odswiezPoZmianieStanu(zmienioneId);
     return zakoncz({ ...raport, ok: true });
   } catch (e) {
     return zakoncz({ ...raport, blad: e instanceof Error ? e.message : "Nieznany błąd synchronizacji." });

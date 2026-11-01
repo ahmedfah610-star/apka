@@ -2,7 +2,7 @@ import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { stripe, stripeWlaczony, bazowyUrl } from "@/lib/platnosci";
 import { p24Wlaczony, p24Rejestruj } from "@/lib/przelewy24";
 import { wyslijMaileZamowienia } from "@/lib/mail";
-import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
+import { idZPozycji, odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 import { katalogWidocznySwiezy } from "@/lib/produktyDb";
 import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
 import { ZAMOWIENIA_WYLACZONE, KOMUNIKAT_PRZERWY } from "@/lib/sklep";
@@ -236,7 +236,7 @@ export async function POST(req: Request) {
         await sb.from("zamowienia").update({ kod_rabatowy: kodRabatowy, rabat }).eq("id", String(data));
         await zuzyjKod(kodRabatowy);
       }
-      odswiezPoZmianieStanu();
+      odswiezPoZmianieStanu(idZPozycji(pozycje));
       await wyslijMaileZamowienia({
         id: String(data),
         pozycje,

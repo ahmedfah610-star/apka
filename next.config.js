@@ -27,7 +27,7 @@ const nextConfig = {
   poweredByHeader: false, // nie zdradzaj, że to Next.js
   images: {
     formats: ["image/webp"], // bez AVIF — znana luka w optymalizatorze obrazów Next 14 (RCE przy AVIF)
-    minimumCacheTTL: 60 * 60 * 24,
+    minimumCacheTTL: 60 * 60 * 24 * 30, // zdjęcia bloga się nie zmieniają — mniej przeliczeń obrazów
     remotePatterns: [
       { protocol: "https", hostname: "*.allegroimg.com" },
       { protocol: "https", hostname: "allegroimg.com" },

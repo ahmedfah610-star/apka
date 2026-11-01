@@ -3,7 +3,7 @@ import { czekaNaWplate } from "@/lib/statusyZamowien";
 import { sbService } from "@/lib/supabase";
 import { stripe } from "@/lib/platnosci";
 import { wyslijMaileZamowienia } from "@/lib/mail";
-import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
+import { idZPozycji, odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 
 export const dynamic = "force-dynamic";
 
@@ -31,14 +31,14 @@ export async function POST(req: Request) {
     const sesja = event.data.object as Stripe.Checkout.Session;
     const zamowienieId = sesja.metadata?.zamowienie_id;
     const sb = sbService();
-    const { data: przed } = zamowienieId && sb ? await sb.from("zamowienia").select("status, razem").eq("id", zamowienieId).maybeSingle() : { data: null };
+    const { data: przed } = zamowienieId && sb ? await sb.from("zamowienia").select("status, razem, pozycje").eq("id", zamowienieId).maybeSingle() : { data: null };
     const pierwszePotwierdzenie = !!przed && czekaNaWplate(przed.status);
     // Zapłacona kwota musi pokryć zamówienie (grosze).
     const kwotaOk = !!przed && (sesja.amount_total ?? 0) >= Math.round(Number(przed.razem) * 100) && sesja.currency === "pln";
     if (zamowienieId && sb && sesja.payment_status === "paid" && pierwszePotwierdzenie && kwotaOk) {
       // Oznacz opłacone + zdejmij stan (idempotentnie).
       await sb.rpc("oplac_zamowienie", { p_id: zamowienieId });
-      odswiezPoZmianieStanu();
+      odswiezPoZmianieStanu(idZPozycji(przed?.pozycje));
       // Pobierz zamówienie do maili.
       const { data } = await sb.from("zamowienia").select("*").eq("id", zamowienieId).single();
       if (data) {

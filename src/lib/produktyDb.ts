@@ -125,9 +125,10 @@ const KOLUMNY_KATALOG =
 // Tag pamięci podręcznej katalogu — czyszczony po każdej zmianie stanów/produktów (lib/rewalidacja).
 export const TAG_KATALOGU = "katalog";
 
-/** Widoczny katalog. Wspólna pamięć podręczna (5 min / do zmiany stanów) — karty produktów,
- *  strona główna i /api/katalog nie czytają już całej bazy przy każdym renderze. */
-export const katalogWidoczny = unstable_cache(katalogWidocznyZBazy, ["katalog-widoczny"], { tags: [TAG_KATALOGU], revalidate: 300 });
+/** Widoczny katalog. Wspólna pamięć podręczna — karty produktów, strona główna i /api/katalog nie
+ *  czytają całej bazy przy każdym renderze. Każda zmiana stanów/produktów czyści ją od razu
+ *  (lib/rewalidacja), więc godzina to tylko zabezpieczenie, a oszczędza transfer z Supabase. */
+export const katalogWidoczny = unstable_cache(katalogWidocznyZBazy, ["katalog-widoczny"], { tags: [TAG_KATALOGU], revalidate: 3600 });
 
 /** Katalog prosto z bazy, bez pamięci podręcznej — dla zamówień i płatności (ceny i stany na teraz). */
 export async function katalogWidocznySwiezy(): Promise<Produkt[]> {
