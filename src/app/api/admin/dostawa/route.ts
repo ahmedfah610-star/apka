@@ -26,5 +26,6 @@ export async function PUT(req: Request) {
 
   revalidateTag(TAG_DOSTAWY);
   revalidatePath("/", "layout"); // strony z cenami dostawy (strona główna, produkty, dostawa, FAQ)
+  revalidatePath("/api/dostawa");
   return Response.json({ ok: true, ustawienia: polaczUstawienia(wartosc) });
 }

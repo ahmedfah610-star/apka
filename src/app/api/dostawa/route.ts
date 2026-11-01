@@ -1,8 +1,9 @@
 import { pobierzDostawe } from "@/lib/dostawaDb";
 
-export const dynamic = "force-dynamic";
+// Publiczny odczyt metod dostawy (listy produktów, koszyk, zamówienie) — z pamięci podręcznej
+// Vercela; zapis w panelu (api/admin/dostawa) odświeża ją od razu.
+export const revalidate = 600;
 
-// Publiczny odczyt metod dostawy (koszyk, zamówienie) — ceny i opisy ustawione w trybie admina.
 export async function GET() {
-  return Response.json(await pobierzDostawe(), { headers: { "Cache-Control": "no-store" } });
+  return Response.json(await pobierzDostawe());
 }
