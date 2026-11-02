@@ -6,6 +6,7 @@ import { Nawigacja } from "@/components/Nawigacja";
 import { KartaProduktu } from "@/components/KartaProduktu";
 import { Stopka } from "@/components/Stopka";
 import { useDostawa } from "@/lib/dostawaKlient";
+import { sezonZimowy } from "@/lib/sezon";
 import { zProgiem } from "@/lib/dostawa";
 import { KATEGORIE_LABEL, PRODUKTY, type Produkt } from "@/data/produkty";
 import {
@@ -159,6 +160,7 @@ function Listing() {
         cena: cenaIdx !== null ? ZAKRESY_CENY[cenaIdx] : null,
         wyroznienie,
         fraza,
+        sezonZimowy: sezonZimowy(),
       }),
     [bazaKatalog, kategoria, wiek, sortBy, rozmiary, cenaIdx, wyroznienie, fraza],
   );

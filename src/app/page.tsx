@@ -12,6 +12,7 @@ import { formatCena, ZAKRESY_CENY } from "@/lib/filtrowanie";
 import { kwotaTekst, najtanszaDostawa } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 import { rozmiaryTekst, sprzedazOstatnio, wybierzHit } from "@/lib/hitTygodnia";
+import { cieplePierwsze, czyCieply, sezonZimowy, SLUG_ZIMA } from "@/lib/sezon";
 
 // ISR: strona buduje się i odświeża co 5 minut zamiast przy każdym żądaniu.
 export const revalidate = 900;
@@ -99,15 +100,20 @@ export default async function StronaGlowna() {
   const zajete = new Set<string>();
 
   // Banery: „Hit tygodnia" (najchętniej kupowany albo co tydzień inna nowość — lib/hitTygodnia)
-  const hit = wybierzHit(naStanie, await sprzedazOstatnio());
+  const zima = sezonZimowy();
+  const hit = wybierzHit(naStanie, await sprzedazOstatnio(), new Date(), zima ? czyCieply : undefined);
   if (hit) [hit.produkt.id, hit.produkt.zdjecie ?? "", hit.produkt.nazwa.toLowerCase()].forEach((k) => zajete.add(k));
   const tanie = naStanie.filter((p) => p.cena >= DO_20.min && p.cena < DO_20.max);
   const tanieFoto = okladka(tanie.filter((p) => p.kategoria !== "dorosli"), zajete);
   const meskie = naStanie.filter((p) => p.kategoria === "dorosli");
   const meskieFoto = okladka(meskie, zajete);
 
-  // Kółka rodzajów
-  const rodzaje = RODZAJE.map((r) => {
+  // Zimą: osobny rząd ciepłych rzeczy dziecięcych zaraz pod banerami (najnowsze najpierw).
+  const cieple = zima ? naStanie.filter((p) => p.kategoria !== "dorosli" && czyCieply(p)) : [];
+  const rzadZima = zima ? roznorodne(zwinWarianty([...cieple].reverse()), 10, zajete) : [];
+
+  // Kółka rodzajów (zimą „Na zimę" pierwsze)
+  const rodzaje = (zima ? [{ slug: SLUG_ZIMA, label: "Na zimę" }, ...RODZAJE] : RODZAJE).map((r) => {
     const kol = KOLEKCJE.find((k) => k.slug === r.slug);
     const lista = kol ? produktyKolekcji(naStanie, kol) : [];
     return { ...r, liczba: lista.length, od: minCena(lista), foto: okladka(lista, zajete) };
@@ -117,7 +123,7 @@ export default async function StronaGlowna() {
 
   // Rzędy produktów
   const nowosci = roznorodne(zwinWarianty(najnowsze), 10, zajete);
-  const rzadTanie = roznorodne(zwinWarianty([...tanie].reverse()), 10, zajete);
+  const rzadTanie = roznorodne(zwinWarianty(zima ? cieplePierwsze([...tanie].reverse()) : [...tanie].reverse()), 10, zajete);
 
   return (
     <div className="overflow-x-clip bg-strona">
@@ -188,6 +194,10 @@ export default async function StronaGlowna() {
             ) : null}
           </Link>
         </div>
+
+        {rzadZima.length >= 4 ? (
+          <Rzad tytul="❄ Ciepło na zimę" link={`/kolekcje/${SLUG_ZIMA}`} linkTekst="Wszystkie ciepłe" pozycje={rzadZima} />
+        ) : null}
 
         {/* Kupuj według rodzaju */}
         <section className="mt-3 rounded-2xl bg-white p-4 md:mt-8 md:p-6">

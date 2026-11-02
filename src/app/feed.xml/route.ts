@@ -1,4 +1,5 @@
 import { katalogWidoczny, opisyRozmiarowTekst } from "@/lib/produktyDb";
+import { czyCieply } from "@/lib/sezon";
 import { opisProduktu, KATEGORIE_LABEL, type Produkt } from "@/data/produkty";
 import { BAZA_URL, NAZWA_SKLEPU, OPIS_SKLEPU } from "@/lib/seo";
 import { pobierzDostawe } from "@/lib/dostawaDb";
@@ -74,6 +75,7 @@ ${dodatkowe ? dodatkowe + "\n" : ""}    <g:availability>${wariant.dostepny ? "in
     <g:identifier_exists>no</g:identifier_exists>
     <g:google_product_category>1604</g:google_product_category>
     <g:product_type>${cdata(KATEGORIE_LABEL[p.kategoria])}</g:product_type>
+    <g:custom_label_0>${czyCieply(p) ? "zima" : "inne"}</g:custom_label_0>
     <g:gender>${plec(p)}</g:gender>
     <g:age_group>${grupaWiekowa(p)}</g:age_group>
 ${p.kolor ? `    <g:color>${cdata(p.kolor.slice(0, 100))}</g:color>\n` : ""}${wysylka(p, dostawa)}${

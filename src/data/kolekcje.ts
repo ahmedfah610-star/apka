@@ -1,4 +1,5 @@
 import type { Kategoria, Produkt } from "@/data/produkty";
+import { czyCieply, SLUG_ZIMA } from "@/lib/sezon";
 
 // Strony docelowe (landing pages) pod frazy sprzedażowe. Każda ma własny URL,
 // tytuł, nagłówek H1, opis SEO, treść i FAQ (rich results) oraz listę produktów
@@ -12,6 +13,7 @@ export interface Kolekcja {
   wstep: string; // akapit widoczny na stronie (unikalna treść SEO)
   kategoria: Kategoria | null;
   klucze: string[]; // dopasowanie po nazwie produktu (znormalizowane, małe litery)
+  dopasuj?: (p: Produkt) => boolean; // własna reguła zamiast kluczy (np. ciepłe ubranka na zimę)
   faq: { q: string; a: string }[];
 }
 
@@ -27,6 +29,7 @@ function norm(s: string): string {
 export function produktyKolekcji(produkty: Produkt[], kol: Kolekcja): Produkt[] {
   return produkty.filter((p) => {
     if (kol.kategoria && p.kategoria !== kol.kategoria) return false;
+    if (kol.dopasuj) return kol.dopasuj(p);
     const n = norm(p.nazwa);
     return kol.klucze.some((k) => n.includes(k));
   });
@@ -46,6 +49,26 @@ const FAQ_DOSTAWA = {
 };
 
 export const KOLEKCJE: Kolekcja[] = [
+  // ── Sezon ────────────────────────────────────────────────────────────────
+  {
+    slug: SLUG_ZIMA,
+    h1: "Ubranka na zimę dla dzieci",
+    tytul: "Ciepłe ubranka na zimę dla dzieci i niemowląt",
+    opis: "Ciepłe ubranka na zimę: sweterki, ocieplane spodnie i dresy, welurowe komplety, czapki i kamizelki dla niemowląt i dzieci. Wysyłka w 1–2 dni, 14 dni na zwrot.",
+    wstep:
+      "Zimą liczy się ciepło bez przegrzewania. Zebraliśmy tu ciepłe ubranka dla niemowląt i dzieci: sweterki i kamizelki z dzianiny, spodnie ocieplane meszkiem i polarem, welurowe komplety oraz czapki na chłodne dni. Ubieraj malucha na cebulkę — cienka warstwa przy skórze, sweterek lub bluza, a na spacer czapka. Przy każdym rozmiarze podajemy wymiary w centymetrach, a paczki wysyłamy w 1–2 dni robocze.",
+    kategoria: null,
+    klucze: ["zima", "zimowe", "cieple", "ocieplane", "sweter"], // tylko do wyszukiwarki — produkty wybiera `dopasuj`
+    dopasuj: (p) => p.kategoria !== "dorosli" && czyCieply(p),
+    faq: [
+      {
+        q: "Jak ubrać dziecko na zimowy spacer?",
+        a: "Na cebulkę: body lub koszulka przy skórze, na to sweterek albo ciepła bluza, ocieplane spodnie, a na wierzch kurtka lub kombinezon i czapka zakrywająca uszy. Sprawdzaj karczek dziecka — ciepły i suchy oznacza, że jest mu dobrze.",
+      },
+      FAQ_ROZMIAR,
+      FAQ_DOSTAWA,
+    ],
+  },
   // ── Chłopcy ──────────────────────────────────────────────────────────────
   {
     slug: "spodnie-dla-chlopca",

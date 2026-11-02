@@ -25,7 +25,12 @@ export function rozmiaryNaStanie(p: Produkt): string[] {
 
 const kandydat = (p: Produkt) => p.kategoria !== "dorosli" && !p.ukryty && !!p.zdjecie && (p.stan ?? 1) > 0;
 
-export function wybierzHit(katalog: Produkt[], sprzedaz: Map<string, number>, teraz: Date = new Date()): Hit | undefined {
+export function wybierzHit(
+  katalog: Produkt[],
+  sprzedaz: Map<string, number>,
+  teraz: Date = new Date(),
+  preferuj?: (p: Produkt) => boolean, // np. ciepłe zimą — gdy brak sprzedaży, wybór z nich
+): Hit | undefined {
   const dostepne = katalog.filter((p) => kandydat(p) && rozmiaryNaStanie(p).length > 0);
   if (!dostepne.length) return undefined;
 
@@ -37,8 +42,10 @@ export function wybierzHit(katalog: Produkt[], sprzedaz: Map<string, number>, te
   if (sprzedawane.length) return { produkt: sprzedawane[0], zrodlo: "sprzedaz", rozmiary: rozmiaryNaStanie(sprzedawane[0]) };
 
   // Bez sprzedaży: 12 najnowszych z co najmniej dwoma zdjęciami, co tydzień kolejny.
-  const zGaleria = dostepne.filter((p) => (p.zdjecia?.length ?? 0) >= 2);
-  const pula = (zGaleria.length ? zGaleria : dostepne).slice(-12).reverse();
+  const preferowane = preferuj ? dostepne.filter(preferuj) : [];
+  const baza = preferowane.length >= 3 ? preferowane : dostepne;
+  const zGaleria = baza.filter((p) => (p.zdjecia?.length ?? 0) >= 2);
+  const pula = (zGaleria.length ? zGaleria : baza).slice(-12).reverse();
   const p = pula[(teraz.getUTCFullYear() * 53 + tydzienRoku(teraz)) % pula.length];
   return { produkt: p, zrodlo: "wybor", rozmiary: rozmiaryNaStanie(p) };
 }

@@ -1,4 +1,5 @@
 import type { Kategoria, Produkt, Wiek } from "@/data/produkty";
+import { cieplePierwsze } from "@/lib/sezon";
 
 // --- Wyszukiwarka tekstowa (jak na Allegro) ---------------------------------
 
@@ -183,6 +184,7 @@ export interface Filtry {
   cena?: ZakresCeny | null;
   wyroznienie?: FiltrWyroznienie;
   fraza?: string;
+  sezonZimowy?: boolean; // „polecane" zimą: ciepłe rzeczy na początek (lib/sezon)
 }
 
 /**
@@ -191,7 +193,7 @@ export interface Filtry {
  */
 export function filtrujProdukty(
   produkty: Produkt[],
-  { kategoria, wiek, sortBy, rozmiary, cena, wyroznienie, fraza }: Filtry,
+  { kategoria, wiek, sortBy, rozmiary, cena, wyroznienie, fraza, sezonZimowy }: Filtry,
 ): Produkt[] {
   const baza = fraza && fraza.trim() ? wyszukaj(produkty, fraza).lista : produkty;
   const lista = baza.filter((p) => {
@@ -216,7 +218,7 @@ export function filtrujProdukty(
   if (fraza && fraza.trim()) {
     return [...lista].sort((a, b) => trafnoscFrazy(b, fraza) - trafnoscFrazy(a, fraza));
   }
-  return lista;
+  return sezonZimowy ? cieplePierwsze(lista) : lista;
 }
 
 /** Formatuje cenę do postaci "89,90". */

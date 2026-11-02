@@ -3,9 +3,13 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { sezonZimowy, SLUG_ZIMA } from "@/lib/sezon";
 
 // Pasek kategorii pod nagłówkiem (każda strona). Aktywna zakładka z adresu.
-const ZAKLADKI: { label: string; href: string; cena?: boolean }[] = [
+type Zakladka = { label: string; href: string; cena?: boolean };
+// Zimą (paź–lut) zaraz po „Wszystko" — wyróżniona jak „Do 20 zł".
+const ZIMA: Zakladka = { label: "❄ Na zimę", href: `/kolekcje/${SLUG_ZIMA}`, cena: true };
+const ZAKLADKI: Zakladka[] = [
   { label: "Wszystko", href: "/produkty" },
   { label: "Niemowlęta", href: "/produkty?kategoria=niemowleta" },
   { label: "Dziewczynki", href: "/produkty?kategoria=dziewczynki" },
@@ -36,7 +40,7 @@ export function PasekKategorii() {
   return (
     <nav className="relative border-linia bg-white md:border-t" aria-label="Kategorie">
       <div ref={pasek} className="mx-auto flex max-w-content gap-5 overflow-x-auto px-4 sm:px-6 md:gap-7 md:px-10 [&::-webkit-scrollbar]:hidden">
-        {ZAKLADKI.map((z) => {
+        {(sezonZimowy() ? [ZAKLADKI[0], ZIMA, ...ZAKLADKI.slice(1)] : ZAKLADKI).map((z) => {
           const on = z.href === "/produkty" ? aktualny === "/produkty" : aktualny.startsWith(z.href);
           return (
             <Link
