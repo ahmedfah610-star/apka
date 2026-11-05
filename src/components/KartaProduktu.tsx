@@ -4,6 +4,7 @@ import type { Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { PrzyciskUlubione } from "@/components/PrzyciskUlubione";
 import { EdycjaProduktu } from "@/components/TrybAdmina";
+import { PromocjaNaKarcie } from "@/components/InfoPromocji";
 
 // Jedna karta produktu w całym sklepie (lista, kolekcje, strona główna, „Zobacz też"):
 // zdjęcie, cena na pierwszym planie, nazwa, dostępne rozmiary i liczba kolorów.
@@ -54,6 +55,7 @@ export function KartaProduktu({ produkt, liczbaKolorow, cenaOd }: { produkt: Pro
           {cenaOd ? <span className="text-[13px] font-semibold text-ink-2">od </span> : null}
           {formatCena(cenaOd ?? produkt.cena)} zł
         </p>
+        {niedostepny ? null : <PromocjaNaKarcie />}
         <h3 className="mb-2 mt-0.5 line-clamp-2 min-h-[2.7em] text-[13.5px] font-medium leading-snug text-ink group-hover:text-akcent md:text-[14px]">
           {produkt.nazwa}
         </h3>

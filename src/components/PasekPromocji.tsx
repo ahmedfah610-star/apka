@@ -22,8 +22,9 @@ export function doKiedy(koniec: number, teraz: number): string {
   const godz = new Intl.DateTimeFormat("pl-PL", { timeZone: STREFA, hour: "2-digit", minute: "2-digit" }).format(koniec);
   if (dzienPl(koniec) === dzienPl(teraz)) return `tylko dziś do ${godz}`;
   if (dzienPl(koniec) === dzienPl(teraz + 86400000)) return `do jutra ${godz}`;
-  const dzien = new Intl.DateTimeFormat("pl-PL", { timeZone: STREFA, weekday: "short", day: "numeric", month: "numeric" }).format(koniec);
-  return `do ${dzien}, ${godz}`;
+  const tydz = new Intl.DateTimeFormat("pl-PL", { timeZone: STREFA, weekday: "short" }).format(koniec);
+  const data = new Intl.DateTimeFormat("pl-PL", { timeZone: STREFA, day: "numeric", month: "numeric" }).format(koniec);
+  return `do ${tydz.replace(/\.?$/, ".")} ${data}, ${godz}`;
 }
 
 // Pomarańczowy pasek promocji (kolor cen = okazja) z kodem do skopiowania i odliczaniem do końca
@@ -69,7 +70,7 @@ export function PasekPromocji() {
       <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-x-4 gap-y-1.5 px-3 py-2 text-center text-[13px] font-bold leading-snug md:text-[14px]">
         <span className="hidden rounded-full bg-white px-2 py-0.5 text-[11px] font-extrabold tracking-[.08em] text-cena sm:inline">PROMOCJA</span>
         <span>
-          −{PROMOCJA.procent}% na zakupy od {PROMOCJA.minKoszyk} zł z kodem{" "}
+          −{PROMOCJA.procent}% na zakupy od {PROMOCJA.minKoszyk} zł<span className="hidden md:inline"> (bez dostawy)</span> z kodem{" "}
           <button
             onClick={() => void kopiuj()}
             className="ml-0.5 rounded-md border-[1.5px] border-dashed border-white bg-white/10 px-2 py-0.5 font-extrabold tracking-wide hover:bg-white/20"

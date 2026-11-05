@@ -9,6 +9,7 @@ import { Galeria } from "@/components/Galeria";
 import { TerminDostawy } from "@/components/TerminDostawy";
 import { KATEGORIE_LABEL, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
+import { PromocjaProduktu } from "@/components/InfoPromocji";
 import { etykietaStanu } from "@/lib/dostepnosc";
 import { wariantyKoloru } from "@/lib/warianty";
 import { EdycjaProduktu } from "@/components/TrybAdmina";
@@ -65,6 +66,7 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
         </p>
         <h1 className="mb-2 text-[21px] font-extrabold leading-tight tracking-tight md:mb-3 md:text-[36px]">{p.nazwa}</h1>
         <p className="mb-2 text-[26px] font-extrabold text-ink">{formatCena(p.cena)} zł</p>
+        {p.stan === 0 ? null : <PromocjaProduktu />}
         {et ? (
           <p className={`mb-3 flex items-center gap-1.5 text-[13.5px] font-semibold ${kolorStanu}`}>
             {et.ton === "malo" ? (
