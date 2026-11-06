@@ -39,7 +39,8 @@ export default function StronaZamowienia() {
   const metodyDostawy = ustawieniaDostawy.metody.filter((m) => m.aktywna !== false);
   const [metodaId, setMetodaId] = useState(metodyDostawy[0]?.id ?? "");
   const [paczkomat, setPaczkomat] = useState<Paczkomat | null>(null);
-  const [punkt, setPunkt] = useState<PunktOdbioru | null>(null);
+  // Punkt odbioru osobno dla każdej metody (punkt ORLEN nie może trafić do zamówienia DPD).
+  const [punkty, setPunkty] = useState<Record<string, PunktOdbioru>>({});
   const [dane, setDane] = useState({ imie: "", email: "", telefon: "", adres: "", miasto: "", kod: "" });
   const [akceptacja, setAkceptacja] = useState(false);
   const [uwagi, setUwagi] = useState("");
@@ -114,6 +115,7 @@ export default function StronaZamowienia() {
   const suma = pozycjeZDanymi.reduce((s, { poz, produkt }) => s + produkt!.cena * poz.ilosc, 0);
 
   const metoda = metodyDostawy.find((m) => m.id === metodaId) ?? metodyDostawy[0];
+  const punkt = metoda ? punkty[metoda.id] ?? null : null;
   const platnosc = PLATNOSCI[0];
   const dostawa = kosztDostawy(metoda, suma, ustawieniaDostawy.darmowaOd);
   const rabat = kodPrzyjety ? Math.min(kodPrzyjety.rabat, suma) : 0;
@@ -186,7 +188,7 @@ export default function StronaZamowienia() {
     if (ZAMOWIENIA_WYLACZONE) return setBlad(KOMUNIKAT_PRZERWY);
     if (!dane.imie || !dane.email) return setBlad("Uzupełnij imię i e-mail.");
     if (metoda.paczkomat && !paczkomat) return setBlad("Wybierz paczkomat InPost.");
-    if (metoda.punkt && !punkt) return setBlad("Wybierz punkt ORLEN Paczka.");
+    if (metoda.punkt && !punkt) return setBlad(`Wybierz punkt ${metoda.operatorNazwa ?? metoda.nazwa} na mapie.`);
     if (!metoda.paczkomat && !metoda.punkt && (!dane.adres || !dane.miasto || !dane.kod)) return setBlad("Uzupełnij adres dostawy.");
     if (!akceptacja) return setBlad("Zaakceptuj Regulamin i Politykę prywatności.");
     setBlad("");
@@ -313,7 +315,12 @@ export default function StronaZamowienia() {
                     ) : null}
                     {on && m.paczkomat ? <WyborPaczkomatu wybrany={paczkomat} onWybierz={setPaczkomat} /> : null}
                     {on && m.punkt ? (
-                      <WyborPunktu operator={m.operator ?? "RUCH"} nazwa={m.operatorNazwa ?? m.nazwa} wybrany={punkt} onWybierz={setPunkt} />
+                      <WyborPunktu
+                        operator={m.operator ?? "RUCH"}
+                        nazwa={m.operatorNazwa ?? m.nazwa}
+                        wybrany={punkty[m.id] ?? null}
+                        onWybierz={(p) => setPunkty((w) => ({ ...w, [m.id]: p }))}
+                      />
                     ) : null}
                   </div>
                 );

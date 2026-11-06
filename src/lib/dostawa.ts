@@ -69,6 +69,12 @@ export const METODY_DOSTAWY: MetodaDostawy[] = [
     operatorNazwa: "Pocztex",
   },
   {
+    id: "pocztex-kurier",
+    nazwa: "Pocztex Kurier",
+    opis: "Kurier Pocztex — dostawa pod wskazany adres",
+    cena: 11.69,
+  },
+  {
     id: "inpost-kurier",
     nazwa: "Kurier InPost",
     opis: "Dostawa pod wskazany adres",
@@ -87,7 +93,7 @@ export function kosztDostawy(metoda: MetodaDostawy, sumaKoszyka: number, darmowa
   return sumaKoszyka >= darmowaOd ? 0 : metoda.cena;
 }
 
-export const DOMYSLNA_DOSTAWA: UstawieniaDostawy = { metody: METODY_DOSTAWY, darmowaOd: DARMOWA_DOSTAWA_OD };
+export const DOMYSLNA_DOSTAWA: UstawieniaDostawy = { metody: uporzadkujMetody(METODY_DOSTAWY.map((m) => ({ ...m, aktywna: true }))), darmowaOd: DARMOWA_DOSTAWA_OD };
 
 /**
  * Łączy zapisane ustawienia z metodami z kodu. Edytować można tylko nazwę, opisy, cenę
@@ -96,6 +102,14 @@ export const DOMYSLNA_DOSTAWA: UstawieniaDostawy = { metody: METODY_DOSTAWY, dar
 export function polaczUstawienia(zapis: unknown): UstawieniaDostawy {
   const z = (zapis && typeof zapis === "object" ? zapis : {}) as { metody?: Partial<MetodaDostawy>[]; darmowaOd?: unknown };
   const poId = new Map((Array.isArray(z.metody) ? z.metody : []).map((m) => [m?.id, m]));
+  // Dawniej „Pocztex Kurier" był ustawiany na miejscu paczkomatu ekonomicznego InPost (przez co
+  // pokazywał mapę paczkomatów). Takie ustawienie przenosimy na prawdziwą metodę kurierską Pocztex,
+  // a paczkomat ekonomiczny wraca do swoich domyślnych opisów i zostaje wyłączony.
+  const eko = poId.get("inpost-paczkomat-eko");
+  if (eko && /pocztex|kurier/i.test(String(eko.nazwa ?? "")) && !poId.has("pocztex-kurier")) {
+    poId.set("pocztex-kurier", { ...eko, id: "pocztex-kurier", info: "" });
+    poId.set("inpost-paczkomat-eko", { id: "inpost-paczkomat-eko", aktywna: false });
+  }
   const tekst = (v: unknown, max: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : undefined);
   const cena = (v: unknown) => {
     const n = Number(v);
@@ -114,7 +128,17 @@ export function polaczUstawienia(zapis: unknown): UstawieniaDostawy {
     };
   });
   const prog = Number(z.darmowaOd);
-  return { metody, darmowaOd: Number.isFinite(prog) && prog >= 0 && prog <= 100000 ? Math.round(prog * 100) / 100 : DARMOWA_DOSTAWA_OD };
+  return { metody: uporzadkujMetody(metody), darmowaOd: Number.isFinite(prog) && prog >= 0 && prog <= 100000 ? Math.round(prog * 100) / 100 : DARMOWA_DOSTAWA_OD };
+}
+
+/** Kolejność w zamówieniu: od najtańszej, ale InPost Paczkomat 24/7 zawsze na drugim miejscu. */
+export function uporzadkujMetody(metody: MetodaDostawy[]): MetodaDostawy[] {
+  const posortowane = [...metody].sort((a, b) => a.cena - b.cena);
+  const i = posortowane.findIndex((m) => m.id === "inpost-paczkomat");
+  if (i < 0) return posortowane;
+  const [inpost] = posortowane.splice(i, 1);
+  posortowane.splice(Math.min(1, posortowane.length), 0, inpost);
+  return posortowane;
 }
 
 /** Najtańsza widoczna metoda (np. „dostawa od 10,50 zł"). */
