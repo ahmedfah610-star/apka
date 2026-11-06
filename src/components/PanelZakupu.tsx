@@ -10,6 +10,7 @@ import { TerminDostawy } from "@/components/TerminDostawy";
 import { KATEGORIE_LABEL, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { PromocjaProduktu } from "@/components/InfoPromocji";
+import { cenaPrzedObnizka } from "@/lib/obnizka";
 import { etykietaStanu } from "@/lib/dostepnosc";
 import { wariantyKoloru } from "@/lib/warianty";
 import { EdycjaProduktu } from "@/components/TrybAdmina";
@@ -49,6 +50,7 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
   const placeholder = {
     background: `repeating-linear-gradient(115deg, oklch(90% 0.02 ${p.hue}) 0 18px, oklch(95% 0.01 ${p.hue}) 18px 36px)`,
   };
+  const stara = cenaPrzedObnizka(p); // plakietka „-20%": cena w panelu jest już po obniżce
   const et = etykietaStanu(p.stan);
   const kolorStanu = et?.ton === "brak" ? "text-ink-2" : et?.ton === "malo" ? "text-akcent" : "text-[oklch(52%_0.13_150)]";
 
@@ -65,7 +67,18 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
           {p.kolor ? <span> · {p.kolor}</span> : null}
         </p>
         <h1 className="mb-2 text-[21px] font-extrabold leading-tight tracking-tight md:mb-3 md:text-[36px]">{p.nazwa}</h1>
-        <p className="mb-2 text-[26px] font-extrabold text-ink">{formatCena(p.cena)} zł</p>
+        {stara ? (
+          <div className="mb-2">
+            <p className="flex flex-wrap items-baseline gap-x-2.5 text-[26px] font-extrabold text-cena">
+              {formatCena(p.cena)} zł
+              <s className="text-[17px] font-semibold text-ink-2">{formatCena(stara)} zł</s>
+              <span className="rounded-md bg-cena px-1.5 py-0.5 text-[12px] font-extrabold text-white">{p.badge}</span>
+            </p>
+            <p className="text-[12.5px] text-ink-2">Najniższa cena z 30 dni przed obniżką: {formatCena(stara)} zł.</p>
+          </div>
+        ) : (
+          <p className="mb-2 text-[26px] font-extrabold text-ink">{formatCena(p.cena)} zł</p>
+        )}
         {p.stan === 0 ? null : <PromocjaProduktu />}
         {et ? (
           <p className={`mb-3 flex items-center gap-1.5 text-[13.5px] font-semibold ${kolorStanu}`}>

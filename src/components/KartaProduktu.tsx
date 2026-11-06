@@ -5,6 +5,7 @@ import { formatCena } from "@/lib/filtrowanie";
 import { PrzyciskUlubione } from "@/components/PrzyciskUlubione";
 import { EdycjaProduktu } from "@/components/TrybAdmina";
 import { PromocjaNaKarcie } from "@/components/InfoPromocji";
+import { cenaPrzedObnizka } from "@/lib/obnizka";
 
 // Jedna karta produktu w całym sklepie (lista, kolekcje, strona główna, „Zobacz też"):
 // zdjęcie, cena na pierwszym planie, nazwa, dostępne rozmiary i liczba kolorów.
@@ -16,6 +17,8 @@ export function KartaProduktu({ produkt, liczbaKolorow, cenaOd }: { produkt: Pro
   // Tylko prawdziwie ostatnia sztuka — przy progu 5 etykieta wisiała na 95% produktów i nic nie znaczyła.
   const ostatnia = produkt.stan === 1;
   const roz = produkt.rozmiary ?? [];
+  // Obniżka z plakietki „-20%" (tylko gdy pokazujemy cenę tego produktu, nie „od" innego wariantu).
+  const stara = !cenaOd || cenaOd === produkt.cena ? cenaPrzedObnizka(produkt) : null;
   const rozmiary = roz.length ? `Rozm. ${roz.slice(0, 4).join(", ")}${roz.length > 4 ? " …" : ""}` : produkt.wiekLabel;
 
   return (
@@ -51,9 +54,12 @@ export function KartaProduktu({ produkt, liczbaKolorow, cenaOd }: { produkt: Pro
         ) : null}
       </div>
       <div className="flex flex-1 flex-col px-3 pb-3 pt-1">
-        <p className="text-[17px] font-extrabold tracking-tight text-ink md:text-[18px]">
-          {cenaOd ? <span className="text-[13px] font-semibold text-ink-2">od </span> : null}
-          {formatCena(cenaOd ?? produkt.cena)} zł
+        <p className={`flex flex-wrap items-baseline gap-x-1.5 text-[17px] font-extrabold tracking-tight md:text-[18px] ${stara ? "text-cena" : "text-ink"}`}>
+          <span>
+            {cenaOd ? <span className="text-[13px] font-semibold text-ink-2">od </span> : null}
+            {formatCena(cenaOd ?? produkt.cena)} zł
+          </span>
+          {stara ? <s className="text-[12.5px] font-semibold text-ink-2">{formatCena(stara)} zł</s> : null}
         </p>
         {niedostepny ? null : <PromocjaNaKarcie />}
         <h3 className="mb-2 mt-0.5 line-clamp-2 min-h-[2.7em] text-[13.5px] font-medium leading-snug text-ink group-hover:text-akcent md:text-[14px]">
