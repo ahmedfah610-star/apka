@@ -1,7 +1,7 @@
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { bazowyUrl } from "@/lib/platnosci";
 import { p24Wlaczony, p24Rejestruj } from "@/lib/przelewy24";
-import { katalogWidocznySwiezy } from "@/lib/produktyDb";
+import { produktyPoIdSwieze } from "@/lib/produktyDb";
 import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
 import { ZAMOWIENIA_WYLACZONE, KOMUNIKAT_PRZERWY } from "@/lib/sklep";
 
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
   }
 
   // Towar mógł się w międzyczasie wyprzedać — nie przyjmujemy płatności za coś, czego nie wyślemy.
-  const katalog = new Map((await katalogWidocznySwiezy()).map((p) => [p.id, p]));
+  const katalog = new Map((await produktyPoIdSwieze(((zam.pozycje as any[]) ?? []).map((p) => String(p?.id ?? "")))).map((p) => [p.id, p]));
   for (const poz of (zam.pozycje as any[]) ?? []) {
     const prod = katalog.get(String(poz.id));
     const rozm = poz.rozmiar ? String(poz.rozmiar) : null;

@@ -8,7 +8,7 @@ let zamowienie: Record<string, unknown> | null;
 const rejestracje: { sessionId: string; amount: number; email: string }[] = [];
 
 vi.mock("@/lib/produktyDb", () => ({
-  katalogWidocznySwiezy: async () => [
+  produktyPoIdSwieze: async () => [
     { id: "p1", nazwa: "Body testowe", cena: 20, rozmiary: ["74", "80"], stanRozmiary: { "74": 2, "80": 0 }, stan: 2 },
   ],
 }));

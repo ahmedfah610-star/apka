@@ -67,7 +67,7 @@ export default function PulpitAdmina() {
   const [raport, setRaport] = useState<{ czas: string; ok: boolean; niedopasowane: number; blad?: string } | null>(null);
 
   useEffect(() => {
-    fetch("/api/admin/produkty")
+    fetch("/api/admin/produkty?lekki=1")
       .then((r) => r.json())
       .then((d) => {
         if (Array.isArray(d.items)) setProdukty(d.items);

@@ -3,7 +3,7 @@ import { stripe, stripeWlaczony, bazowyUrl } from "@/lib/platnosci";
 import { p24Wlaczony, p24Rejestruj } from "@/lib/przelewy24";
 import { wyslijMaileZamowienia } from "@/lib/mail";
 import { idZPozycji, odswiezPoZmianieStanu } from "@/lib/rewalidacja";
-import { katalogWidocznySwiezy } from "@/lib/produktyDb";
+import { produktyPoIdSwieze } from "@/lib/produktyDb";
 import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
 import { ZAMOWIENIA_WYLACZONE, KOMUNIKAT_PRZERWY } from "@/lib/sklep";
 import { sprawdzKod, zuzyjKod } from "@/lib/kodyDb";
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
 
   // ── Ceny i nazwy pobierane z KATALOGU SERWERA, nie z danych klienta ──
   // Uniemożliwia manipulację ceną w żądaniu (np. "cena: 0.01").
-  const katalog = await katalogWidocznySwiezy();
+  const katalog = await produktyPoIdSwieze(wejscie.map((w) => String(w?.id ?? "")));
   const cennik = new Map(katalog.map((p) => [p.id, p]));
   const pozycje: Pozycja[] = [];
   const zamawiane = new Map<string, number>(); // produkt|rozmiar → łącznie sztuk w koszyku

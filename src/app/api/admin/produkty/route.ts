@@ -1,6 +1,6 @@
 import type { Produkt } from "@/data/produkty";
 import { czyAdmin, odmowa } from "@/lib/adminAuth";
-import { doRzedu, katalogWszystko, znajdzProduktDb } from "@/lib/produktyDb";
+import { doRzedu, katalogAdminLekki, katalogWszystko, znajdzProduktDb } from "@/lib/produktyDb";
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { bazowyUrl } from "@/lib/platnosci";
 import { powiadomOOdblokowaniu } from "@/lib/restock";
@@ -22,6 +22,8 @@ export async function GET(req: Request) {
     const p = await znajdzProduktDb(id);
     return p ? Response.json({ ok: true, produkt: p }) : Response.json({ ok: false }, { status: 404 });
   }
+  // ?lekki=1 — pulpit i kontrola stanów: bez opisów i galerii, z pamięci podręcznej.
+  if (new URL(req.url).searchParams.get("lekki")) return Response.json({ items: await katalogAdminLekki() });
   return Response.json({ items: await katalogWszystko() });
 }
 

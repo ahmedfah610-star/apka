@@ -8,7 +8,7 @@ import type { UstawieniaDostawy } from "@/lib/dostawa";
 // Feed produktowy w formacie Google Merchant (RSS 2.0 + namespace g:).
 // Ten sam plik działa w Meta (Facebook/Instagram) katalog.
 // URL do wklejenia w Merchant Center / Meta: https://bobas-shopping.pl/feed.xml
-export const revalidate = 10800; // co 3 h (Merchant Center pobiera raz na dobę), ~3 s pracy na wygenerowanie
+export const revalidate = 21600; // co 6 h (Merchant Center pobiera raz na dobę); opisy rozmiarów to kilka MB transferu z bazy
 
 function cdata(s: string): string {
   return `<![CDATA[${String(s ?? "").replace(/]]>/g, "]]]]><![CDATA[>")}]]>`;

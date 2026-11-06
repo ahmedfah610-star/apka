@@ -135,6 +135,50 @@ export async function katalogWidocznySwiezy(): Promise<Produkt[]> {
   return katalogWidocznyZBazy();
 }
 
+/** Tylko wskazane produkty (widoczne), prosto z bazy — kasa i ponowna płatność nie pobierają
+ *  już całego katalogu (~1,5 MB transferu z bazy przy każdym kliknięciu „Zamawiam"). */
+export async function produktyPoIdSwieze(ids: string[]): Promise<Produkt[]> {
+  const unikalne = [...new Set(ids.map(String).filter(Boolean))].slice(0, 100);
+  if (!unikalne.length) return [];
+  if (supabaseWlaczony()) {
+    const sb = sbService() ?? sbAnon();
+    if (sb) {
+      const { data, error } = await sb.from("produkty").select(KOLUMNY_KATALOG).in("id", unikalne).eq("ukryty", false);
+      if (!error && data) return data.map(zRzedu);
+    }
+  }
+  return PRODUKTY.filter((p) => !p.ukryty && unikalne.includes(p.id));
+}
+
+// Lekka lista do panelu (pulpit, kontrola stanów): bez opisów i galerii — z poprawek tylko
+// nazwa/kolor/kategoria/model. Wspólna pamięć podręczna czyszczona przy każdej zmianie produktów.
+const KOLUMNY_ADMIN_LEKKIE =
+  "id, nazwa, cena, kategoria, wiek, wiek_label, badge, rozmiary, zdjecie, kolor, stan, stan_rozmiary, ukryty, hue, created_at, " +
+  "pop_nazwa:poprawki->>nazwa, pop_kolor:poprawki->>kolor, pop_kategoria:poprawki->>kategoria, pop_model:poprawki->>model";
+
+async function katalogAdminLekkiZBazy(): Promise<Produkt[]> {
+  if (supabaseWlaczony()) {
+    const sb = sbService() ?? sbAnon();
+    if (sb) {
+      const { data, error } = await sb.from("produkty").select(KOLUMNY_ADMIN_LEKKIE).order("created_at", { ascending: true }).limit(5000);
+      if (!error && data) {
+        return (data as any[]).map((r) => {
+          const p = zRzedu({ ...r, zdjecia: r.zdjecie ? [r.zdjecie] : [], opis: null, opis_html: null, opis_rozmiary: null, poprawki: null });
+          return {
+            ...p,
+            nazwa: r.pop_nazwa ?? p.nazwa,
+            kolor: r.pop_kolor ?? p.kolor,
+            kategoria: KATEGORIE_OK.has(r.pop_kategoria) ? r.pop_kategoria : p.kategoria,
+            model: r.pop_model ?? undefined,
+          };
+        });
+      }
+    }
+  }
+  return PRODUKTY;
+}
+export const katalogAdminLekki = unstable_cache(katalogAdminLekkiZBazy, ["katalog-admin-lekki"], { tags: [TAG_KATALOGU], revalidate: 300 });
+
 async function katalogWidocznyZBazy(): Promise<Produkt[]> {
   if (supabaseWlaczony()) {
     // Service role (serwerowo) — omija RLS/limity klucza anon, który zwracał tylko część wierszy.

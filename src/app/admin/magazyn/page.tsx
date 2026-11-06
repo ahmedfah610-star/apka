@@ -26,7 +26,7 @@ export default function KontrolaStanow() {
   const [ukrywanie, setUkrywanie] = useState<string | null>(null);
 
   const wczytaj = () => {
-    fetch("/api/admin/produkty")
+    fetch("/api/admin/produkty?lekki=1")
       .then((r) => r.json())
       .then((d) => setProdukty(Array.isArray(d.items) ? d.items : []))
       .catch(() => setProdukty([]));
