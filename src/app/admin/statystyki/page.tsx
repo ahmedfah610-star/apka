@@ -64,6 +64,8 @@ export default function AdminStatystyki() {
     const zrealizowane = wOkresie.filter((z) => ZREALIZOWANE.includes(z.status) && !z.klient?.test);
 
     const obrot = zrealizowane.reduce((s, z) => s + z.razem, 0);
+    const dostawa = zrealizowane.reduce((s, z) => s + (Number(z.dostawa) || 0), 0);
+    const darmowych = zrealizowane.filter((z) => !(Number(z.dostawa) > 0)).length;
     const sztuk = zrealizowane.reduce((s, z) => s + z.pozycje.reduce((a, p) => a + p.ilosc, 0), 0);
     const sredniaWartosc = zrealizowane.length ? obrot / zrealizowane.length : 0;
 
@@ -97,7 +99,7 @@ export default function AdminStatystyki() {
     const statusy = new Map<string, number>();
     for (const z of wOkresie) statusy.set(z.status, (statusy.get(z.status) ?? 0) + 1);
 
-    return { obrot, sztuk, sredniaWartosc, zrealizowane: zrealizowane.length, wszystkie: wOkresie.length, slupki, maxSlupek, bestsellery, maxBest, statusy };
+    return { obrot, dostawa, darmowych, sztuk, sredniaWartosc, zrealizowane: zrealizowane.length, wszystkie: wOkresie.length, slupki, maxSlupek, bestsellery, maxBest, statusy };
   }, [lista, okres]);
 
   return (
@@ -105,7 +107,7 @@ export default function AdminStatystyki() {
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-[26px] font-bold tracking-tight">Statystyki sprzedaży</h1>
-          <p className="text-[14px] text-ink-2">Obrót liczony z zamówień opłaconych i wysłanych.</p>
+          <p className="text-[14px] text-ink-2">Obrót liczony z zamówień opłaconych i wysłanych (razem z przesyłkami — kwota za przesyłki osobno).</p>
         </div>
         <div className="flex gap-2">
           {OKRESY.map((o) => (
@@ -125,8 +127,13 @@ export default function AdminStatystyki() {
       ) : (
         <>
           {/* KPI */}
-          <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-            <Kafel etykieta="Obrót" wartosc={`${formatCena(dane.obrot)} zł`} pod={`${dane.zrealizowane} zam. zrealizowanych`} />
+          <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-5">
+            <Kafel etykieta="Obrót" wartosc={`${formatCena(dane.obrot)} zł`} pod={`${dane.zrealizowane} zam. · produkty ${formatCena(dane.obrot - dane.dostawa)} zł`} />
+            <Kafel
+              etykieta="Przesyłki łącznie"
+              wartosc={`${formatCena(dane.dostawa)} zł`}
+              pod={dane.zrealizowane ? `${dane.zrealizowane - dane.darmowych} płatnych · ${dane.darmowych} darmowych` : "brak danych"}
+            />
             <Kafel etykieta="Śr. wartość zam." wartosc={`${formatCena(dane.sredniaWartosc)} zł`} pod={dane.zrealizowane ? "na zamówienie" : "brak danych"} />
             <Kafel etykieta="Sprzedane szt." wartosc={String(dane.sztuk)} pod="produkty łącznie" />
             <Kafel etykieta="Zamówienia" wartosc={String(dane.wszystkie)} pod="wszystkie w okresie" />

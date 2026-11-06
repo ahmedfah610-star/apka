@@ -171,9 +171,22 @@ export default function PulpitAdmina() {
       </section>
 
       {/* Wskaźniki */}
-      <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Kafel etykieta="Obrót" wartosc={`${formatCena(zam.obrot)} zł`} pod={zam.liczba ? `śr. ${formatCena(zam.sredniaWartosc)} zł / zamówienie` : "brak opłaconych zamówień"} />
-        <Kafel etykieta="Zamówienia" wartosc={liczba(zam.liczba)} pod={zam.liczba ? `${zam.sztuk} szt. sprzedanych` : "opłacone i wysłane"} />
+      <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-5">
+        <Kafel
+          etykieta="Obrót"
+          wartosc={`${formatCena(zam.obrot)} zł`}
+          pod={zam.liczba ? `produkty ${formatCena(zam.produkty)} zł + przesyłki ${formatCena(zam.dostawa)} zł` : "brak opłaconych zamówień"}
+        />
+        <Kafel
+          etykieta="Przesyłki łącznie"
+          wartosc={`${formatCena(zam.dostawa)} zł`}
+          pod={zam.liczba ? `${zam.liczba - zam.darmowych} płatnych · ${zam.darmowych} z darmową dostawą` : "brak opłaconych zamówień"}
+        />
+        <Kafel
+          etykieta="Zamówienia"
+          wartosc={liczba(zam.liczba)}
+          pod={zam.liczba ? `${zam.sztuk} szt. · śr. ${formatCena(zam.sredniaWartosc)} zł` : "opłacone i wysłane"}
+        />
         <Kafel etykieta="Produkty w sklepie" wartosc={liczba(kat.liczba)} pod={kat.zPromocja ? `${kat.zPromocja} w promocji` : undefined} />
         <Kafel etykieta="Średnia cena" wartosc={`${formatCena(kat.sredniaCena)} zł`} pod={kat.liczba ? `${formatCena(kat.minCena)}–${formatCena(kat.maxCena)} zł` : undefined} />
       </div>

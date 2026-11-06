@@ -51,5 +51,9 @@ describe("statystykiZamowien", () => {
     expect(s.obrot).toBe(145);
     expect(s.sztuk).toBe(3);
     expect(s.sredniaWartosc).toBe(72.5);
+    // Przesyłki osobno: 15 zł z jednego zamówienia, drugie z darmową dostawą.
+    expect(s.dostawa).toBe(15);
+    expect(s.produkty).toBe(130);
+    expect(s.darmowych).toBe(1);
   });
 });
