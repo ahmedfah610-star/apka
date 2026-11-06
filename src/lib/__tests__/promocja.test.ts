@@ -57,3 +57,13 @@ describe("promocja ZIMA5", () => {
     expect((await sprawdz("ZIMA5", 50)).rabat).toBe(5);
   });
 });
+
+describe("cena z kodem na produkcie", () => {
+  it("−5% zaokrąglone do grosza", async () => {
+    const { cenaZKodem } = await import("@/components/InfoPromocji");
+    const p = { kod: "ZIMA5", procent: 5, minKoszyk: 50, od: "", do: "" };
+    expect(cenaZKodem(39.99, p)).toBe(37.99);
+    expect(cenaZKodem(15, p)).toBe(14.25);
+    expect(cenaZKodem(54.99, p)).toBe(52.24);
+  });
+});
