@@ -112,6 +112,8 @@ export async function POST(req: Request) {
   // dostawy dało się podać w żądaniu, np. 0 zł).
   if (!metodaDostawy) return Response.json({ ok: false, blad: "Wybierz sposób dostawy." }, { status: 400 });
   const dostawa = kosztDostawy(metodaDostawy, suma, ustawieniaDostawy.darmowaOd);
+  // Nazwa sposobu dostawy z cennika (nie z żądania) — po niej pakujemy i nadajemy paczkę.
+  const metoda = `${metodaDostawy.nazwa} · Przelewy24`;
 
   // Kod rabatowy — walidacja i naliczenie rabatu po stronie serwera.
   let rabat = 0;
@@ -139,7 +141,7 @@ export async function POST(req: Request) {
     // 1) Zapis zamówienia jako oczekującego (bez zdejmowania stanu).
     const { data, error } = await sb
       .from("zamowienia")
-      .insert({ pozycje, suma, dostawa, razem, metoda: b.metoda, klient, status: "oczekuje_na_platnosc", kod_rabatowy: kodRabatowy, rabat })
+      .insert({ pozycje, suma, dostawa, razem, metoda, klient, status: "oczekuje_na_platnosc", kod_rabatowy: kodRabatowy, rabat })
       .select("id")
       .single();
     if (error || !data) return Response.json({ ok: false, blad: error?.message || "Zapis nieudany" }, { status: 500 });
@@ -170,7 +172,7 @@ export async function POST(req: Request) {
     // 1) Zapis zamówienia jako oczekującego (bez zdejmowania stanu).
     const { data, error } = await sb
       .from("zamowienia")
-      .insert({ pozycje, suma, dostawa, razem, metoda: b.metoda, klient, status: "oczekuje_na_platnosc", kod_rabatowy: kodRabatowy, rabat })
+      .insert({ pozycje, suma, dostawa, razem, metoda, klient, status: "oczekuje_na_platnosc", kod_rabatowy: kodRabatowy, rabat })
       .select("id")
       .single();
     if (error || !data) return Response.json({ ok: false, blad: error?.message || "Zapis nieudany" }, { status: 500 });
@@ -189,7 +191,7 @@ export async function POST(req: Request) {
     if (dostawa > 0) {
       line_items.push({
         quantity: 1,
-        price_data: { currency: "pln", unit_amount: Math.round(dostawa * 100), product_data: { name: `Dostawa — ${b.metoda}` } },
+        price_data: { currency: "pln", unit_amount: Math.round(dostawa * 100), product_data: { name: `Dostawa — ${metodaDostawy.nazwa}` } },
       });
     }
 
@@ -227,7 +229,7 @@ export async function POST(req: Request) {
         p_suma: suma,
         p_dostawa: dostawa,
         p_razem: razem,
-        p_metoda: b.metoda,
+        p_metoda: metoda,
         p_klient: klient,
       });
       if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
@@ -244,7 +246,7 @@ export async function POST(req: Request) {
         dostawa,
         rabat,
         kod: kodRabatowy,
-        metoda: b.metoda,
+        metoda,
         klient: klient as never,
       });
       return Response.json({ ok: true, id: data });

@@ -133,6 +133,31 @@ export default function StronaZamowienia() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [katalogGotowy, pozycjeZDanymi.length]);
 
+  // Koszyk zmienił się po przyjęciu kodu (np. odświeżone ceny, usunięty produkt) — rabat liczony
+  // od nowa, żeby suma na ekranie zgadzała się z kwotą do zapłaty (serwer i tak liczy sam).
+  const sumaKodu = useRef<number | null>(null);
+  useEffect(() => {
+    if (!kodPrzyjety) {
+      sumaKodu.current = null;
+      return;
+    }
+    if (sumaKodu.current === null || Math.abs(sumaKodu.current - suma) < 0.005) {
+      sumaKodu.current = suma;
+      return;
+    }
+    sumaKodu.current = suma;
+    fetch("/api/kod", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kod: kodPrzyjety.kod, suma }) })
+      .then((r) => r.json())
+      .then((d: { ok?: boolean; kod?: string; rabat?: number; blad?: string }) => {
+        if (d.ok && d.kod && typeof d.rabat === "number") setKodPrzyjety({ kod: d.kod, rabat: d.rabat });
+        else {
+          setKodPrzyjety(null);
+          setKodBlad(d.blad || "Kod przestał obowiązywać dla tego koszyka.");
+        }
+      })
+      .catch(() => {});
+  }, [suma, kodPrzyjety]);
+
   if (pozycjeZDanymi.length === 0) {
     return (
       <div className="overflow-x-clip">
