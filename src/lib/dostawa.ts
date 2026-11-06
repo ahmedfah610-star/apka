@@ -157,7 +157,19 @@ export function kwotaTekst(n: number): string {
   return Number.isInteger(n) ? `${n} zł` : zl(n);
 }
 
-// Teksty (FAQ itp.) mają w miejscu progu darmowej dostawy znacznik {darmowaOd}.
-export function zProgiem(tekst: string, darmowaOd: number): string {
-  return tekst.replaceAll("{darmowaOd}", kwotaTekst(darmowaOd));
+// Teksty (FAQ itp.) mają w miejscu progu darmowej dostawy znacznik {darmowaOd},
+// a opcjonalnie najtańszej dostawy {dostawaOd} i jej nazwy {najtanszaDostawa}.
+export function zProgiem(tekst: string, darmowaOd: number, u?: UstawieniaDostawy): string {
+  let t = tekst.replaceAll("{darmowaOd}", kwotaTekst(darmowaOd));
+  if (u) {
+    const m = najtanszaMetoda(u);
+    t = t.replaceAll("{dostawaOd}", m ? zl(m.cena) : "").replaceAll("{najtanszaDostawa}", m?.nazwa ?? "");
+  }
+  return t;
+}
+
+/** Najtańsza widoczna metoda dostawy (nazwa i cena — do tekstów i reklam „dostawa od…"). */
+export function najtanszaMetoda(u: UstawieniaDostawy): MetodaDostawy | null {
+  const widoczne = u.metody.filter((m) => m.aktywna !== false);
+  return widoczne.length ? widoczne.reduce((a, b) => (b.cena < a.cena ? b : a)) : null;
 }

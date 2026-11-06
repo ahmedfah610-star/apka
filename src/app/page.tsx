@@ -130,8 +130,9 @@ export default async function StronaGlowna() {
       {/* Pasek informacyjny */}
       {/* Ustępuje pomarańczowemu paskowi promocji, gdy promocja trwa (PasekPromocji → html[data-promocja]). */}
       <div className="pasek-info flex justify-center gap-5 bg-akcent px-4 py-2 text-[12.5px] font-semibold text-white md:gap-9">
-        <span>Darmowa dostawa od {kwotaTekst(DARMOWA_DOSTAWA_OD)}</span>
-        <span>14 dni na zwrot</span>
+        <span>Dostawa od {kwotaTekst(dostawaOd)}</span>
+        <span>Darmowa od {kwotaTekst(DARMOWA_DOSTAWA_OD)}</span>
+        <span className="hidden min-[400px]:inline">14 dni na zwrot</span>
         <span className="hidden sm:inline">BLIK · karta · Przelewy24</span>
       </div>
 
@@ -229,7 +230,7 @@ export default async function StronaGlowna() {
         {/* Konkretnie o zakupach */}
         <div className="mt-3 grid grid-cols-2 gap-2.5 md:mt-8 md:grid-cols-4 md:gap-4">
           {[
-            { ikona: "0 zł", t: `Darmowa dostawa od ${kwotaTekst(DARMOWA_DOSTAWA_OD)}`, o: `InPost, ORLEN, DPD, Pocztex, kurierzy — poniżej progu od ${formatCena(dostawaOd)} zł`, krotko: `Poniżej progu od ${formatCena(dostawaOd)} zł` },
+            { ikona: "🚚", t: `Dostawa od ${kwotaTekst(dostawaOd)}`, o: `Darmowa od ${kwotaTekst(DARMOWA_DOSTAWA_OD)} · InPost, ORLEN, DPD, Pocztex, DHL`, krotko: `Darmowa od ${kwotaTekst(DARMOWA_DOSTAWA_OD)}` },
             { ikona: "14", t: "14 dni na zwrot", o: "Bez podawania przyczyny" },
             { ikona: "cm", t: "Wymiary każdego rozmiaru", o: "Wzrost, długość i szerokość w opisie" },
             { ikona: "P24", t: "BLIK, karta, Przelewy24", o: "Szybka płatność online" },

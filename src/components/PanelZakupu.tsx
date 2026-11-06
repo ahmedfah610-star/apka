@@ -84,7 +84,7 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
           <div className="mb-3" />
         )}
 
-        {p.stan !== 0 ? <TerminDostawy klasa="mb-5 flex items-center gap-2 text-[13.5px] text-ink-2 md:mb-6" /> : <div className="mb-5 md:mb-6" />}
+        {p.stan !== 0 ? <TerminDostawy koszt klasa="mb-5 flex items-center gap-2 text-[13.5px] text-ink-2 md:mb-6" /> : <div className="mb-5 md:mb-6" />}
 
         {kolory.length > 1 ? (
           <div className="mb-5 md:mb-6">

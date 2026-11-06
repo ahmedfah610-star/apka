@@ -21,8 +21,8 @@ const PYTANIA: { q: string; a: string }[] = [
   { q: "Czy wystawiacie fakturę?", a: "Tak, na życzenie. Wpisz dane do faktury (nazwa firmy, NIP, adres) w polu „Informacja dla sprzedawcy” podczas składania zamówienia albo napisz do nas." },
 
   // Dostawa
-  { q: "Jakie są sposoby dostawy?", a: "Wysyłamy przez InPost (Paczkomaty 24/7 i kurier), ORLEN Paczkę, DPD Pickup, Pocztex oraz kurierem DHL. Punkt odbioru lub paczkomat wybierasz na mapie podczas składania zamówienia, a koszt każdej metody widzisz przed zapłatą." },
-  { q: "Od jakiej kwoty jest darmowa dostawa?", a: "Dostawa jest darmowa przy zamówieniach od {darmowaOd}. Poniżej tej kwoty koszt zależy od wybranej metody — najtańsza opcja to InPost Paczkomat." },
+  { q: "Jakie są sposoby dostawy?", a: "Wysyłamy przez InPost (Paczkomaty 24/7 i kurier), ORLEN Paczkę, DPD Pickup, Pocztex (punkt odbioru i kurier) oraz kurierem DHL — dostawa już od {dostawaOd}. Punkt odbioru lub paczkomat wybierasz na mapie podczas składania zamówienia, a koszt każdej metody widzisz przed zapłatą." },
+  { q: "Od jakiej kwoty jest darmowa dostawa?", a: "Dostawa jest darmowa przy zamówieniach od {darmowaOd}. Poniżej tej kwoty koszt zależy od wybranej metody — najtaniej już od {dostawaOd} ({najtanszaDostawa})." },
   { q: "Jak długo czekam na paczkę?", a: "Zwykle 1–2 dni robocze na przygotowanie i nadanie oraz 1–2 dni na doręczenie — łącznie najczęściej 2–4 dni robocze od zaksięgowania płatności." },
   { q: "Czy to ten sam sprzedawca co bobas-shopping na Allegro?", a: "Tak. Sklep bobas-shopping.pl i konto bobas-shopping na Allegro prowadzi ta sama firma — AMIN.KIDS Sp. z o.o. z Lublina. Oceny i komentarze kupujących znajdziesz na naszym profilu sprzedawcy na Allegro." },
   { q: "Czy mogę śledzić zamówienie?", a: "Tak. Status sprawdzisz na stronie „Status zamówienia”, podając numer zamówienia i e-mail. Zalogowani klienci widzą historię w panelu konta." },
@@ -39,8 +39,8 @@ const PYTANIA: { q: string; a: string }[] = [
 ];
 
 export default async function Faq() {
-  const { darmowaOd } = await pobierzDostawe();
-  const pytania = PYTANIA.map((p) => ({ q: p.q, a: zProgiem(p.a, darmowaOd) }));
+  const ustawienia = await pobierzDostawe();
+  const pytania = PYTANIA.map((p) => ({ q: p.q, a: zProgiem(p.a, ustawienia.darmowaOd, ustawienia) }));
   const faqLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",

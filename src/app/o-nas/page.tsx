@@ -1,10 +1,17 @@
 import { StronaInfo, Sekcja, Lista, DaneSprzedawcy } from "@/components/StronaInfo";
+import { pobierzDostawe } from "@/lib/dostawaDb";
+import { kwotaTekst, najtanszaDostawa, zl } from "@/lib/dostawa";
 
 export const metadata = { title: "O nas" };
 
 const ALLEGRO = "https://allegro.pl/uzytkownik/bobas-shopping/oceny";
 
-export default function ONas() {
+export const revalidate = 600;
+
+export default async function ONas() {
+  const ustawienia = await pobierzDostawe();
+  const { darmowaOd } = ustawienia;
+  const dostawaOd = najtanszaDostawa(ustawienia);
   return (
     <StronaInfo
       tytul="O nas"
@@ -39,7 +46,7 @@ export default function ONas() {
           punkty={[
             "Płatność online przez Przelewy24 (BLIK, szybki przelew, karta) — zamówienie realizujemy po zaksięgowaniu wpłaty.",
             "Zamówienia pakujemy i nadajemy zwykle w 1–2 dni robocze od zaksięgowania płatności.",
-            "Dostawa: InPost (Paczkomaty i kurier), ORLEN Paczka, DPD Pickup, Pocztex, kurier DHL. Darmowa dostawa od 150 zł.",
+            `Dostawa od ${zl(dostawaOd)}: InPost (Paczkomaty i kurier), ORLEN Paczka, DPD Pickup, Pocztex (punkt i kurier), kurier DHL. Darmowa dostawa od ${kwotaTekst(darmowaOd)}.`,
             "14 dni na zwrot bez podania przyczyny; bezpośredni koszt odesłania towaru ponosi kupujący.",
             "Reklamacje rozpatrujemy w ciągu 14 dni.",
             "Zakupy bez zakładania konta.",
