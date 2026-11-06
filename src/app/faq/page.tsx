@@ -22,7 +22,7 @@ const PYTANIA: { q: string; a: string }[] = [
 
   // Dostawa
   { q: "Jakie są sposoby dostawy?", a: "Wysyłamy przez InPost (Paczkomaty 24/7 i kurier), ORLEN Paczkę, DPD Pickup, Pocztex (punkt odbioru i kurier) oraz kurierem DHL — dostawa już od {dostawaOd}. Punkt odbioru lub paczkomat wybierasz na mapie podczas składania zamówienia, a koszt każdej metody widzisz przed zapłatą." },
-  { q: "Od jakiej kwoty jest darmowa dostawa?", a: "Dostawa jest darmowa przy zamówieniach od {darmowaOd}. Poniżej tej kwoty koszt zależy od wybranej metody — najtaniej już od {dostawaOd} ({najtanszaDostawa})." },
+  { q: "Od jakiej kwoty jest darmowa dostawa?", a: "Dostawa jest darmowa przy zamówieniach od {darmowaOd}. Poniżej tej kwoty koszt zależy od wybranej metody — najtaniej już od {dostawaOd}: {najtanszaDostawa}." },
   { q: "Jak długo czekam na paczkę?", a: "Zwykle 1–2 dni robocze na przygotowanie i nadanie oraz 1–2 dni na doręczenie — łącznie najczęściej 2–4 dni robocze od zaksięgowania płatności." },
   { q: "Czy to ten sam sprzedawca co bobas-shopping na Allegro?", a: "Tak. Sklep bobas-shopping.pl i konto bobas-shopping na Allegro prowadzi ta sama firma — AMIN.KIDS Sp. z o.o. z Lublina. Oceny i komentarze kupujących znajdziesz na naszym profilu sprzedawcy na Allegro." },
   { q: "Czy mogę śledzić zamówienie?", a: "Tak. Status sprawdzisz na stronie „Status zamówienia”, podając numer zamówienia i e-mail. Zalogowani klienci widzą historię w panelu konta." },
