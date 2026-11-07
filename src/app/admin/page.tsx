@@ -64,6 +64,7 @@ export default function PulpitAdmina() {
   const [zamowienia, setZamowienia] = useState<Zamowienie[]>([]);
   const [ga4, setGa4] = useState<any>(null);
   const [opinieDoZatw, setOpinieDoZatw] = useState(0);
+  const [pytanNowych, setPytanNowych] = useState(0);
   const [raport, setRaport] = useState<{ czas: string; ok: boolean; niedopasowane: number; blad?: string } | null>(null);
 
   useEffect(() => {
@@ -87,6 +88,10 @@ export default function PulpitAdmina() {
       .then((r) => r.json())
       .then((d) => setOpinieDoZatw(Array.isArray(d.items) ? d.items.filter((o: any) => !o.zatwierdzona).length : 0))
       .catch(() => {});
+    fetch("/api/admin/pytania")
+      .then((r) => r.json())
+      .then((d) => setPytanNowych(Array.isArray(d.items) ? d.items.filter((p: any) => p.status === "nowe").length : 0))
+      .catch(() => {});
     fetch("/api/admin/allegro?synchronizacja=1")
       .then((r) => r.json())
       .then((d) => setRaport(d.raport ?? null))
@@ -108,7 +113,7 @@ export default function PulpitAdmina() {
   const syncStara = raport ? teraz - new Date(raport.czas).getTime() > 30 * 3600 * 1000 : false;
   const syncProblem = !!raport && (!raport.ok || syncStara);
   const wygaslo = !!raport && !raport.ok && /wygasło|połączenia z Allegro/i.test(raport.blad ?? "");
-  const zadan = [doWyslania, nieoplacone, opinieDoZatw, raport?.niedopasowane ?? 0, syncProblem ? 1 : 0].filter((n) => n > 0).length;
+  const zadan = [doWyslania, nieoplacone, pytanNowych, opinieDoZatw, raport?.niedopasowane ?? 0, syncProblem ? 1 : 0].filter((n) => n > 0).length;
   const maxKat = Math.max(1, ...KATEGORIE.map((k) => kat.wgKategorii[k]));
   const ostatnie = useMemo(
     () => [...zamowienia].filter((z) => z.status !== "anulowane").sort((a, b) => +new Date(b.data) - +new Date(a.data)).slice(0, 6),
@@ -156,6 +161,9 @@ export default function PulpitAdmina() {
             ) : null}
             {raport?.niedopasowane ? (
               <Zadanie href="/admin/import" ile={raport.niedopasowane} tytul="Oferty z Allegro, których nie ma w sklepie" opis="Pobierz nowe produkty jednym kliknięciem" />
+            ) : null}
+            {pytanNowych > 0 ? (
+              <Zadanie href="/admin/pytania" ile={pytanNowych} tytul="Pytania od klientów" opis="Ktoś pyta o produkt — odpowiedz, póki jest zainteresowany" pilne />
             ) : null}
             {opinieDoZatw > 0 ? (
               <Zadanie href="/admin/opinie" ile={opinieDoZatw} tytul="Opinie do zatwierdzenia" opis="Nowe opinie klientów czekają na publikację" />

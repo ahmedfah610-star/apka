@@ -427,3 +427,80 @@ export async function wyslijNewsletterTygodniowy(
   const wiadomosci = adresy.map((email) => ({ to: email, subject: temat, html: mailTygodniowyHtml({ email, produkty, artykul }) }));
   return wyslijBatch(wiadomosci);
 }
+
+
+// ── Pytania o produkt ─────────────────────────────────────────────────────
+
+interface PytanieMail {
+  produktId: string;
+  nazwa: string;
+  zdjecie: string | null;
+  cena: number;
+  rozmiar: string | null;
+  email: string;
+  tresc: string;
+}
+
+/** Adres, na który klient odpisuje — firmowa skrzynka sklepu (ta sama co w zakładce Kontakt). */
+function adresOdpowiedzi(): string {
+  return MAIL_FIRMY;
+}
+
+const akapity = (t: string) => esc(t).replace(/\r?\n/g, "<br>");
+
+function cytat(tytul: string, tekst: string): string {
+  return `<div style="margin:6px 0 18px;padding:14px 16px;background:${M.tlo};border-left:3px solid ${M.akcent};border-radius:8px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3};margin-bottom:6px">${esc(tytul)}</div>
+    <div style="font-size:14.5px;line-height:1.65;color:${M.ink}">${akapity(tekst)}</div>
+  </div>`;
+}
+
+function kartaPytania(p: PytanieMail): string {
+  const url = `${BAZA}/produkty/${p.produktId}`;
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:300px">
+    <tr><td>${kartaProduktuMail({ nazwa: p.nazwa, cena: p.cena, zdjecie: p.zdjecie, url })}</td></tr>
+  </table>${p.rozmiar ? `<p style="margin:8px 0 0;font-size:13px;color:${M.ink2}">Rozmiar: <strong style="color:${M.ink}">${esc(p.rozmiar)}</strong></p>` : ""}`;
+}
+
+/** Do sklepu: nowe pytanie (odpowiedź z poczty trafi prosto do klienta — reply-to). */
+export async function wyslijPytanieDoSklepu(p: PytanieMail): Promise<void> {
+  if (!mailWlaczony()) return;
+  const html = powloka({
+    naglowek: "Nowe pytanie o produkt",
+    preheader: `${p.email}: ${p.tresc.slice(0, 80)}`,
+    intro: `Klient <strong style="color:${M.ink}">${esc(p.email)}</strong> pyta o produkt. Odpowiedz w panelu albo po prostu odpisz na tego maila.`,
+    tresc: cytat("Pytanie", p.tresc) + kartaPytania(p),
+    cta: { tekst: "ODPOWIEDZ W PANELU", url: `${BAZA}/admin/pytania` },
+  });
+  for (const adres of odbiorcyZamowien()) {
+    await wyslij(adres, `Pytanie o produkt: ${p.nazwa.slice(0, 70)}`, html, "pytanie", p.email);
+  }
+}
+
+/** Do klienta: potwierdzenie, że pytanie dotarło. */
+export async function wyslijKopiePytania(p: PytanieMail): Promise<void> {
+  if (!mailWlaczony()) return;
+  const html = powloka({
+    emoji: "💬",
+    naglowek: "Twoje pytanie dotarło",
+    preheader: "Odpowiemy na tego maila, zwykle w ciągu kilku godzin.",
+    intro: "Dziękujemy za pytanie! Odpowiemy na ten adres e-mail, zwykle w ciągu kilku godzin w dni robocze.",
+    tresc: cytat("Twoje pytanie", p.tresc) + kartaPytania(p),
+    cta: { tekst: "ZOBACZ PRODUKT", url: `${BAZA}/produkty/${p.produktId}` },
+  });
+  await wyslij(p.email, `Twoje pytanie o produkt — bobas-shopping`, html, "pytanie-kopia", adresOdpowiedzi());
+}
+
+/** Do klienta: odpowiedź sklepu (z panelu). */
+export async function wyslijOdpowiedzNaPytanie(p: PytanieMail, odpowiedz: string): Promise<{ ok: boolean; blad?: string }> {
+  if (!mailWlaczony()) return { ok: false, blad: "Wysyłka maili nie jest skonfigurowana." };
+  const html = powloka({
+    emoji: "💬",
+    naglowek: "Odpowiedź na Twoje pytanie",
+    preheader: odpowiedz.slice(0, 90),
+    intro: `<span style="font-size:15px;line-height:1.7;color:${M.ink}">${akapity(odpowiedz)}</span>`,
+    tresc: cytat("Twoje pytanie", p.tresc) + kartaPytania(p),
+    cta: { tekst: "ZOBACZ PRODUKT", url: `${BAZA}/produkty/${p.produktId}` },
+  });
+  return wyslij(p.email, `Odpowiedź na Twoje pytanie: ${p.nazwa.slice(0, 60)} — bobas-shopping`, html, "odpowiedz", adresOdpowiedzi());
+}

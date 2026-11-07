@@ -3,6 +3,7 @@
 import { zdjecie } from "@/lib/zdjecia";
 import { useEffect, useMemo, useState } from "react";
 import { DodajDoKoszyka, pozycjaPomiaru } from "@/components/DodajDoKoszyka";
+import { PytanieOProdukt } from "@/components/PytanieOProdukt";
 import { pomiarProduktu } from "@/lib/analityka";
 import { licz } from "@/lib/licznikKlient";
 import { Galeria } from "@/components/Galeria";
@@ -29,6 +30,7 @@ const CECHY: Record<string, string[]> = {
  */
 export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startId: string }) {
   const [aktywnyId, setAktywnyId] = useState(startId);
+  const [wybranyRozmiar, setWybranyRozmiar] = useState<string | undefined>(undefined);
   const p = warianty.find((x) => x.id === aktywnyId) ?? warianty[0];
 
   // Adres w pasku zgodny z wybranym kolorem (bez przeładowania) — do udostępnienia/odświeżenia.
@@ -130,7 +132,8 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
         ) : null}
 
         {/* key = świeży stan wyboru rozmiaru przy zmianie koloru */}
-        <DodajDoKoszyka key={p.id} produkt={p} />
+        <DodajDoKoszyka key={p.id} produkt={p} onZmianaRozmiaru={setWybranyRozmiar} />
+        <PytanieOProdukt produkt={p} rozmiar={wybranyRozmiar} />
 
         <ul className="mt-2 flex flex-col gap-2 border-t border-linia pt-5 md:mt-6 md:pt-6">
           {(CECHY[p.kategoria] ?? []).map((c) => (

@@ -40,10 +40,13 @@ const TYPY: Record<string, string> = {
   newsletter: "Newsletter",
   sklep: "Do sklepu: nowe zamówienie",
   kontakt: "Do sklepu: formularz kontaktowy",
+  pytanie: "Do sklepu: pytanie o produkt",
+  "pytanie-kopia": "Pytanie o produkt (kopia dla klienta)",
+  odpowiedz: "Odpowiedź na pytanie",
   test: "Test",
 };
 // Maile do sklepu (powiadomienia dla Ciebie) — domyślnie ukryte.
-const WEWNETRZNE = ["sklep", "kontakt", "test"];
+const WEWNETRZNE = ["sklep", "kontakt", "pytanie", "test"];
 
 const data = (iso: string) =>
   new Date(iso).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });

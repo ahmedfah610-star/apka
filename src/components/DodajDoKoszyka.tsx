@@ -21,7 +21,7 @@ export const pozycjaPomiaru = (p: Produkt, ilosc = 1) => ({
   kategoria: p.kategoria,
 });
 
-export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
+export function DodajDoKoszyka({ produkt, onZmianaRozmiaru }: { produkt: Produkt; onZmianaRozmiaru?: (rozmiar: string | undefined) => void }) {
   const { dodaj } = useKoszyk();
   const maRozmiary = !!produkt.rozmiary && produkt.rozmiary.length > 0;
   const sr = produkt.stanRozmiary ?? null;
@@ -37,6 +37,10 @@ export function DodajDoKoszyka({ produkt }: { produkt: Produkt }) {
   const [rozmiar, setRozmiar] = useState<string | undefined>(() =>
     produkt.rozmiary?.length === 1 && (stanDla(produkt.rozmiary[0]) ?? 1) > 0 ? produkt.rozmiary[0] : undefined,
   );
+  // Wybrany rozmiar dla reszty karty produktu (np. pytanie do sprzedawcy).
+  useEffect(() => {
+    onZmianaRozmiaru?.(rozmiar);
+  }, [rozmiar]); // eslint-disable-line react-hooks/exhaustive-deps
   const [dodano, setDodano] = useState(false);
   const [blad, setBlad] = useState(false);
 

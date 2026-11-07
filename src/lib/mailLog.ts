@@ -17,6 +17,9 @@ export type TypMaila =
   | "powitanie"
   | "konto"
   | "kontakt"
+  | "pytanie" // do sklepu: nowe pytanie o produkt
+  | "pytanie-kopia" // do klienta: potwierdzenie, że pytanie dotarło
+  | "odpowiedz" // do klienta: odpowiedź sklepu na pytanie
   | "newsletter"
   | "test"
   | "inny";

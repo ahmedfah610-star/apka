@@ -31,6 +31,9 @@ export function typZTematu(temat: string): TypMaila {
   if (t.includes("witaj w bobas")) return "powitanie";
   if (t.includes("konto jest aktywne")) return "konto";
   if (t.includes("wiadomość ze sklepu")) return "kontakt";
+  if (t.includes("odpowiedź na twoje pytanie")) return "odpowiedz";
+  if (t.includes("twoje pytanie")) return "pytanie-kopia";
+  if (t.includes("pytanie o produkt")) return "pytanie";
   if (t.startsWith("test")) return "test";
   return "newsletter";
 }

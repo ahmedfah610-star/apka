@@ -25,6 +25,7 @@ export default function PolitykaPrywatnosci() {
             "Dane do faktury (jeśli jej zażądasz): nazwa, adres, NIP.",
             "Dane rozliczeniowe — obsługiwane bezpośrednio przez operatora płatności; nie przechowujemy pełnych danych kart płatniczych.",
             "Adres e-mail — w przypadku zapisu na newsletter lub powiadomienie o dostępności produktu.",
+            "Adres e-mail i treść pytania — gdy zadajesz pytanie o produkt (formularz „Masz pytanie o ten produkt?”); używamy ich wyłącznie do odpowiedzi.",
             "Treść korespondencji — gdy kontaktujesz się z nami w sprawie zamówienia, zwrotu lub reklamacji.",
             "Dane techniczne: adres IP, informacje o urządzeniu i przeglądarce oraz pliki cookies (zob. Polityka cookies).",
           ]}
@@ -37,6 +38,7 @@ export default function PolitykaPrywatnosci() {
             "Realizacja zamówienia i wykonanie umowy sprzedaży — art. 6 ust. 1 lit. b RODO (niezbędność do wykonania umowy).",
             "Wypełnienie obowiązków prawnych, m.in. podatkowych i rachunkowych (wystawianie i przechowywanie faktur) — art. 6 ust. 1 lit. c RODO.",
             "Rozpatrywanie reklamacji i obsługa zwrotów — art. 6 ust. 1 lit. b oraz lit. c RODO.",
+            "Odpowiedź na pytanie o produkt zadane przez formularz na karcie produktu — działania na Twoje żądanie przed zawarciem umowy, art. 6 ust. 1 lit. b RODO; pytania przechowujemy do 180 dni.",
             "Wysyłka newslettera oraz powiadomień o dostępności — Twoja zgoda, art. 6 ust. 1 lit. a RODO.",
             "Ustalenie, dochodzenie i obrona roszczeń oraz zapewnienie bezpieczeństwa Sklepu — prawnie uzasadniony interes administratora, art. 6 ust. 1 lit. f RODO.",
             "Analityka i statystyka (w zakresie cookies analitycznych) — Twoja zgoda, art. 6 ust. 1 lit. a RODO.",
