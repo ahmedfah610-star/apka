@@ -27,6 +27,7 @@ interface Klient {
   punktOpis?: string;
   uwagi?: string;
   test?: boolean;
+  przypomnienie?: string; // kiedy wysłano przypomnienie o płatności
 }
 interface Zamowienie {
   id: string;
@@ -125,6 +126,26 @@ export default function AdminZamowienia() {
       void odswiez();
     } finally {
       setWysylanie(null);
+    }
+  }
+
+  // Przypomnienie o płatności — mail z linkiem prosto do Przelewy24, koszykiem i danymi klienta.
+  const [przyp, setPrzyp] = useState<Record<string, string>>({});
+  async function wyslijPrzypomnienie(z: Zamowienie) {
+    if (!confirm(`Wysłać przypomnienie o płatności ${formatCena(z.razem)} zł na ${z.klient?.email}?`)) return;
+    setPrzyp((k) => ({ ...k, [z.id]: "…" }));
+    try {
+      const r = await fetch("/api/zamowienia", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: z.id, akcja: "przypomnienie" }),
+      });
+      const d = (await r.json().catch(() => ({}))) as { ok?: boolean; blad?: string; przypomnienie?: string };
+      if (!r.ok || !d.ok) return setPrzyp((k) => ({ ...k, [z.id]: d.blad || "Nie udało się wysłać." }));
+      setLista((prev) => prev.map((x) => (x.id === z.id ? { ...x, klient: { ...x.klient, przypomnienie: d.przypomnienie } } : x)));
+      setPrzyp((k) => ({ ...k, [z.id]: "Wysłano ✓" }));
+    } catch {
+      setPrzyp((k) => ({ ...k, [z.id]: "Błąd połączenia." }));
     }
   }
 
@@ -227,6 +248,37 @@ export default function AdminZamowienia() {
           <div className="mt-3 rounded-lg border border-[oklch(85%_0.1_85)] bg-[oklch(97%_0.04_90)] px-3 py-2 text-[13.5px]">
             <p className="text-[11.5px] font-bold uppercase tracking-wide text-ink-2">Informacja dla sprzedawcy</p>
             <p className="whitespace-pre-wrap">{z.klient.uwagi}</p>
+          </div>
+        ) : null}
+
+        {/* Niedokończona płatność — przypomnienie */}
+        {z.status === "oczekuje_na_platnosc" ? (
+          <div className="mt-5 rounded-lg border border-[oklch(85%_0.1_85)] bg-[oklch(97%_0.04_90)] px-3 py-3">
+            <p className="text-[12px] font-bold uppercase tracking-wide text-[oklch(45%_0.12_75)]">Płatność niedokończona</p>
+            {Date.now() - new Date(z.data).getTime() > 14 * 86400000 ? (
+              <p className="mt-1 text-[12.5px] text-ink-2">Zamówienie ma ponad 14 dni — link do płatności już nie działa. Możesz je anulować.</p>
+            ) : !z.klient?.email ? (
+              <p className="mt-1 text-[12.5px] text-ink-2">Brak adresu e-mail — zadzwoń do klienta.</p>
+            ) : (
+              <>
+                <p className="mt-1 text-[12.5px] leading-snug text-ink-2">
+                  Mail „Twoje zamówienie czeka na dokończenie!" z przyciskiem „Zapłać {formatCena(z.razem)} zł" (od razu do Przelewy24), koszykiem z dostawą i danymi klienta.
+                </p>
+                <button
+                  onClick={() => void wyslijPrzypomnienie(z)}
+                  disabled={przyp[z.id] === "…"}
+                  className="mt-2 w-full rounded-lg bg-akcent px-3.5 py-2.5 text-[13px] font-bold text-white hover:opacity-90 disabled:opacity-60 md:py-2 md:text-[12.5px]"
+                >
+                  {przyp[z.id] === "…" ? "Wysyłanie…" : z.klient.przypomnienie ? "Wyślij przypomnienie ponownie" : "Wyślij przypomnienie o płatności"}
+                </button>
+                {z.klient.przypomnienie ? (
+                  <p className="mt-1.5 text-[12px] text-ink-2">
+                    Wysłano: {new Date(z.klient.przypomnienie).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                ) : null}
+                {przyp[z.id] && przyp[z.id] !== "…" ? <p className="mt-1 text-[12px] font-semibold text-ink">{przyp[z.id]}</p> : null}
+              </>
+            )}
           </div>
         ) : null}
 

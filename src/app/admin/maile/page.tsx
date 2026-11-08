@@ -43,6 +43,7 @@ const TYPY: Record<string, string> = {
   pytanie: "Do sklepu: pytanie o produkt",
   "pytanie-kopia": "Pytanie o produkt (kopia dla klienta)",
   odpowiedz: "Odpowiedź na pytanie",
+  przypomnienie: "Przypomnienie o płatności",
   test: "Test",
 };
 // Maile do sklepu (powiadomienia dla Ciebie) — domyślnie ukryte.

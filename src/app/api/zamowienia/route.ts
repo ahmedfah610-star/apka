@@ -1,6 +1,6 @@
 import { czyAdmin } from "@/lib/adminAuth";
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
-import { wyslijMailWyslano } from "@/lib/mail";
+import { wyslijMailWyslano, wyslijPrzypomnieniePlatnosci } from "@/lib/mail";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +84,45 @@ export async function PATCH(req: Request) {
     }
   }
   return Response.json({ ok: true, mail });
+}
+
+const WAZNOSC_PLATNOSCI_DNI = 14; // jak w lib/ponowPlatnosc — później link do płatności już nie działa
+
+// Przypomnienie o płatności (panel → zamówienie „oczekuje na płatność" → „Wyślij przypomnienie").
+// Mail do klienta: link prosto do Przelewy24, kwota, koszyk z dostawą i dane z zamówienia.
+// Czas wysłania zapisujemy w zamówieniu (klient.przypomnienie), żeby było widać w panelu.
+export async function POST(req: Request) {
+  if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
+  const sb = sbService();
+  if (!sb) return Response.json({ ok: false, blad: "Brak bazy." }, { status: 501 });
+  const b = (await req.json().catch(() => ({}))) as { id?: unknown; akcja?: unknown };
+  const id = String(b.id ?? "");
+  if (b.akcja !== "przypomnienie" || !id) return Response.json({ ok: false, blad: "Zła akcja." }, { status: 400 });
+
+  const { data: z } = await sb.from("zamowienia").select("*").eq("id", id).maybeSingle();
+  if (!z) return Response.json({ ok: false, blad: "Nie znaleziono zamówienia." }, { status: 404 });
+  if (z.status !== "oczekuje_na_platnosc") return Response.json({ ok: false, blad: "To zamówienie nie czeka na płatność." }, { status: 409 });
+  if (Date.now() - new Date(z.created_at).getTime() > WAZNOSC_PLATNOSCI_DNI * 86400000) {
+    return Response.json({ ok: false, blad: "Zamówienie ma ponad 14 dni — link do płatności już nie zadziała." }, { status: 410 });
+  }
+  const klient = (z.klient ?? {}) as Record<string, unknown> & { email?: string };
+  if (!klient.email) return Response.json({ ok: false, blad: "Zamówienie nie ma adresu e-mail." }, { status: 400 });
+
+  const mail = await wyslijPrzypomnieniePlatnosci({
+    id: String(z.id),
+    data: String(z.created_at),
+    pozycje: (z.pozycje as never[]) ?? [],
+    razem: Number(z.razem),
+    dostawa: Number(z.dostawa),
+    rabat: Number(z.rabat ?? 0),
+    kod: (z.kod_rabatowy as string | null) ?? null,
+    metoda: String(z.metoda ?? ""),
+    klient,
+  });
+  if (!mail.ok) return Response.json({ ok: false, blad: mail.blad || "Nie udało się wysłać maila." }, { status: 502 });
+  const przypomnienie = new Date().toISOString();
+  await sb.from("zamowienia").update({ klient: { ...klient, przypomnienie } }).eq("id", id);
+  return Response.json({ ok: true, przypomnienie });
 }
 
 // Usunięcie zamówień TESTOWYCH (oznaczonych w panelu znaczkiem TEST i anulowanych).

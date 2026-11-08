@@ -2,7 +2,7 @@
 // (sklep działa, tylko bez powiadomień). Wszystkie maile mają wspólny, markowy
 // szablon (mailSzablon.ts).
 
-import { M, BAZA, powloka, esc, kartaProduktuMail } from "@/lib/mailSzablon";
+import { M, BAZA, powloka, przycisk, esc, kartaProduktuMail } from "@/lib/mailSzablon";
 import { linkWypisu } from "@/lib/newsletterToken";
 import { zdjecie } from "@/lib/zdjecia";
 import { znajdzPrzewoznika, linkSledzenia } from "@/lib/przewoznicy";
@@ -503,4 +503,54 @@ export async function wyslijOdpowiedzNaPytanie(p: PytanieMail, odpowiedz: string
     cta: { tekst: "ZOBACZ PRODUKT", url: `${BAZA}/produkty/${p.produktId}` },
   });
   return wyslij(p.email, `Odpowiedź na Twoje pytanie: ${p.nazwa.slice(0, 60)} — bobas-shopping`, html, "odpowiedz", adresOdpowiedzi());
+}
+
+// ── Przypomnienie o płatności (zamówienie „oczekuje na płatność") ───────────
+
+export type DanePrzypomnienia = DaneMaila & { data: string };
+
+/** Treść maila „Twoje zamówienie czeka na dokończenie!" — link płatności, koszyk, dostawa, dane klienta. */
+export function mailPrzypomnieniaHtml(d: DanePrzypomnienia): string {
+  const nr = d.id.slice(0, 8);
+  const link = `${BAZA}/zamowienie/zaplac?id=${encodeURIComponent(d.id)}`;
+  const kwota = zl(d.razem);
+  const dzien = new Date(d.data).toLocaleDateString("pl-PL", { day: "numeric", month: "long", timeZone: "Europe/Warsaw" });
+  const imie = d.klient.imie ? esc(d.klient.imie.trim().split(/\s+/)[0]) : "";
+  const metoda = d.metoda.replace(/\s*·\s*(Przelewy24|Stripe)\s*$/i, "");
+  const kwotaBlok = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 22px;background:${M.tlo};border-radius:12px">
+    <tr><td style="padding:16px 18px;font-size:14px;color:${M.ink2}">Do zapłaty</td>
+    <td style="padding:16px 18px;font-size:22px;font-weight:800;text-align:right;white-space:nowrap;color:${M.ink}">${kwota}</td></tr>
+  </table>`;
+  const dopisek = `<p style="margin:22px 0 0;font-size:13px;line-height:1.65;color:${M.ink2}">
+      Przycisk prowadzi prosto do bezpiecznej płatności Przelewy24 (BLIK, przelew, karta). Jeśli nie działa, skopiuj link:<br>
+      <a href="${esc(link)}" style="color:${M.ink};word-break:break-all">${esc(link)}</a><br><br>
+      Coś się nie zgadza w danych albo chcesz coś zmienić? Po prostu odpisz na tego maila — poprawimy.
+    </p>`;
+  return powloka({
+    emoji: "⏳",
+    naglowek: "Twoje zamówienie czeka na dokończenie!",
+    preheader: `Zamówienie #${nr} jest zarezerwowane — zostało tylko opłacić ${kwota}.`,
+    intro: `${imie ? `Cześć ${imie}! ` : ""}Twoje zamówienie <strong style="color:${M.ink}">#${nr}</strong> z ${esc(dzien)} jest zapisane, ale nie dotarła do nas jeszcze płatność. Wystarczy jedno kliknięcie — wyślemy paczkę zaraz po zaksięgowaniu wpłaty.`,
+    tresc:
+      kwotaBlok +
+      przycisk(`ZAPŁAĆ ${kwota.toUpperCase()}`, link) +
+      `<div style="margin:30px 0 0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3}">Twoje zamówienie</div>` +
+      tabelaPozycji({ ...d, metoda }) +
+      blokDostawy(d.klient) +
+      dopisek,
+    cta: { tekst: `ZAPŁAĆ ${kwota.toUpperCase()}`, url: link },
+  });
+}
+
+/** Wysyłka przypomnienia do klienta (z panelu). Odpowiedź na maila trafia do skrzynki firmy. */
+export async function wyslijPrzypomnieniePlatnosci(d: DanePrzypomnienia): Promise<{ ok: boolean; blad?: string }> {
+  if (!mailWlaczony()) return { ok: false, blad: "Wysyłka maili nie jest skonfigurowana." };
+  if (!d.klient.email) return { ok: false, blad: "Zamówienie nie ma adresu e-mail." };
+  return wyslij(
+    d.klient.email,
+    `Twoje zamówienie #${d.id.slice(0, 8)} czeka na dokończenie — bobas-shopping`,
+    mailPrzypomnieniaHtml(d),
+    "przypomnienie",
+    adresOdpowiedzi(),
+  );
 }
