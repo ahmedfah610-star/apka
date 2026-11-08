@@ -40,6 +40,7 @@ export default function PolitykaPrywatnosci() {
             "Rozpatrywanie reklamacji i obsługa zwrotów — art. 6 ust. 1 lit. b oraz lit. c RODO.",
             "Odpowiedź na pytanie o produkt zadane przez formularz na karcie produktu — działania na Twoje żądanie przed zawarciem umowy, art. 6 ust. 1 lit. b RODO; pytania przechowujemy do 180 dni.",
             "Wysyłka newslettera oraz powiadomień o dostępności — Twoja zgoda, art. 6 ust. 1 lit. a RODO.",
+            "Kody rabatowe i nowości e-mailem dla posiadaczy konta (np. kod powitalny po rejestracji) — tylko gdy zaznaczysz zgodę przy zakładaniu konta, art. 6 ust. 1 lit. a RODO. Zgodę możesz wycofać w każdej chwili, odpisując na dowolnego maila od nas lub pisząc na adres sklepu.",
             "Ustalenie, dochodzenie i obrona roszczeń oraz zapewnienie bezpieczeństwa Sklepu — prawnie uzasadniony interes administratora, art. 6 ust. 1 lit. f RODO.",
             "Analityka i statystyka (w zakresie cookies analitycznych) — Twoja zgoda, art. 6 ust. 1 lit. a RODO.",
           ]}

@@ -8,6 +8,7 @@ import { Nawigacja } from "@/components/Nawigacja";
 import { Stopka } from "@/components/Stopka";
 import { KrokiZamowienia } from "@/components/KrokiZamowienia";
 import { useAuth } from "@/components/AuthContext";
+import { ZgodaMarketingowa } from "@/components/konto/ZgodaMarketingowa";
 import { useKoszyk } from "@/components/KoszykContext";
 import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
@@ -42,6 +43,7 @@ export function BramkaZamowienia() {
     return { pozycjeZDanymi: zd, suma: s };
   }, [katalog, pozycje]);
   const [imie, setImie] = useState("");
+  const [zgoda, setZgoda] = useState(false);
   const [email, setEmail] = useState("");
   const [haslo, setHaslo] = useState("");
   const [blad, setBlad] = useState("");
@@ -67,7 +69,7 @@ export function BramkaZamowienia() {
     try {
       if (tryb === "rejestr") {
         if (haslo.length < 6) { setBlad("Hasło musi mieć co najmniej 6 znaków."); return; }
-        const r = await zarejestruj(email, haslo, imie);
+        const r = await zarejestruj(email, haslo, imie, zgoda);
         if (!r.ok) setBlad(r.blad || "Nie udało się założyć konta.");
         else if (r.potwierdzenie) setInfo("Konto założone! Potwierdź e-mail — a możesz też od razu kontynuować jako gość, koszyk zostaje.");
         else router.replace("/zamowienie");
@@ -124,6 +126,7 @@ export function BramkaZamowienia() {
               ) : null}
               <input className={input} type="email" placeholder="E-mail" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               <input className={input} type="password" placeholder="Hasło" autoComplete={tryb === "rejestr" ? "new-password" : "current-password"} value={haslo} onChange={(e) => setHaslo(e.target.value)} />
+              {tryb === "rejestr" ? <ZgodaMarketingowa zaznaczona={zgoda} onZmiana={setZgoda} /> : null}
 
               {blad ? <p className="rounded-lg bg-akcent/5 px-3 py-2 text-[13px] text-akcent">{blad}</p> : null}
               {info ? <p className="rounded-lg bg-[oklch(95%_0.05_150)] px-3 py-2 text-[13px] text-[oklch(40%_0.12_150)]">{info}</p> : null}

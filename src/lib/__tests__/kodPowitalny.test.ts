@@ -60,7 +60,7 @@ vi.mock("@/lib/supabase", () => ({ supabaseWlaczony: () => true, sbService: () =
 
 const godzinTemu = (h: number) => new Date(Date.now() - h * 3600000).toISOString();
 const konto = (id: string, email: string, h: number, extra: Record<string, unknown> = {}) => ({
-  id, email, created_at: godzinTemu(h), email_confirmed_at: godzinTemu(h), user_metadata: { imie: "Tomasz Nowak" }, ...extra,
+  id, email, created_at: godzinTemu(h), email_confirmed_at: godzinTemu(h), user_metadata: { imie: "Tomasz Nowak", zgoda_marketing: true }, ...extra,
 });
 
 beforeEach(() => {
@@ -103,7 +103,7 @@ describe("kod NOWY5 w koszyku", () => {
 describe("komu automat wysyła kod", () => {
   it("potwierdzone konta sprzed 24–72 h, bez zakupu i bez wysłanego kodu", async () => {
     const { doWysylki } = await import("@/lib/kodPowitalny");
-    const k = (id: string, h: number, extra = {}) => ({ id, email: `${id}@x.pl`, imie: "", utworzono: godzinTemu(h), potwierdzone: true, kupil: false, kodWyslany: null, ...extra });
+    const k = (id: string, h: number, extra = {}) => ({ id, email: `${id}@x.pl`, imie: "", utworzono: godzinTemu(h), potwierdzone: true, kupil: false, kodWyslany: null, zgoda: true as boolean | null, ...extra });
     const wynik = doWysylki([
       k("swiezy", 5),
       k("ok", 30),
@@ -112,6 +112,8 @@ describe("komu automat wysyła kod", () => {
       k("kupil", 30, { kupil: true }),
       k("wyslany", 30, { kodWyslany: godzinTemu(1) }),
       k("niepotw", 30, { potwierdzone: false }),
+      k("bez-zgody", 30, { zgoda: false }),
+      k("sprzed-zgody", 30, { zgoda: null }),
     ]).map((x) => x.id);
     expect(wynik).toEqual(["ok", "ok2"]);
   });
@@ -123,7 +125,13 @@ describe("komu automat wysyła kod", () => {
   });
 
   it("cron wysyła tylko kwalifikujące się konta i zapisuje znacznik", async () => {
-    uzytkownicy = [konto("u-a", "a@example.com", 30), konto("u-b", "b@example.com", 30), konto("u-c", "c@example.com", 5)];
+    uzytkownicy = [
+      konto("u-a", "a@example.com", 30),
+      konto("u-b", "b@example.com", 30),
+      konto("u-c", "c@example.com", 5),
+      konto("u-d", "d@example.com", 30, { user_metadata: { imie: "Ola", zgoda_marketing: false } }),
+      konto("u-e", "e@example.com", 30, { user_metadata: { imie: "Ewa" } }),
+    ];
     kupujacy = ["b@example.com"];
     const { kodyPowitalneCron } = await import("@/lib/kodPowitalnyWysylka");
     const w = await kodyPowitalneCron(sb as never);
@@ -172,5 +180,21 @@ describe("panel: ręczna wysyłka", () => {
     expect(maile[0].subject).toContain("Tomasz, odbierz swój kod rabatowy −5%");
     expect(maile[0].html).toContain("<img");
     expect(upserty[0].klucz).toBe("kod-powitalny:u-tomasz");
+  });
+
+  it("bez zgody — panel nie wyśle; konto sprzed checkboxa — można ręcznie", async () => {
+    uzytkownicy = [
+      konto("u-nie", "nie@example.com", 2, { user_metadata: { zgoda_marketing: false } }),
+      konto("u-stare", "stare@example.com", 2, { user_metadata: { imie: "Tomasz" } }),
+    ];
+    const { GET, POST } = await import("@/app/api/admin/konta/route");
+    const lista = (await (await GET()).json()) as { items: { id: string; zgoda: boolean | null }[] };
+    expect(Object.fromEntries(lista.items.map((k) => [k.id, k.zgoda]))).toEqual({ "u-nie": false, "u-stare": null });
+    const nie = await POST(new Request("https://x/api/admin/konta", { method: "POST", body: JSON.stringify({ id: "u-nie" }) }));
+    expect(nie.status).toBe(403);
+    expect(maile).toHaveLength(0);
+    const stare = await POST(new Request("https://x/api/admin/konta", { method: "POST", body: JSON.stringify({ id: "u-stare" }) }));
+    expect(stare.status).toBe(200);
+    expect(maile.map((m) => m.to)).toEqual(["stare@example.com"]);
   });
 });

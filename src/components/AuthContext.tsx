@@ -10,7 +10,7 @@ interface AuthCtx {
   user: User | null;
   zaladowano: boolean;
   wlaczone: boolean;
-  zarejestruj: (email: string, haslo: string, imie?: string) => Promise<Wynik>;
+  zarejestruj: (email: string, haslo: string, imie?: string, zgodaMarketing?: boolean) => Promise<Wynik>;
   zaloguj: (email: string, haslo: string) => Promise<Wynik>;
   zalogujGoogle: (przekierowanie?: string) => Promise<void>;
   wyloguj: () => Promise<void>;
@@ -72,12 +72,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, [sb]);
 
-  const zarejestruj = useCallback<AuthCtx["zarejestruj"]>(async (email, haslo, imie) => {
+  const zarejestruj = useCallback<AuthCtx["zarejestruj"]>(async (email, haslo, imie, zgodaMarketing = false) => {
     if (!sb) return { ok: false, blad: "Logowanie chwilowo niedostępne." };
     const { data, error } = await sb.auth.signUp({
       email: email.trim(),
       password: haslo,
-      options: { data: imie ? { imie } : undefined, emailRedirectTo: `${window.location.origin}/konto` },
+      options: {
+        // zgoda_marketing: checkbox „kody rabatowe i nowości e-mailem" (z datą — dowód zgody).
+        data: { ...(imie ? { imie } : {}), zgoda_marketing: zgodaMarketing, ...(zgodaMarketing ? { zgoda_marketing_czas: new Date().toISOString() } : {}) },
+        emailRedirectTo: `${window.location.origin}/konto`,
+      },
     });
     if (error) return { ok: false, blad: komunikat(error.message) };
     // Konto od razu aktywne (potwierdzanie wyłączone) → powitanie teraz.

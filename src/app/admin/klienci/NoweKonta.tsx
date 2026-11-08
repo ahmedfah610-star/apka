@@ -10,6 +10,7 @@ interface Konto {
   potwierdzone: boolean;
   kupil: boolean;
   kodWyslany: string | null;
+  zgoda: boolean | null;
 }
 
 const kiedy = (iso: string) => {
@@ -63,7 +64,7 @@ export function NoweKonta() {
         <h2 className="text-[18px] font-bold tracking-tight">Nowe konta</h2>
         <p className="text-[13px] text-ink-2">
           Kod powitalny <strong className="text-ink">{kod.kod}</strong> (−{kod.procent}% od produktów, bez minimum, raz na e-mail) wysyła się sam
-          dobę po rejestracji, jeśli klient nic nie kupił. Możesz go też wysłać od razu.
+          dobę po rejestracji — tylko do osób, które zaznaczyły zgodę na kody i nowości, i jeszcze nic nie kupiły. Możesz go też wysłać od razu.
         </p>
       </div>
       {blad ? <p className="text-[13px] text-[oklch(50%_0.19_25)]">{blad}</p> : null}
@@ -83,9 +84,12 @@ export function NoweKonta() {
               </div>
               <div className="flex flex-wrap items-center gap-2 text-[12.5px]">
                 {k.kupil ? <span className="rounded-full bg-[oklch(90%_0.07_150)] px-2.5 py-1 font-semibold text-[oklch(42%_0.13_150)]">kupił(a) ✓</span> : null}
+                {k.zgoda === true ? <span className="rounded-full bg-akcent-2 px-2.5 py-1 font-semibold text-akcent">zgoda ✓</span> : null}
+                {k.zgoda === false ? <span className="rounded-full bg-szary px-2.5 py-1 text-ink-2">bez zgody — nie wysyłamy</span> : null}
+                {k.zgoda === null ? <span className="rounded-full bg-szary px-2.5 py-1 text-ink-2" title="Konto założone, zanim był checkbox zgody — automat mu nie wyśle, ręcznie możesz.">konto sprzed zgody</span> : null}
                 {!k.potwierdzone ? <span className="rounded-full bg-szary px-2.5 py-1 text-ink-2">e-mail niepotwierdzony</span> : null}
                 {k.kodWyslany ? <span className="text-ink-2">kod wysłany {kiedy(k.kodWyslany)}</span> : null}
-                {!k.kupil ? (
+                {!k.kupil && k.zgoda !== false ? (
                   <button
                     onClick={() => void wyslij(k)}
                     disabled={stan[k.id] === "…"}

@@ -584,7 +584,7 @@ export function mailKodPowitalnyHtml(o: { imie?: string; kod: string; procent: n
   const polecane = o.produkty.length
     ? `<div style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3}">Polecamy na start</div>${siatkaProduktow(o.produkty)}`
     : "";
-  const dopisek = `<p style="margin:18px 0 0;font-size:12px;line-height:1.6;color:${M.ink3}">Dostajesz tę wiadomość, bo założono konto w bobas-shopping na ten adres. To jednorazowy prezent powitalny.</p>`;
+  const dopisek = `<p style="margin:18px 0 0;font-size:12px;line-height:1.6;color:${M.ink3}">Dostajesz tę wiadomość jako nowy klient bobas-shopping. Nie chcesz kodów i nowości? Odpisz „wypisz” na tego maila — usuniemy Twoją zgodę.</p>`;
   return powloka({
     emoji: "🎁",
     naglowek: imie ? `Cześć ${imie}! Odbierz swój kod rabatowy` : "Odbierz swój kod rabatowy",

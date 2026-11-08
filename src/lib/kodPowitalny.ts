@@ -1,4 +1,4 @@
-// Kod powitalny NOWY5 dla nowych kont: −5% od produktów (dostawa się nie wlicza), bez minimalnej
+// Kod powitalny NOWY5 dla nowych kont (tylko za zgodą z checkboxa przy rejestracji): −5% od produktów (dostawa się nie wlicza), bez minimalnej
 // kwoty, jeden raz na adres e-mail. Wysyłany mailem każdemu, kto założył konto i przez dobę nic
 // nie kupił (codzienny cron) albo ręcznie z panelu (Klienci → Nowe konta).
 // Bez nowej tabeli: znacznik wysyłki to wpis w `ustawienia` („kod-powitalny:<id konta>").
@@ -24,7 +24,18 @@ export interface KontoKlienta {
   potwierdzone: boolean;
   kupil: boolean;
   kodWyslany: string | null; // czas wysłania kodu
+  /** Zgoda na kody i nowości e-mailem (checkbox przy rejestracji). null = konto sprzed checkboxa. */
+  zgoda: boolean | null;
 }
+
+/** Zgoda z metadanych konta: true/false z checkboxa; brak pola = konto założone przed jego dodaniem. */
+export function zgodaZKonta(meta: Record<string, unknown> | null | undefined): boolean | null {
+  const z = meta?.zgoda_marketing;
+  return typeof z === "boolean" ? z : null;
+}
+
+/** Ręczna wysyłka z panelu: tylko ze zgodą albo dla kont sprzed checkboxa (nie miały jak jej dać). */
+export const moznaWyslacRecznie = (zgoda: boolean | null) => zgoda !== false;
 
 const escLike = (s: string) => s.replace(/[\\%_]/g, (m) => `\\${m}`);
 
@@ -66,15 +77,16 @@ export async function kontaKlientow(sb: SupabaseClient, limit = 200): Promise<Ko
       potwierdzone: !!(u.email_confirmed_at || u.confirmed_at),
       kupil: kupujacy.has(String(u.email).toLowerCase()),
       kodWyslany: kody.has(String(u.id)) ? kody.get(String(u.id)) || "wysłano" : null,
+      zgoda: zgodaZKonta(u.user_metadata),
     }))
     .sort((a, b) => b.utworzono.localeCompare(a.utworzono));
 }
 
-/** Komu cron wysyła kod: potwierdzone konto sprzed 24–72 h, bez zakupu, bez wysłanego kodu. */
+/** Komu cron wysyła kod: zaznaczona zgoda, potwierdzone konto sprzed 24–72 h, bez zakupu, bez wysłanego kodu. */
 export function doWysylki(konta: KontoKlienta[], teraz = Date.now()): KontoKlienta[] {
   return konta.filter((k) => {
     const wiek = teraz - new Date(k.utworzono).getTime();
-    return k.potwierdzone && !k.kupil && !k.kodWyslany && wiek >= OKNO_OD_H * GODZINA && wiek <= OKNO_DO_H * GODZINA;
+    return k.zgoda === true && k.potwierdzone && !k.kupil && !k.kodWyslany && wiek >= OKNO_OD_H * GODZINA && wiek <= OKNO_DO_H * GODZINA;
   });
 }
 

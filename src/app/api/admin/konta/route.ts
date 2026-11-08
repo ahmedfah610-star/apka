@@ -1,6 +1,6 @@
 import { czyAdmin } from "@/lib/adminAuth";
 import { sbService } from "@/lib/supabase";
-import { kontaKlientow, KOD_POWITALNY } from "@/lib/kodPowitalny";
+import { kontaKlientow, KOD_POWITALNY, zgodaZKonta, moznaWyslacRecznie } from "@/lib/kodPowitalny";
 import { wyslijKodPowitalny } from "@/lib/kodPowitalnyWysylka";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +28,9 @@ export async function POST(req: Request) {
   const { data, error } = await sb.auth.admin.getUserById(id);
   const u = data?.user;
   if (error || !u?.email) return Response.json({ ok: false, blad: "Nie znaleziono konta." }, { status: 404 });
+  if (!moznaWyslacRecznie(zgodaZKonta(u.user_metadata))) {
+    return Response.json({ ok: false, blad: "Klient nie zaznaczył zgody na kody i nowości — nie wysyłamy." }, { status: 403 });
+  }
   const w = await wyslijKodPowitalny(sb, { id: u.id, email: u.email.toLowerCase(), imie: String(u.user_metadata?.imie ?? "") });
   if (!w.ok) return Response.json({ ok: false, blad: w.blad || "Nie udało się wysłać." }, { status: 502 });
   return Response.json({ ok: true, czas: w.czas });

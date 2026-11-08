@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthContext";
+import { ZgodaMarketingowa } from "@/components/konto/ZgodaMarketingowa";
 
 type Tryb = "login" | "rejestr" | "reset";
 
@@ -12,6 +13,7 @@ export function FormularzKonta() {
   const { user, zaladowano, wlaczone, zaloguj, zarejestruj, zalogujGoogle, resetHasla } = useAuth();
   const [tryb, setTryb] = useState<Tryb>("login");
   const [imie, setImie] = useState("");
+  const [zgoda, setZgoda] = useState(false);
   const [email, setEmail] = useState("");
   const [haslo, setHaslo] = useState("");
   const [blad, setBlad] = useState("");
@@ -40,7 +42,7 @@ export function FormularzKonta() {
         else setInfo("Jeśli konto istnieje, wysłaliśmy link do zmiany hasła na podany e-mail.");
       } else if (tryb === "rejestr") {
         if (haslo.length < 6) { setBlad("Hasło musi mieć co najmniej 6 znaków."); setWysylka(false); return; }
-        const r = await zarejestruj(email, haslo, imie);
+        const r = await zarejestruj(email, haslo, imie, zgoda);
         if (!r.ok) setBlad(r.blad || "Nie udało się założyć konta.");
         else if (r.potwierdzenie) setInfo("Konto założone! Sprawdź e-mail i potwierdź adres, aby się zalogować.");
         else router.replace("/konto");
@@ -109,6 +111,7 @@ export function FormularzKonta() {
               onChange={(e) => setHaslo(e.target.value)}
             />
           ) : null}
+          {tryb === "rejestr" ? <ZgodaMarketingowa zaznaczona={zgoda} onZmiana={setZgoda} /> : null}
 
           {tryb === "login" ? (
             <button type="button" onClick={() => przelacz("reset")} className="-mt-0.5 self-end text-[12.5px] text-ink-2 underline underline-offset-2 hover:text-akcent">
