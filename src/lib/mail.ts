@@ -575,7 +575,7 @@ export function mailKodPowitalnyHtml(o: { imie?: string; kod: string; procent: n
     <tr><td align="center" style="padding:20px 18px 18px">
       <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${M.ink3}">Twój kod rabatowy</div>
       <div style="margin:6px 0 4px;font-size:34px;font-weight:800;letter-spacing:.08em;color:${M.akcent}">${kod}</div>
-      <div style="font-size:15px;font-weight:700;color:${M.ink}">−${o.procent}% na pierwsze zakupy</div>
+      <div style="font-size:15px;font-weight:700;color:${M.ink}">−${o.procent}% na ubrania w naszym sklepie</div>
     </td></tr>
     <tr><td style="padding:0 22px 18px">
       ${warunki.map((t) => `<div style="padding:3px 0;font-size:13.5px;line-height:1.5;color:${M.ink2}"><span style="color:${M.akcent};font-weight:800">✓</span>&nbsp; ${esc(t)}</div>`).join("")}
@@ -589,9 +589,9 @@ export function mailKodPowitalnyHtml(o: { imie?: string; kod: string; procent: n
     emoji: "🎁",
     naglowek: imie ? `Cześć ${imie}! Odbierz swój kod rabatowy` : "Odbierz swój kod rabatowy",
     preheader: `Kod ${o.kod}: −${o.procent}% na zakupy, bez minimalnej kwoty.`,
-    intro: `Dziękujemy za założenie konta w <strong style="color:${M.ink}">bobas-shopping</strong>! Na dobry początek mamy dla Ciebie <strong style="color:${M.ink}">−${o.procent}%</strong> na ubranka dla maluszka — bez względu na kwotę zakupów.`,
+    intro: `Dziękujemy za założenie konta w <strong style="color:${M.ink}">bobas-shopping</strong>! Na dobry początek mamy dla Ciebie <strong style="color:${M.ink}">−${o.procent}%</strong> na ubrania w naszym sklepie — bez względu na kwotę zakupów.`,
     tresc: kupon + polecane + dopisek,
-    cta: { tekst: "WYBIERZ COŚ DLA MALUSZKA", url: `${BAZA}/produkty` },
+    cta: { tekst: "PRZEJDŹ DO SKLEPU", url: `${BAZA}/produkty` },
   });
 }
 

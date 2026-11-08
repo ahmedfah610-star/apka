@@ -96,22 +96,22 @@ const rodzaj = (nazwa: string) =>
     .replace(/[^\p{L}\s]/gu, " ")
     .split(/\s+/)
     .filter(Boolean)
-    .slice(0, 3)
+    .slice(0, 2)
     .join(" ");
 
-/** Produkty do maila: najchętniej kupowane, zimą najpierw ciepłe, potem najnowsze — dziecięce, na stanie, ze zdjęciem. */
+/** Produkty do maila: najchętniej kupowane, zimą najpierw ciepłe, potem najnowsze — z całej oferty, na stanie, ze zdjęciem. */
 export function polecaneProdukty(katalog: Produkt[], sprzedaz: Map<string, number>, limit = 4, teraz = new Date()): Produkt[] {
   const kolejnosc = new Map(katalog.map((p, i) => [p.id, i]));
   const zima = sezonZimowy(teraz);
   return katalog
-    .filter((p) => p.kategoria !== "dorosli" && !p.ukryty && !!p.zdjecie && rozmiaryNaStanie(p).length > 0)
+    .filter((p) => !p.ukryty && !!p.zdjecie && rozmiaryNaStanie(p).length > 0)
     .sort(
       (a, b) =>
         (sprzedaz.get(b.id) ?? 0) - (sprzedaz.get(a.id) ?? 0) ||
         (zima ? Number(czyCieply(b)) - Number(czyCieply(a)) : 0) ||
         kolejnosc.get(b.id)! - kolejnosc.get(a.id)!,
     )
-    // Różnorodnie: podobne produkty (te same pierwsze 3 słowa nazwy, np. inny kolor) tylko raz.
+    // Różnorodnie: podobne produkty (te same pierwsze 2 słowa nazwy, np. inny kolor) tylko raz.
     .filter((p, _i, lista) => lista.find((q) => rodzaj(q.nazwa) === rodzaj(p.nazwa)) === p)
     .slice(0, limit);
 }

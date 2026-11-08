@@ -118,10 +118,10 @@ describe("komu automat wysyła kod", () => {
     expect(wynik).toEqual(["ok", "ok2"]);
   });
 
-  it("produkty w mailu: najpierw kupowane, zimą ciepłe, tylko dziecięce na stanie", async () => {
+  it("produkty w mailu: najpierw kupowane, zimą ciepłe, z całej oferty, tylko na stanie", async () => {
     const { polecaneProdukty } = await import("@/lib/kodPowitalny");
     const ids = polecaneProdukty(KATALOG as never, new Map([["p-hit", 3]]), 4, new Date("2026-11-08T12:00:00Z")).map((p) => p.id);
-    expect(ids).toEqual(["p-hit", "p-cieply", "p-stary"]);
+    expect(ids).toEqual(["p-hit", "p-cieply", "p-dorosli", "p-stary"]);
   });
 
   it("cron wysyła tylko kwalifikujące się konta i zapisuje znacznik", async () => {
@@ -154,6 +154,8 @@ describe("mail z kodem", () => {
     expect(html).toContain("NOWY5");
     expect(html).toContain("bez minimalnej kwoty");
     expect(html).toContain("dostawa się nie wlicza");
+    expect(html).toContain("na ubrania w naszym sklepie");
+    expect(html).not.toMatch(/maluszk/i);
     expect(html).toContain('href="https://bobas-shopping.pl/produkty/p-hit"');
     expect(html).toContain("<img");
     expect(html).toContain("https://bobas-shopping.pl/produkty\"");
