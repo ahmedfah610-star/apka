@@ -12,8 +12,7 @@ export function ZgodaMarketingowa({ zaznaczona, onZmiana }: { zaznaczona: boolea
         className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--akcent)]"
       />
       <span>
-        <strong className="text-ink">Chcę dostawać kody rabatowe i nowości e-mailem</strong> — na start kod −5% na zakupy. Zgodę możesz wycofać w
-        każdej chwili.{" "}
+        <strong className="text-ink">Chcę otrzymywać kody rabatowe i nowości e-mailem.</strong> Zgodę możesz wycofać w każdej chwili.{" "}
         <a href="/polityka-prywatnosci" target="_blank" className="underline underline-offset-2">
           Więcej
         </a>
