@@ -7,6 +7,7 @@ import { produktyPoIdSwieze } from "@/lib/produktyDb";
 import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
 import { ZAMOWIENIA_WYLACZONE, KOMUNIKAT_PRZERWY } from "@/lib/sklep";
 import { sprawdzKod, zuzyjKod } from "@/lib/kodyDb";
+import { KOD_POWITALNY } from "@/lib/kodPowitalny";
 import { kosztDostawy, type MetodaDostawy } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 import { kluczTestowyOk } from "@/lib/zamowienieTestowe";
@@ -119,10 +120,14 @@ export async function POST(req: Request) {
   let rabat = 0;
   let kodRabatowy: string | null = null;
   if (b.kod && b.kod.trim()) {
-    const w = await sprawdzKod(b.kod, suma);
+    const w = await sprawdzKod(b.kod, suma, typeof b.klient?.email === "string" ? b.klient.email : undefined);
     if (w.ok && w.rabat) {
       rabat = w.rabat;
       kodRabatowy = w.kod!.kod;
+    } else if (!w.ok && b.kod.trim().toUpperCase() === KOD_POWITALNY.kod && w.blad) {
+      // Kod nieważny dla tego zamówienia (np. kod powitalny już użyty na ten e-mail) — mówimy
+      // o tym klientowi, zamiast po cichu przyjąć zamówienie bez rabatu.
+      return Response.json({ ok: false, blad: `${w.blad} Usuń kod lub wpisz inny.` }, { status: 400 });
     }
   }
   const razem = grosze(Math.max(0, suma - rabat) + dostawa);

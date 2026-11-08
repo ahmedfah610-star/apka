@@ -1,6 +1,7 @@
 import { sbService } from "@/lib/supabase";
 import { wyslijMailProsbaOOpinie, mailWlaczony } from "@/lib/mail";
 import { przypomnijKoszyki } from "@/lib/koszykCron";
+import { kodyPowitalneCron } from "@/lib/kodPowitalnyWysylka";
 import { scalProdukty, przeklasyfikuj } from "@/lib/allegroImport";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 
@@ -74,6 +75,8 @@ export async function GET(req: Request) {
 
   // Przy okazji: przypomnienia o porzuconych koszykach (jeden dzienny cron na Hobby).
   const koszyk = await przypomnijKoszyki();
+  // Kod powitalny NOWY5 dla kont, które przez dobę nic nie kupiły.
+  const kodPowitalny = await kodyPowitalneCron(sb);
 
-  return Response.json({ ok: true, wyslano, sprawdzono: data?.length ?? 0, koszyk, scal, przekat });
+  return Response.json({ ok: true, wyslano, sprawdzono: data?.length ?? 0, koszyk, kodPowitalny, scal, przekat });
 }

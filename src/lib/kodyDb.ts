@@ -1,5 +1,6 @@
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { PROMOCJA, stanPromocji } from "@/lib/promocja";
+import { KOD_POWITALNY, kodPowitalnyUzyty } from "@/lib/kodPowitalny";
 
 // Kody rabatowe — warstwa danych. Walidacja zawsze po stronie serwera.
 
@@ -46,8 +47,8 @@ export interface WynikWaznosci {
   rabat?: number; // kwota rabatu w zł dla podanej sumy
 }
 
-/** Sprawdza kod względem sumy koszyka i zwraca kwotę rabatu (zł). */
-export async function sprawdzKod(kodTekst: string, suma: number): Promise<WynikWaznosci> {
+/** Sprawdza kod względem sumy koszyka i zwraca kwotę rabatu (zł). `email` — do kodów jednorazowych na adres. */
+export async function sprawdzKod(kodTekst: string, suma: number, email?: string): Promise<WynikWaznosci> {
   if (!supabaseWlaczony()) return { ok: false, blad: "Kody są chwilowo niedostępne." };
   const sb = sbService();
   if (!sb) return { ok: false, blad: "Brak konfiguracji." };
@@ -75,6 +76,22 @@ export async function sprawdzKod(kodTekst: string, suma: number): Promise<WynikW
     };
     if (suma < kodPromo.minKoszyk) return { ok: false, blad: `Kod działa od ${kodPromo.minKoszyk.toFixed(2).replace(".", ",")} zł w koszyku (bez dostawy).` };
     return { ok: true, kod: kodPromo, rabat: Math.min(Math.round(((suma * kodPromo.wartosc) / 100) * 100) / 100, suma) };
+  }
+  // Kod powitalny dla nowych kont (lib/kodPowitalny): −5% od produktów, bez minimum, raz na e-mail.
+  if (!data && kodU === KOD_POWITALNY.kod) {
+    if (email && (await kodPowitalnyUzyty(sb, email))) return { ok: false, blad: "Kod powitalny został już wykorzystany na ten adres e-mail." };
+    const kodPow: Kod = {
+      kod: KOD_POWITALNY.kod,
+      typ: "procent",
+      wartosc: KOD_POWITALNY.procent,
+      minKoszyk: 0,
+      aktywny: true,
+      waznyDo: null,
+      limitUzyc: null,
+      uzyto: 0,
+      createdAt: "2026-11-08T00:00:00Z",
+    };
+    return { ok: true, kod: kodPow, rabat: Math.min(Math.round(suma * KOD_POWITALNY.procent) / 100, suma) };
   }
   if (!data) return { ok: false, blad: "Nieprawidłowy kod." };
   const k = zRzedu(data);

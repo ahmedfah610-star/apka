@@ -374,9 +374,9 @@ export async function wyslijMailProsbaOOpinie(order: {
 export interface ProduktMail { nazwa: string; cena: number; zdjecie?: string | null; url: string }
 export interface ArtykulMail { tytul: string; opis: string; url: string }
 
-/** Buduje HTML jednego cotygodniowego maila (spersonalizowany link wypisu). */
-export function mailTygodniowyHtml(opts: { email: string; produkty: ProduktMail[]; artykul?: ArtykulMail }): string {
-  const { email, produkty, artykul } = opts;
+/** Siatka kart produktów 2 × n (zdjęcie, nazwa, cena — całość jest linkiem do produktu). */
+function siatkaProduktow(produkty: ProduktMail[]): string {
+  if (!produkty.length) return "";
   const pary: string[] = [];
   for (let i = 0; i < produkty.length; i += 2) {
     const a = produkty[i];
@@ -386,9 +386,13 @@ export function mailTygodniowyHtml(opts: { email: string; produkty: ProduktMail[
       <td width="50%" style="padding:0 0 18px 8px;vertical-align:top">${b ? kartaProduktuMail(b) : ""}</td>
     </tr>`);
   }
-  const siatka = produkty.length
-    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 4px">${pary.join("")}</table>`
-    : "";
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 4px">${pary.join("")}</table>`;
+}
+
+/** Buduje HTML jednego cotygodniowego maila (spersonalizowany link wypisu). */
+export function mailTygodniowyHtml(opts: { email: string; produkty: ProduktMail[]; artykul?: ArtykulMail }): string {
+  const { email, produkty, artykul } = opts;
+  const siatka = siatkaProduktow(produkty);
 
   const blogSekcja = artykul
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 0;background:${M.tlo};border-radius:14px">
@@ -553,4 +557,47 @@ export async function wyslijPrzypomnieniePlatnosci(d: DanePrzypomnienia): Promis
     "przypomnienie",
     adresOdpowiedzi(),
   );
+}
+
+// ── Kod powitalny dla nowych kont (NOWY5) ───────────────────────────────
+
+/** „Cześć Tomasz! Odbierz swój kod rabatowy" — kod, warunki, polecane produkty ze zdjęciami i linkami. */
+export function mailKodPowitalnyHtml(o: { imie?: string; kod: string; procent: number; produkty: ProduktMail[] }): string {
+  const imie = esc((o.imie ?? "").trim().split(/\s+/)[0] ?? "");
+  const kod = esc(o.kod);
+  const warunki = [
+    `−${o.procent}% na wszystkie produkty w koszyku`,
+    "bez minimalnej kwoty zamówienia",
+    "rabat liczony od produktów — dostawa się nie wlicza",
+    "jednorazowy — wpisz kod w polu „Kod rabatowy” przy zamówieniu",
+  ];
+  const kupon = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 24px;border:2px dashed ${M.akcent};border-radius:14px;background:${M.tlo}">
+    <tr><td align="center" style="padding:20px 18px 18px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${M.ink3}">Twój kod rabatowy</div>
+      <div style="margin:6px 0 4px;font-size:34px;font-weight:800;letter-spacing:.08em;color:${M.akcent}">${kod}</div>
+      <div style="font-size:15px;font-weight:700;color:${M.ink}">−${o.procent}% na pierwsze zakupy</div>
+    </td></tr>
+    <tr><td style="padding:0 22px 18px">
+      ${warunki.map((t) => `<div style="padding:3px 0;font-size:13.5px;line-height:1.5;color:${M.ink2}"><span style="color:${M.akcent};font-weight:800">✓</span>&nbsp; ${esc(t)}</div>`).join("")}
+    </td></tr>
+  </table>`;
+  const polecane = o.produkty.length
+    ? `<div style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3}">Polecamy na start</div>${siatkaProduktow(o.produkty)}`
+    : "";
+  const dopisek = `<p style="margin:18px 0 0;font-size:12px;line-height:1.6;color:${M.ink3}">Dostajesz tę wiadomość, bo założono konto w bobas-shopping na ten adres. To jednorazowy prezent powitalny.</p>`;
+  return powloka({
+    emoji: "🎁",
+    naglowek: imie ? `Cześć ${imie}! Odbierz swój kod rabatowy` : "Odbierz swój kod rabatowy",
+    preheader: `Kod ${o.kod}: −${o.procent}% na zakupy, bez minimalnej kwoty.`,
+    intro: `Dziękujemy za założenie konta w <strong style="color:${M.ink}">bobas-shopping</strong>! Na dobry początek mamy dla Ciebie <strong style="color:${M.ink}">−${o.procent}%</strong> na ubranka dla maluszka — bez względu na kwotę zakupów.`,
+    tresc: kupon + polecane + dopisek,
+    cta: { tekst: "WYBIERZ COŚ DLA MALUSZKA", url: `${BAZA}/produkty` },
+  });
+}
+
+export async function wyslijMailKodPowitalny(o: { email: string; imie?: string; kod: string; procent: number; produkty: ProduktMail[] }): Promise<{ ok: boolean; blad?: string }> {
+  if (!mailWlaczony()) return { ok: false, blad: "Wysyłka maili nie jest skonfigurowana." };
+  const imie = (o.imie ?? "").trim().split(/\s+/)[0];
+  const temat = `${imie ? `${imie}, odbierz` : "Odbierz"} swój kod rabatowy −${o.procent}% 🎁 — bobas-shopping`;
+  return wyslij(o.email, temat, mailKodPowitalnyHtml(o), "kod-powitalny", adresOdpowiedzi());
 }

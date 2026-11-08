@@ -44,6 +44,7 @@ const TYPY: Record<string, string> = {
   "pytanie-kopia": "Pytanie o produkt (kopia dla klienta)",
   odpowiedz: "Odpowiedź na pytanie",
   przypomnienie: "Przypomnienie o płatności",
+  "kod-powitalny": "Kod powitalny (nowe konto)",
   test: "Test",
 };
 // Maile do sklepu (powiadomienia dla Ciebie) — domyślnie ukryte.

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { formatCena } from "@/lib/filtrowanie";
+import { NoweKonta } from "./NoweKonta";
 
 interface Pozycja { id: string; nazwa: string; cena: number; ilosc: number; rozmiar?: string }
 interface Klient { imie?: string; email?: string; telefon?: string }
@@ -78,6 +79,9 @@ export default function AdminKlienci() {
         </div>
       </div>
 
+      <NoweKonta />
+
+      <h2 className="mb-3 text-[18px] font-bold tracking-tight">Kupujący</h2>
       <input
         className="mb-4 w-full max-w-sm rounded-md border border-linia-2 bg-white px-3 py-2.5 text-[16px] outline-none focus:border-ink md:py-2 md:text-[14px]"
         placeholder="Szukaj po e-mailu, imieniu, telefonie…"
