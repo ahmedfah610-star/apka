@@ -18,6 +18,7 @@ interface AuthCtx {
   ustawHaslo: (haslo: string) => Promise<Wynik>;
   zmienEmail: (email: string) => Promise<Wynik>;
   zapiszProfil: (dane: { imie?: string; telefon?: string; adres?: string; kod?: string; miasto?: string }) => Promise<Wynik>;
+  ustawZgode: (zgoda: boolean) => Promise<Wynik>;
 }
 
 const Kontekst = createContext<AuthCtx | null>(null);
@@ -158,11 +159,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { ok: true };
   }, [sb]);
 
+  // Zgoda na kody rabatowe i nowości e-mailem — włączana/wyłączana przez klienta w „Moje konto".
+  const ustawZgode = useCallback<AuthCtx["ustawZgode"]>(async (zgoda) => {
+    if (!sb) return { ok: false, blad: "Zapis chwilowo niedostępny." };
+    const czas = new Date().toISOString();
+    const { data, error } = await sb.auth.updateUser({
+      data: zgoda ? { zgoda_marketing: true, zgoda_marketing_czas: czas } : { zgoda_marketing: false, zgoda_marketing_wycofana: czas },
+    });
+    if (error) return { ok: false, blad: komunikat(error.message) };
+    if (data.user) setUser(data.user);
+    return { ok: true };
+  }, [sb]);
+
   const wartosc: AuthCtx = {
     user,
     zaladowano,
     wlaczone: !!sb,
     zarejestruj,
+    ustawZgode,
     zaloguj,
     zalogujGoogle,
     wyloguj,

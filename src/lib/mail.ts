@@ -562,7 +562,7 @@ export async function wyslijPrzypomnieniePlatnosci(d: DanePrzypomnienia): Promis
 // ── Kod powitalny dla nowych kont (NOWY5) ───────────────────────────────
 
 /** „Cześć Tomasz! Odbierz swój kod rabatowy" — kod, warunki, polecane produkty ze zdjęciami i linkami. */
-export function mailKodPowitalnyHtml(o: { imie?: string; kod: string; procent: number; produkty: ProduktMail[] }): string {
+export function mailKodPowitalnyHtml(o: { imie?: string; kod: string; procent: number; produkty: ProduktMail[]; linkZgody?: string }): string {
   const imie = esc((o.imie ?? "").trim().split(/\s+/)[0] ?? "");
   const kod = esc(o.kod);
   const warunki = [
@@ -584,7 +584,10 @@ export function mailKodPowitalnyHtml(o: { imie?: string; kod: string; procent: n
   const polecane = o.produkty.length
     ? `<div style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3}">Polecamy na start</div>${siatkaProduktow(o.produkty)}`
     : "";
-  const dopisek = `<p style="margin:18px 0 0;font-size:12px;line-height:1.6;color:${M.ink3}">Dostajesz tę wiadomość jako nowy klient bobas-shopping. Nie chcesz kodów i nowości? Odpisz „wypisz” na tego maila — usuniemy Twoją zgodę.</p>`;
+  const wylacz = o.linkZgody
+    ? `<a href="${esc(o.linkZgody)}" style="color:${M.ink2};text-decoration:underline">Wyłącz jednym kliknięciem</a> albo w zakładce „Moje konto”.`
+    : `Wyłączysz je w zakładce „Moje konto”.`;
+  const dopisek = `<p style="margin:18px 0 0;font-size:12px;line-height:1.6;color:${M.ink3}">Dostajesz tę wiadomość, bo przy zakładaniu konta zgodziłeś/aś się na kody rabatowe i nowości. Nie chcesz ich? ${wylacz}</p>`;
   return powloka({
     emoji: "🎁",
     naglowek: imie ? `Cześć ${imie}! Odbierz swój kod rabatowy` : "Odbierz swój kod rabatowy",
@@ -595,7 +598,7 @@ export function mailKodPowitalnyHtml(o: { imie?: string; kod: string; procent: n
   });
 }
 
-export async function wyslijMailKodPowitalny(o: { email: string; imie?: string; kod: string; procent: number; produkty: ProduktMail[] }): Promise<{ ok: boolean; blad?: string }> {
+export async function wyslijMailKodPowitalny(o: { email: string; imie?: string; kod: string; procent: number; produkty: ProduktMail[]; linkZgody?: string }): Promise<{ ok: boolean; blad?: string }> {
   if (!mailWlaczony()) return { ok: false, blad: "Wysyłka maili nie jest skonfigurowana." };
   const imie = (o.imie ?? "").trim().split(/\s+/)[0];
   const temat = `${imie ? `${imie}, odbierz` : "Odbierz"} swój kod rabatowy −${o.procent}% 🎁 — bobas-shopping`;

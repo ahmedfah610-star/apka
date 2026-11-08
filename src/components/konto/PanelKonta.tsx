@@ -18,7 +18,9 @@ type Meta = { imie?: string; telefon?: string; adres?: string; kod?: string; mia
 
 export function PanelKonta() {
   const router = useRouter();
-  const { user, zaladowano, wlaczone, wyloguj, zapiszProfil, ustawHaslo, zmienEmail } = useAuth();
+  const { user, zaladowano, wlaczone, wyloguj, zapiszProfil, ustawHaslo, zmienEmail, ustawZgode } = useAuth();
+  const [zgodaBusy, setZgodaBusy] = useState(false);
+  const [zgodaKom, setZgodaKom] = useState("");
 
   const [edycja, setEdycja] = useState(false);
   const [dane, setDane] = useState<Meta>({ imie: "", telefon: "", adres: "", kod: "", miasto: "" });
@@ -106,6 +108,15 @@ export function PanelKonta() {
     setHasloBusy(false);
     if (r.ok) { setHasloKom("Hasło zaktualizowane ✓"); setEdytujHaslo(false); setNoweHaslo(""); }
     else setHasloKom(r.blad || "Nie udało się zmienić hasła.");
+  }
+
+  const zgoda = (m as { zgoda_marketing?: unknown }).zgoda_marketing === true;
+  async function przelaczZgode() {
+    setZgodaBusy(true);
+    setZgodaKom("");
+    const r = await ustawZgode(!zgoda);
+    setZgodaBusy(false);
+    if (!r.ok) setZgodaKom(r.blad || "Nie udało się zapisać.");
   }
 
   const imieKrotkie = imieMeta ? imieMeta.split(" ")[0] : "";
@@ -248,6 +259,35 @@ export function PanelKonta() {
             <p className="mt-3 text-[12.5px] text-ink-3">Logujesz się przez Google. Możesz ustawić hasło, aby logować się także e-mailem.</p>
           ) : null}
           {hasloKom ? <p className="mt-3 text-[13px] font-medium text-ink-2">{hasloKom}</p> : null}
+        </div>
+
+        {/* Zgody — kody rabatowe i nowości e-mailem */}
+        <div id="zgody" className="scroll-mt-24 rounded-2xl border border-linia bg-white p-5 sm:p-6">
+          <div className="flex items-start gap-4">
+            <span className="mt-0.5 shrink-0 text-ink">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z" /><circle cx="7.5" cy="7.5" r="1.5" />
+              </svg>
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[15px] font-bold tracking-tight">Kody rabatowe i nowości e-mailem</span>
+              <span className="mt-0.5 block text-[14px] leading-snug text-ink-2">
+                {zgoda ? "Włączone — wysyłamy Ci kody rabatowe i nowości." : "Wyłączone — nie wysyłamy Ci kodów ani nowości."} Maile o zamówieniach dostajesz zawsze.
+              </span>
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={zgoda}
+              aria-label="Kody rabatowe i nowości e-mailem"
+              onClick={() => void przelaczZgode()}
+              disabled={zgodaBusy}
+              className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-60 ${zgoda ? "bg-akcent" : "bg-linia-2"}`}
+            >
+              <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${zgoda ? "left-[22px]" : "left-0.5"}`} />
+            </button>
+          </div>
+          {zgodaKom ? <p className="mt-3 text-[13px] font-medium text-ink-2">{zgodaKom}</p> : null}
         </div>
       </div>
 

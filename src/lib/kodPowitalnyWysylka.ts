@@ -3,6 +3,7 @@ import { katalogWidoczny } from "@/lib/produktyDb";
 import { sprzedazOstatnio } from "@/lib/hitTygodnia";
 import { wyslijMailKodPowitalny, mailWlaczony, type ProduktMail } from "@/lib/mail";
 import { BAZA } from "@/lib/mailSzablon";
+import { linkWylaczeniaZgody } from "@/lib/zgodaToken";
 import { KOD_POWITALNY, kontaKlientow, doWysylki, polecaneProdukty, oznaczWyslany, type KontoKlienta } from "@/lib/kodPowitalny";
 
 async function produktyDoMaila(): Promise<ProduktMail[]> {
@@ -22,6 +23,7 @@ export async function wyslijKodPowitalny(
     kod: KOD_POWITALNY.kod,
     procent: KOD_POWITALNY.procent,
     produkty: produkty ?? (await produktyDoMaila()),
+    linkZgody: linkWylaczeniaZgody(k.id),
   });
   if (!mail.ok) return mail;
   return { ok: true, czas: await oznaczWyslany(sb, k) };

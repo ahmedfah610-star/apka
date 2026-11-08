@@ -181,6 +181,8 @@ describe("panel: ręczna wysyłka", () => {
     expect(maile[0].to).toBe("tomasz@example.com");
     expect(maile[0].subject).toContain("Tomasz, odbierz swój kod rabatowy −5%");
     expect(maile[0].html).toContain("<img");
+    expect(maile[0].html).toContain("/api/konto/zgoda?u=u-tomasz&amp;t=");
+    expect(maile[0].html).toContain("Wyłącz jednym kliknięciem");
     expect(upserty[0].klucz).toBe("kod-powitalny:u-tomasz");
   });
 
