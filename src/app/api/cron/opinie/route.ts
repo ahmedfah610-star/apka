@@ -2,6 +2,7 @@ import { sbService } from "@/lib/supabase";
 import { wyslijMailProsbaOOpinie, mailWlaczony } from "@/lib/mail";
 import { przypomnijKoszyki } from "@/lib/koszykCron";
 import { kodyPowitalneCron } from "@/lib/kodPowitalnyWysylka";
+import { automatycznePrzypomnienia } from "@/lib/przypomnieniaPlatnosci";
 import { scalProdukty, przeklasyfikuj } from "@/lib/allegroImport";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 
@@ -77,6 +78,8 @@ export async function GET(req: Request) {
   const koszyk = await przypomnijKoszyki();
   // Kod powitalny NOWY5 dla kont, które przez dobę nic nie kupiły.
   const kodPowitalny = await kodyPowitalneCron(sb);
+  // Przypomnienia o niedokończonej płatności (drugi przebieg wieczorem — cron allegro-stany).
+  const przypomnienia = await automatycznePrzypomnienia(sb);
 
-  return Response.json({ ok: true, wyslano, sprawdzono: data?.length ?? 0, koszyk, kodPowitalny, scal, przekat });
+  return Response.json({ ok: true, wyslano, sprawdzono: data?.length ?? 0, koszyk, kodPowitalny, przypomnienia, scal, przekat });
 }

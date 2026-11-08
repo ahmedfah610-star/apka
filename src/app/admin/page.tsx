@@ -109,7 +109,9 @@ export default function PulpitAdmina() {
   const doWyslaniaLista = prawdziwe.filter((z) => z.status === "oplacone" || z.status === "nowe");
   const doWyslania = doWyslaniaLista.length;
   const spoznione = doWyslaniaLista.filter((z) => teraz - new Date(z.data).getTime() > 24 * 3600 * 1000).length;
-  const nieoplacone = prawdziwe.filter((z) => z.status === "oczekuje_na_platnosc" && teraz - new Date(z.data).getTime() < 3 * 86400 * 1000).length;
+  const nieoplaconeLista = prawdziwe.filter((z) => z.status === "oczekuje_na_platnosc" && teraz - new Date(z.data).getTime() < 3 * 86400 * 1000);
+  const nieoplacone = nieoplaconeLista.length;
+  const przypomniane = nieoplaconeLista.filter((z) => !!(z.klient as { przypomnienie?: string } | undefined)?.przypomnienie).length;
   const syncStara = raport ? teraz - new Date(raport.czas).getTime() > 30 * 3600 * 1000 : false;
   const syncProblem = !!raport && (!raport.ok || syncStara);
   const wygaslo = !!raport && !raport.ok && /wygasło|połączenia z Allegro/i.test(raport.blad ?? "");
@@ -157,7 +159,18 @@ export default function PulpitAdmina() {
               />
             ) : null}
             {nieoplacone > 0 ? (
-              <Zadanie href="/admin/zamowienia" ile={nieoplacone} tytul="Czekają na płatność" opis="Klient nie dokończył płatności (ostatnie 3 dni) — możesz się odezwać" />
+              <Zadanie
+                href="/admin/zamowienia"
+                ile={nieoplacone}
+                tytul="Czekają na płatność"
+                opis={
+                  przypomniane === nieoplacone
+                    ? `✓ Wysłano ${nieoplacone > 1 ? "klientom" : "klientowi"} maila z przypomnieniem i linkiem do płatności`
+                    : przypomniane > 0
+                      ? `Przypomnienie o płatności wysłane: ${przypomniane} z ${nieoplacone} — pozostałym wyślemy automatycznie`
+                      : "Mail z przypomnieniem i linkiem do płatności wyślemy automatycznie"
+                }
+              />
             ) : null}
             {raport?.niedopasowane ? (
               <Zadanie href="/admin/import" ile={raport.niedopasowane} tytul="Oferty z Allegro, których nie ma w sklepie" opis="Pobierz nowe produkty jednym kliknięciem" />

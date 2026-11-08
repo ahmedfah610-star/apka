@@ -28,6 +28,7 @@ interface Klient {
   uwagi?: string;
   test?: boolean;
   przypomnienie?: string; // kiedy wysłano przypomnienie o płatności
+  przypomnienieAuto?: boolean; // wysłane automatycznie
 }
 interface Zamowienie {
   id: string;
@@ -263,6 +264,7 @@ export default function AdminZamowienia() {
               <>
                 <p className="mt-1 text-[12.5px] leading-snug text-ink-2">
                   Mail „Twoje zamówienie czeka na dokończenie!" z przyciskiem „Zapłać {formatCena(z.razem)} zł" (od razu do Przelewy24), koszykiem z dostawą i danymi klienta.
+                  {z.klient.przypomnienie ? "" : " Wysyła się sam po godzinie (przy najbliższym przebiegu: ok. 12:00 lub 21:00) — możesz też wysłać od razu."}
                 </p>
                 <button
                   onClick={() => void wyslijPrzypomnienie(z)}
@@ -273,7 +275,8 @@ export default function AdminZamowienia() {
                 </button>
                 {z.klient.przypomnienie ? (
                   <p className="mt-1.5 text-[12px] text-ink-2">
-                    Wysłano: {new Date(z.klient.przypomnienie).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                    ✓ Wysłano{z.klient.przypomnienieAuto ? " automatycznie" : ""}:{" "}
+                    {new Date(z.klient.przypomnienie).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                   </p>
                 ) : null}
                 {przyp[z.id] && przyp[z.id] !== "…" ? <p className="mt-1 text-[12px] font-semibold text-ink">{przyp[z.id]}</p> : null}

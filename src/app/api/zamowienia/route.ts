@@ -1,6 +1,7 @@
 import { czyAdmin } from "@/lib/adminAuth";
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { wyslijMailWyslano, wyslijPrzypomnieniePlatnosci } from "@/lib/mail";
+import { danePrzypomnienia } from "@/lib/przypomnieniaPlatnosci";
 
 export const dynamic = "force-dynamic";
 
@@ -108,17 +109,7 @@ export async function POST(req: Request) {
   const klient = (z.klient ?? {}) as Record<string, unknown> & { email?: string };
   if (!klient.email) return Response.json({ ok: false, blad: "Zamówienie nie ma adresu e-mail." }, { status: 400 });
 
-  const mail = await wyslijPrzypomnieniePlatnosci({
-    id: String(z.id),
-    data: String(z.created_at),
-    pozycje: (z.pozycje as never[]) ?? [],
-    razem: Number(z.razem),
-    dostawa: Number(z.dostawa),
-    rabat: Number(z.rabat ?? 0),
-    kod: (z.kod_rabatowy as string | null) ?? null,
-    metoda: String(z.metoda ?? ""),
-    klient,
-  });
+  const mail = await wyslijPrzypomnieniePlatnosci(danePrzypomnienia(z));
   if (!mail.ok) return Response.json({ ok: false, blad: mail.blad || "Nie udało się wysłać maila." }, { status: 502 });
   const przypomnienie = new Date().toISOString();
   await sb.from("zamowienia").update({ klient: { ...klient, przypomnienie } }).eq("id", id);
