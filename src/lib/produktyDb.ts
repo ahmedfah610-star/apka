@@ -191,6 +191,17 @@ async function katalogWidocznyZBazy(): Promise<Produkt[]> {
   return przypiszRodziny(PRODUKTY.filter((p) => !p.ukryty));
 }
 
+/** Kiedy produkt trafił do sklepu (id → data) — prawdziwe daty do mapy strony. */
+async function datyDodaniaZBazy(): Promise<Record<string, string>> {
+  if (!supabaseWlaczony()) return {};
+  const sb = sbService() ?? sbAnon();
+  if (!sb) return {};
+  const { data, error } = await sb.from("produkty").select("id, created_at").eq("ukryty", false).limit(5000);
+  if (error || !data) return {};
+  return Object.fromEntries((data as { id: string; created_at: string }[]).map((r) => [r.id, r.created_at]));
+}
+export const datyDodania = unstable_cache(datyDodaniaZBazy, ["daty-dodania"], { tags: [TAG_KATALOGU], revalidate: 3600 });
+
 /** Pełny katalog (także wyłączone) — dla panelu. */
 export async function katalogWszystko(): Promise<Produkt[]> {
   if (supabaseWlaczony()) {

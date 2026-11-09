@@ -30,6 +30,8 @@ export function produktyKolekcji(produkty: Produkt[], kol: Kolekcja): Produkt[] 
   return produkty.filter((p) => {
     if (kol.kategoria && p.kategoria !== kol.kategoria) return false;
     if (kol.dopasuj) return kol.dopasuj(p);
+    // Kolekcje „dziecięce" bez działu (dresy, komplety, body, czapki) — bez odzieży męskiej.
+    if (!kol.kategoria && p.kategoria === "dorosli") return false;
     const n = norm(p.nazwa);
     return kol.klucze.some((k) => n.includes(k));
   });
@@ -43,10 +45,21 @@ const FAQ_ROZMIAR = {
   q: "Jak dobrać rozmiar?",
   a: "Rozmiar odpowiada wzrostowi dziecka w centymetrach (np. 92 = ok. 92 cm wzrostu). Zmierz dziecko i wybierz najbliższy rozmiar; jeśli jest pomiędzy — weź większy. Na karcie każdego produktu znajdziesz tabelę rozmiarów.",
 };
+const FAQ_ROZMIAR_MESKI = {
+  q: "Jak dobrać rozmiar?",
+  a: "Najpewniej po wymiarach: na karcie produktu przy każdym rozmiarze podajemy wymiary w centymetrach. Zmierz na płasko ulubiony sweter, bluzę lub spodnie i porównaj. Jeśli jesteś między rozmiarami — wybierz większy.",
+};
+const FAQ_DUZE_ROZMIARY = {
+  q: "Czy są duże rozmiary?",
+  a: "Tak. Wiele modeli mamy w rozmiarach od M do 3XL, a wybrane także w 4XL, 5XL, 6XL i 7XL. Dostępne rozmiary widać na karcie każdego produktu.",
+};
 const FAQ_DOSTAWA = {
   q: "Jak szybko dotrze zamówienie?",
   a: "Wysyłamy w 1–2 dni robocze przez InPost, ORLEN Paczka, DPD lub DHL. Darmowa dostawa od {darmowaOd}, a na zwrot masz 14 dni.",
 };
+
+// Rozmiary 3XL i większe (także łączone, np. „2XL/3XL").
+const DUZY_ROZMIAR = /(^|\/)[3-7]XL$/i;
 
 export const KOLEKCJE: Kolekcja[] = [
   // ── Sezon ────────────────────────────────────────────────────────────────
@@ -251,5 +264,74 @@ export const KOLEKCJE: Kolekcja[] = [
     kategoria: null,
     klucze: ["czapk", "opaska"],
     faq: [FAQ_ROZMIAR, FAQ_DOSTAWA],
+  },
+  // ── Męskie ───────────────────────────────────────────────────────────────
+  {
+    slug: "swetry-meskie",
+    h1: "Swetry męskie",
+    tytul: "Swetry męskie — rozpinane, z półgolfem i dekoltem V",
+    opis: "Swetry męskie: rozpinane na zamek, z półgolfem, z dekoltem V i okrągłym, cienkie i ocieplane polarem. Rozmiary od M do 7XL. Wysyłka w 1–2 dni, 14 dni na zwrot.",
+    wstep:
+      "Sweter męski na co dzień i do pracy — w tej kolekcji znajdziesz swetry rozpinane na zamek, modele z półgolfem na zamek lub guziki, klasyczne z dekoltem V i z okrągłym dekoltem. Są cienkie, lekkie swetry pod marynarkę oraz ciepłe, podszyte polarem lub futerkiem na zimę. Większość modeli ma szeroką rozmiarówkę — od M do 3XL, a wybrane także większe. Przy każdym rozmiarze podajemy wymiary w centymetrach, więc łatwo dobrać sweter bez przymierzania.",
+    kategoria: "dorosli",
+    klucze: ["sweter"],
+    faq: [
+      {
+        q: "Jaki sweter męski wybrać na zimę?",
+        a: "Na mrozy najlepiej sprawdza się sweter rozpinany z półgolfem, podszyty polarem lub futerkiem — grzeje jak lekka kurtka i łatwo go zdjąć w pomieszczeniu. Do biura i pod marynarkę wybierz cienki sweter z dekoltem V lub półgolfem.",
+      },
+      FAQ_ROZMIAR_MESKI,
+      FAQ_DUZE_ROZMIARY,
+      FAQ_DOSTAWA,
+    ],
+  },
+  {
+    slug: "bluzy-meskie",
+    h1: "Bluzy męskie",
+    tytul: "Bluzy męskie — z kapturem, rozpinane i bez kaptura",
+    opis: "Bluzy męskie i młodzieżowe: z kapturem typu kangur, rozpinane na zamek oraz bez kaptura. Ciepłe i wygodne, rozmiary od M do 7XL. Wysyłka w 1–2 dni, 14 dni na zwrot.",
+    wstep:
+      "Bluza męska to najwygodniejsza warstwa na chłodniejsze dni. Mamy bluzy z kapturem i kieszenią kangurką, bluzy rozpinane na zamek oraz modele bez kaptura — także sportowe i w stylu college. Ciepłe, miękkie od środka dzianiny sprawdzają się na spacer, trening i do domu. Bluzy młodzieżowe i męskie dobierzesz po wymiarach w centymetrach podanych przy każdym rozmiarze.",
+    kategoria: "dorosli",
+    klucze: ["bluza"],
+    faq: [FAQ_ROZMIAR_MESKI, FAQ_DUZE_ROZMIARY, FAQ_DOSTAWA],
+  },
+  {
+    slug: "spodnie-dresowe-meskie",
+    h1: "Spodnie dresowe męskie",
+    tytul: "Spodnie dresowe męskie — cienkie i ocieplane",
+    opis: "Spodnie dresowe męskie: cienkie na co dzień i ocieplane na zimę, także bojówki. Wygodna gumka w pasie, rozmiary od M do 7XL. Wysyłka w 1–2 dni, 14 dni na zwrot.",
+    wstep:
+      "Męskie spodnie dresowe do domu, na trening i na co dzień. W kolekcji są cienkie dresy na cieplejsze dni, spodnie ocieplane od środka na zimę oraz wygodne bojówki z kieszeniami. Wszystkie mają elastyczną gumkę w pasie i luźny, sportowy fason. Rozmiar dobierzesz po wymiarach w centymetrach podanych na karcie produktu.",
+    kategoria: "dorosli",
+    klucze: ["spodnie", "dres"],
+    faq: [
+      {
+        q: "Czym różnią się spodnie dresowe cienkie od ocieplanych?",
+        a: "Cienkie są z lżejszej dzianiny — dobre do domu, na trening i na cieplejsze miesiące. Ocieplane mają miękki meszek od środka i sprawdzają się jesienią i zimą, także na dwór.",
+      },
+      FAQ_ROZMIAR_MESKI,
+      FAQ_DUZE_ROZMIARY,
+      FAQ_DOSTAWA,
+    ],
+  },
+  {
+    slug: "odziez-meska-duze-rozmiary",
+    h1: "Odzież męska — duże rozmiary",
+    tytul: "Odzież męska duże rozmiary 3XL–7XL — swetry, bluzy, dresy",
+    opis: "Odzież męska w dużych rozmiarach: swetry, bluzy i spodnie dresowe 3XL, 4XL, 5XL, 6XL i 7XL. Wymiary w centymetrach przy każdym rozmiarze. Wysyłka w 1–2 dni, 14 dni na zwrot.",
+    wstep:
+      "Duże rozmiary bez przepłacania. Zebraliśmy tu swetry, bluzy i spodnie dresowe dostępne w rozmiarach 3XL i większych — aż do 7XL. Fasony są luźne i wygodne, a dzianiny miękkie i rozciągliwe. Żeby nie zgadywać, przy każdym rozmiarze podajemy wymiary w centymetrach. Wystarczy zmierzyć ubranie, które dobrze leży, i porównać.",
+    kategoria: "dorosli",
+    klucze: ["duze rozmiary", "plus size", "3xl", "4xl", "5xl", "6xl", "7xl"], // do wyszukiwarki — produkty wybiera `dopasuj`
+    dopasuj: (p) => (p.rozmiary ?? []).some((r) => DUZY_ROZMIAR.test(r)),
+    faq: [
+      {
+        q: "Jakie duże rozmiary są dostępne?",
+        a: "W tej kolekcji są produkty w rozmiarach 3XL, 4XL, 5XL, 6XL i 7XL — zależnie od modelu. Aktualnie dostępne rozmiary widać na karcie produktu.",
+      },
+      FAQ_ROZMIAR_MESKI,
+      FAQ_DOSTAWA,
+    ],
   },
 ];

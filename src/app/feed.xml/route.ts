@@ -1,3 +1,4 @@
+import { urlProduktu } from "@/lib/adresProduktu";
 import { katalogWidoczny, opisyRozmiarowTekst } from "@/lib/produktyDb";
 import { czyCieply } from "@/lib/sezon";
 import { opisProduktu, KATEGORIE_LABEL, type Produkt } from "@/data/produkty";
@@ -59,7 +60,7 @@ function pozycja(
   dostawa: UstawieniaDostawy,
   wariant: { id: string; rozmiar?: string; dostepny: boolean; grupa?: string; opis?: string },
 ): string {
-  const link = `${BAZA_URL}/produkty/${p.id}`;
+  const link = `${BAZA_URL}${urlProduktu(p)}`;
   const zdj = (p.zdjecia?.length ? p.zdjecia : p.zdjecie ? [p.zdjecie] : []).filter(Boolean);
   const dodatkowe = zdj.slice(1, 11).map((u) => `    <g:additional_image_link>${txt(u)}</g:additional_image_link>`).join("\n");
   return `  <item>

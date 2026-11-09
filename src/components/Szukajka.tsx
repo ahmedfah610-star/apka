@@ -1,5 +1,6 @@
 "use client";
 
+import { urlProduktu } from "@/lib/adresProduktu";
 import { zdjecie } from "@/lib/zdjecia";
 import Link from "next/link";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
@@ -190,7 +191,7 @@ export function Szukajka({ mobilna = false }: { mobilna?: boolean }) {
         href: `/produkty?szukaj=${encodeURIComponent(fraza)}&kategoria=${k}`,
         fraza,
       })),
-      ...wynik.produkty.map((p) => ({ klucz: `p:${p.id}`, href: `/produkty/${p.id}` })),
+      ...wynik.produkty.map((p) => ({ klucz: `p:${p.id}`, href: urlProduktu(p) })),
     ];
   }, [wynik, historia, fraza]);
   const indeks = (klucz: string) => pozycje.findIndex((p) => p.klucz === klucz);
@@ -368,7 +369,7 @@ export function Szukajka({ mobilna = false }: { mobilna?: boolean }) {
               {wynik.produkty.map((p) => (
                 <Link
                   key={p.id}
-                  href={`/produkty/${p.id}`}
+                  href={urlProduktu(p)}
                   onClick={() => {
                     zapamietaj(fraza);
                     zamknij();

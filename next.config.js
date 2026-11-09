@@ -46,6 +46,17 @@ const nextConfig = {
       { source: "/blog/bawelna-organiczna-czy-warto", destination: "/blog/bawelna-w-ubrankach-dzieciecych", permanent: true },
     ];
   },
+  // Czytelne adresy produktów: /produkty/<nazwa>-<kolor>-<id> wyświetla tę samą kartę co /produkty/<id>
+  // (wewnętrznie strona jest zapisywana po id — odświeżanie po sprzedaży działa bez zmian).
+  // Wzór id jak w src/lib/adresProduktu.ts.
+  async rewrites() {
+    return [
+      {
+        source: "/produkty/:slug([a-z0-9-]+)-:id(al-m-[a-z0-9]+|reczny-[a-z0-9]+|al-[a-z0-9]+)",
+        destination: "/produkty/:id",
+      },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: naglowkiBezpieczenstwa }];
   },

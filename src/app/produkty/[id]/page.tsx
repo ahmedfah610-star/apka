@@ -1,3 +1,4 @@
+import { urlProduktu } from "@/lib/adresProduktu";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { WidokProduktu } from "@/components/WidokProduktu";
@@ -51,12 +52,12 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   return {
     title: `${p.nazwa} — ${KATEGORIE_LABEL[p.kategoria]}`,
     description: opis,
-    alternates: { canonical: `/produkty/${p.id}` },
+    alternates: { canonical: urlProduktu(p) },
     openGraph: {
       type: "website",
       title: p.nazwa,
       description: opis,
-      url: `${BAZA_URL}/produkty/${p.id}`,
+      url: `${BAZA_URL}${urlProduktu(p)}`,
       images: zdjecia.map((u) => ({ url: u })),
     },
     twitter: { card: "summary_large_image", title: p.nazwa, description: opis, images: zdjecia },
@@ -104,7 +105,7 @@ function daneProduktu(p: Produkt, opinie: Opinia[], najtanszaDostawaZl: number) 
         price: p.cena.toFixed(2),
         availability: dostepny ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
         itemCondition: "https://schema.org/NewCondition",
-        url: `${BAZA_URL}/produkty/${p.id}`,
+        url: `${BAZA_URL}${urlProduktu(p)}`,
         seller: { "@type": "Organization", name: NAZWA_SKLEPU },
         shippingDetails: szczegolyWysylki(najtanszaDostawaZl),
         hasMerchantReturnPolicy: RETURN_POLICY,
@@ -116,7 +117,7 @@ function daneProduktu(p: Produkt, opinie: Opinia[], najtanszaDostawaZl: number) 
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Produkty", item: `${BAZA_URL}/produkty` },
         { "@type": "ListItem", position: 2, name: KATEGORIE_LABEL[p.kategoria], item: `${BAZA_URL}/produkty?kategoria=${p.kategoria}` },
-        { "@type": "ListItem", position: 3, name: p.nazwa, item: `${BAZA_URL}/produkty/${p.id}` },
+        { "@type": "ListItem", position: 3, name: p.nazwa, item: `${BAZA_URL}${urlProduktu(p)}` },
       ],
     },
   ];

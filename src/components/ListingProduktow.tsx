@@ -1,6 +1,8 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { KOLEKCJE } from "@/data/kolekcje";
 import { useSearchParams } from "next/navigation";
 import { Nawigacja } from "@/components/Nawigacja";
 import { KartaProduktu } from "@/components/KartaProduktu";
@@ -53,8 +55,19 @@ const OPISY_KATEGORII: Record<string, string> = {
   niemowleta:
     "Ubranka dla niemowląt i noworodków: body, pajacyki, śpiochy, komplety i czapeczki. Delikatna bawełna, zatrzaski ułatwiające przewijanie i płaskie szwy przyjazne skórze malucha.",
   dorosli:
-    "Odzież męska — bluzy, dresy, spodnie i koszulki w wygodnych fasonach. Rozmiary od S do 6XL. Ta sama niska cena co w reszcie sklepu.",
+    "Odzież męska: swetry rozpinane i z półgolfem, bluzy z kapturem oraz spodnie dresowe — cienkie i ocieplane. Rozmiary od M do 7XL, przy każdym wymiary w centymetrach.",
 };
+
+// Nagłówki stron kategorii pod to, czego ludzie szukają (zamiast samego „Niemowlęta").
+const NAGLOWKI_KATEGORII: Partial<Record<FiltrKategoria, string>> = {
+  niemowleta: "Ubranka dla niemowląt",
+  dziewczynki: "Ubranka dla dziewczynek",
+  chlopcy: "Ubranka dla chłopców",
+  dorosli: "Odzież męska",
+};
+
+// Ile kafelków na start (tyle trafia do kodu strony z serwera); reszta dochodzi przy przewijaniu.
+const NA_START = 48;
 
 // „1 produkt", „3 produkty", „232 produkty", „12 produktów".
 function produktow(n: number): string {
@@ -65,19 +78,23 @@ function produktow(n: number): string {
 
 const POPULARNE = ["body", "komplet", "legginsy", "dres", "pajacyk", "bluza", "czapka"];
 
-function Listing() {
+function Listing({ poczatkowe }: { poczatkowe?: Produkt[] }) {
   const params = useSearchParams();
 
   // Katalog z kodu + produkty dodane w panelu (localStorage).
   const { darmowaOd } = useDostawa();
-  const [wszystkie, setWszystkie] = useState<Produkt[]>(PRODUKTY);
+  // Start: lista z serwera (jest w kodzie strony — widzi ją Google i klient od razu).
+  // Pełny katalog z opisami dociągamy tylko, gdy go nie ma albo gdy klient szuka (szukanie w opisach).
+  const [wszystkie, setWszystkie] = useState<Produkt[]>(poczatkowe?.length ? poczatkowe : PRODUKTY);
+  const szukaTekstu = !!(params.get("szukaj") ?? "").trim();
   useEffect(() => {
+    if (poczatkowe?.length && !szukaTekstu) return;
     pobierzKatalog().then((k) => {
       if (k) {
         setWszystkie(k);
       }
     });
-  }, []);
+  }, [poczatkowe, szukaTekstu]);
   // Zwinięta lista rozmiarów: 18 najczęstszych (w naturalnej kolejności), reszta pod „Pokaż wszystkie".
   const CZESTE_ROZMIARY = useMemo(() => {
     const ile = new Map<string, number>();
@@ -168,6 +185,22 @@ function Listing() {
   // Zwiń warianty kolorystyczne (po opisie) — jeden kafel na model.
   const zwiniete = useMemo(() => zwinWarianty(produkty), [produkty]);
 
+  // Kafelki partiami: pierwsze NA_START od razu, kolejne same przy przewijaniu (lżejsza strona).
+  const [ile, setIle] = useState(NA_START);
+  useEffect(() => setIle(NA_START), [kategoria, wiek, sortBy, rozmiary, cenaIdx, wyroznienie, fraza]);
+  const koniecListy = useRef<HTMLDivElement>(null);
+  const jestWiecej = zwiniete.length > ile;
+  useEffect(() => {
+    const el = koniecListy.current;
+    if (!el || !jestWiecej || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((w) => w.some((x) => x.isIntersecting) && setIle((n) => n + NA_START), { rootMargin: "900px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [jestWiecej, ile]);
+
+  // Kolekcje tego działu (np. „Swetry męskie") — linki pod opisem kategorii.
+  const kolekcjeDzialu = !fraza && kategoria !== "wszystkie" ? KOLEKCJE.filter((k) => k.kategoria === kategoria) : [];
+
   const toggleKat = (k: FiltrKategoria) => setKategoria((c) => (c === k ? "wszystkie" : k));
   const toggleWiek = (w: FiltrWiek) => setWiek((c) => (c === w ? "wszystkie" : w));
   const toggleRozmiar = (s: string) =>
@@ -204,7 +237,7 @@ function Listing() {
           ) : tylkoDzieci && kategoria === "wszystkie" ? (
             "Dla dzieci"
           ) : (
-            KATEGORIE_LABEL[kategoria]
+            NAGLOWKI_KATEGORII[kategoria] ?? KATEGORIE_LABEL[kategoria]
           )}
         </h1>
         <p className={`text-[14px] text-ink-2 md:text-[15px] ${!fraza && OPISY_KATEGORII[kategoria] ? "mb-2 md:mb-3" : "mb-4 md:mb-7"}`}>
@@ -235,6 +268,19 @@ function Listing() {
         ) : null}
         {!fraza && OPISY_KATEGORII[kategoria] ? (
           <p className="mb-4 line-clamp-2 max-w-3xl text-[13px] leading-relaxed text-ink-2 md:mb-7 md:line-clamp-none md:text-[14.5px]">{zProgiem(OPISY_KATEGORII[kategoria], darmowaOd)}</p>
+        ) : null}
+        {kolekcjeDzialu.length ? (
+          <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:mb-7 md:flex-wrap md:px-0 [&::-webkit-scrollbar]:hidden">
+            {kolekcjeDzialu.map((k) => (
+              <Link
+                key={k.slug}
+                href={`/kolekcje/${k.slug}`}
+                className="shrink-0 rounded-full border border-linia-2 bg-white px-3.5 py-2 text-[13px] font-semibold text-ink no-underline transition-colors hover:border-ink"
+              >
+                {k.h1}
+              </Link>
+            ))}
+          </div>
         ) : null}
       </div>
 
@@ -418,9 +464,20 @@ function Listing() {
 
           {zwiniete.length > 0 ? (
             <div className="grid grid-cols-2 gap-x-2.5 gap-y-5 md:grid-cols-3 md:gap-x-6 md:gap-y-8">
-              {zwiniete.map(({ produkt, kolory, cenaMin, cenyRozne }) => (
+              {zwiniete.slice(0, ile).map(({ produkt, kolory, cenaMin, cenyRozne }) => (
                 <KartaProduktu key={produkt.id} produkt={produkt} liczbaKolorow={kolory} cenaOd={cenyRozne ? cenaMin : undefined} />
               ))}
+              {jestWiecej ? (
+                <div ref={koniecListy} className="col-span-full flex justify-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIle((n) => n + NA_START)}
+                    className="rounded-lg border-[1.5px] border-ink px-6 py-3 text-[14px] font-bold text-ink hover:bg-ink hover:text-white"
+                  >
+                    Pokaż więcej ({zwiniete.length - ile})
+                  </button>
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="rounded-2xl bg-white px-5 py-12 text-center text-ink-2">
@@ -467,10 +524,10 @@ function Listing() {
   );
 }
 
-export default function ListingProduktow() {
+export default function ListingProduktow({ poczatkowe }: { poczatkowe?: Produkt[] }) {
   return (
     <Suspense fallback={<div className="p-12 text-ink-2">Ładowanie…</div>}>
-      <Listing />
+      <Listing poczatkowe={poczatkowe} />
     </Suspense>
   );
 }

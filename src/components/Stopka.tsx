@@ -12,6 +12,8 @@ const POPULARNE = [
   "komplety-dzieciece",
   "dresy-dzieciece",
   "czapki-dzieciece",
+  "swetry-meskie",
+  "bluzy-meskie",
 ]
   .map((s) => KOLEKCJE.find((k) => k.slug === s))
   .filter((k): k is (typeof KOLEKCJE)[number] => !!k);

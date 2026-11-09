@@ -1,3 +1,4 @@
+import { urlProduktu } from "@/lib/adresProduktu";
 import { zdjecie, zestawZdjec } from "@/lib/zdjecia";
 import Link from "next/link";
 import type { Produkt } from "@/data/produkty";
@@ -23,7 +24,7 @@ export function KartaProduktu({ produkt, liczbaKolorow, cenaOd }: { produkt: Pro
 
   return (
     <Link
-      href={`/produkty/${produkt.id}`}
+      href={urlProduktu(produkt)}
       className="group flex h-full flex-col overflow-hidden rounded-xl border border-linia bg-white text-inherit no-underline transition-shadow hover:shadow-[0_10px_28px_-16px_rgba(0,0,0,0.35)]"
     >
       <div className="relative flex aspect-square items-center justify-center overflow-hidden" style={produkt.zdjecie ? undefined : placeholder}>

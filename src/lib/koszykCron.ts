@@ -1,3 +1,4 @@
+import { urlProduktu } from "@/lib/adresProduktu";
 import { sbService } from "@/lib/supabase";
 import { katalogWidoczny } from "@/lib/produktyDb";
 import { wyslijMailPorzuconyKoszyk, mailWlaczony, type ProduktMail } from "@/lib/mail";
@@ -67,7 +68,7 @@ export async function przypomnijKoszyki(): Promise<{ ok: boolean; powod?: string
       .map((it) => mapa.get(String(it.id)))
       .filter((p): p is NonNullable<typeof p> => !!p)
       .slice(0, 4)
-      .map((p) => ({ nazwa: p.nazwa, cena: p.cena, zdjecie: p.zdjecie ?? null, url: `${BAZA}/produkty/${p.id}` }));
+      .map((p) => ({ nazwa: p.nazwa, cena: p.cena, zdjecie: p.zdjecie ?? null, url: `${BAZA}${urlProduktu(p)}` }));
     if (produkty.length === 0) continue;
 
     const res = await wyslijMailPorzuconyKoszyk({ email, imie, produkty });

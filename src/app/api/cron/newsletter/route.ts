@@ -1,3 +1,4 @@
+import { urlProduktu } from "@/lib/adresProduktu";
 import { sbService } from "@/lib/supabase";
 import { katalogWidoczny } from "@/lib/produktyDb";
 import { ARTYKULY } from "@/data/blog";
@@ -39,7 +40,7 @@ export async function GET(req: Request) {
   const nowosci = wybierzNowosci(await katalogWidoczny(), dodane);
   if (nowosci.length === 0) return zapisz({ wyslano: 0, subskrybenci: adresy.length, produkty: [], powod: "brak_nowosci" });
 
-  const produkty: ProduktMail[] = nowosci.map((p) => ({ nazwa: p.nazwa, cena: p.cena, zdjecie: p.zdjecie ?? null, url: `${BAZA}/produkty/${p.id}` }));
+  const produkty: ProduktMail[] = nowosci.map((p) => ({ nazwa: p.nazwa, cena: p.cena, zdjecie: p.zdjecie ?? null, url: `${BAZA}${urlProduktu(p)}` }));
   const a = artykulTygodnia(ARTYKULY, teraz);
   const artykul = a ? { tytul: a.tytul, opis: a.opis, url: `${BAZA}/blog/${a.slug}` } : undefined;
   const temat = tematNewslettera(nowosci);

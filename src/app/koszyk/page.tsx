@@ -1,5 +1,6 @@
 "use client";
 
+import { urlProduktu } from "@/lib/adresProduktu";
 import { zdjecie } from "@/lib/zdjecia";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -154,7 +155,7 @@ export default function StronaKoszyka() {
               <div className="divide-y divide-linia overflow-hidden rounded-2xl border border-linia bg-white">
                 {pozycjeZDanymi.map(({ poz, produkt }) => (
                   <div key={`${poz.id}-${poz.rozmiar ?? ""}`} className="flex gap-4 p-4 sm:p-5">
-                    <Link href={`/produkty/${produkt!.id}`} className="flex h-28 w-24 shrink-0 items-center justify-center rounded-lg border border-linia bg-szary/40">
+                    <Link href={urlProduktu(produkt!)} className="flex h-28 w-24 shrink-0 items-center justify-center rounded-lg border border-linia bg-szary/40">
                       {produkt!.zdjecie ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={zdjecie(produkt!.zdjecie, "s360")} alt={produkt!.nazwa} className="h-full w-full object-contain p-1.5" />
@@ -164,7 +165,7 @@ export default function StronaKoszyka() {
                     <div className="flex flex-1 flex-col">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <Link href={`/produkty/${produkt!.id}`} className="block text-[15px] font-semibold leading-snug no-underline text-ink hover:text-akcent">
+                          <Link href={urlProduktu(produkt!)} className="block text-[15px] font-semibold leading-snug no-underline text-ink hover:text-akcent">
                             {produkt!.nazwa}
                           </Link>
                           {produkt!.kolor ? (

@@ -1,3 +1,4 @@
+import { urlProduktu } from "@/lib/adresProduktu";
 import { zdjecie } from "@/lib/zdjecia";
 import Link from "next/link";
 import { Nawigacja } from "@/components/Nawigacja";
@@ -144,7 +145,7 @@ export default async function StronaGlowna() {
         <div className="grid grid-cols-2 gap-2.5 md:grid-cols-[2fr_1fr] md:gap-4">
           {hit ? (
             <Link
-              href={`/produkty/${hit.produkt.id}`}
+              href={urlProduktu(hit.produkt)}
               className="relative col-span-2 grid min-h-[230px] grid-cols-[1fr_auto] items-center gap-4 overflow-hidden rounded-2xl bg-akcent p-5 text-white no-underline md:col-span-1 md:row-span-2 md:min-h-[380px] md:grid-cols-[1.1fr_1fr] md:gap-8 md:px-10 md:py-9"
             >
               <div className="flex min-w-0 flex-col">

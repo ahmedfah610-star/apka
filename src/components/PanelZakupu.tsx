@@ -1,5 +1,6 @@
 "use client";
 
+import { urlProduktu } from "@/lib/adresProduktu";
 import { zdjecie } from "@/lib/zdjecia";
 import { useEffect, useMemo, useState } from "react";
 import { DodajDoKoszyka, pozycjaPomiaru } from "@/components/DodajDoKoszyka";
@@ -36,9 +37,9 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
   // Adres w pasku zgodny z wybranym kolorem (bez przeładowania) — do udostępnienia/odświeżenia.
   useEffect(() => {
     if (typeof window !== "undefined" && aktywnyId !== startId) {
-      window.history.replaceState(null, "", `/produkty/${aktywnyId}`);
+      window.history.replaceState(null, "", urlProduktu(warianty.find((x) => x.id === aktywnyId) ?? { id: aktywnyId, nazwa: "" }));
     }
-  }, [aktywnyId, startId]);
+  }, [aktywnyId, startId, warianty]);
 
   // GA4: obejrzenie produktu (także po zmianie koloru — to inny wariant/oferta).
   useEffect(() => {

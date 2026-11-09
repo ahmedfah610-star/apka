@@ -37,7 +37,9 @@ export default async function StronaKolekcji({ params }: { params: { slug: strin
   const produkty = produktyKolekcji(katalog, kol);
 
   // Pozostałe kolekcje do linkowania wewnętrznego.
-  const inne = KOLEKCJE.filter((k) => k.slug !== kol.slug).slice(0, 8);
+  // Najpierw kolekcje z tego samego działu (np. męskie przy męskich).
+  const pozostale = KOLEKCJE.filter((k) => k.slug !== kol.slug);
+  const inne = [...pozostale.filter((k) => k.kategoria === kol.kategoria), ...pozostale.filter((k) => k.kategoria !== kol.kategoria)].slice(0, 8);
 
   const ld = [
     {

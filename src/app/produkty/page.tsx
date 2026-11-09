@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import ListingProduktow from "@/components/ListingProduktow";
+import { katalogWidoczny } from "@/lib/produktyDb";
+import type { Produkt } from "@/data/produkty";
 
 // Unikalne metadane dla stron kategorii (ważne dla SEO — to główne strony docelowe).
 const META_KATEGORII: Record<string, { title: string; description: string }> = {
@@ -19,9 +21,9 @@ const META_KATEGORII: Record<string, { title: string; description: string }> = {
       "Ubranka dla niemowląt i noworodków — body, pajacyki, śpiochy, komplety i czapeczki. Delikatna bawełna i łatwe przewijanie. Wysyłka InPost, 14 dni na zwrot.",
   },
   dorosli: {
-    title: "Odzież męska dla dorosłych",
+    title: "Odzież męska — swetry, bluzy i spodnie dresowe do 7XL",
     description:
-      "Odzież męska: bluzy, dresy, spodnie i koszulki. Rozmiary S–6XL, wygodne fasony w niskich cenach. Wysyłka InPost, 14 dni na zwrot.",
+      "Odzież męska: swetry rozpinane i z półgolfem, bluzy z kapturem, spodnie dresowe cienkie i ocieplane. Rozmiary od M do 7XL, wymiary w cm. Wysyłka InPost, 14 dni na zwrot.",
   },
 };
 
@@ -59,6 +61,25 @@ export function generateMetadata({
   };
 }
 
-export default function Page() {
-  return <ListingProduktow />;
+// Lista produktów trafia do kodu strony już z serwera (wcześniej strona kategorii wysyłała
+// Google samo „Ładowanie…", a produkty dociągała przeglądarka). Wersja „lekka": bez opisów
+// i galerii — tyle, ile potrzeba kafelkom i filtrom; liczba zdjęć zostaje (wybór koloru na kafelku).
+function lekkiKatalog(katalog: Produkt[]): Produkt[] {
+  return katalog.map((p) => ({
+    ...p,
+    opis: undefined,
+    opisHtml: undefined,
+    opisRozmiary: undefined,
+    zdjecia: p.zdjecia?.length ? new Array(p.zdjecia.length).fill("") : undefined,
+  })) as Produkt[];
+}
+
+export default async function Page() {
+  let poczatkowe: Produkt[] | undefined;
+  try {
+    poczatkowe = lekkiKatalog(await katalogWidoczny());
+  } catch {
+    /* brak bazy — lista dociągnie się w przeglądarce jak dawniej */
+  }
+  return <ListingProduktow poczatkowe={poczatkowe} />;
 }

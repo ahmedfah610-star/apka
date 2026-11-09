@@ -1,3 +1,4 @@
+import { urlProduktu } from "@/lib/adresProduktu";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { katalogWidoczny } from "@/lib/produktyDb";
 import { sprzedazOstatnio } from "@/lib/hitTygodnia";
@@ -8,7 +9,7 @@ import { KOD_POWITALNY, kontaKlientow, doWysylki, polecaneProdukty, oznaczWyslan
 
 async function produktyDoMaila(): Promise<ProduktMail[]> {
   const [katalog, sprzedaz] = await Promise.all([katalogWidoczny(), sprzedazOstatnio()]);
-  return polecaneProdukty(katalog, sprzedaz).map((p) => ({ nazwa: p.nazwa, cena: p.cena, zdjecie: p.zdjecie ?? null, url: `${BAZA}/produkty/${p.id}` }));
+  return polecaneProdukty(katalog, sprzedaz).map((p) => ({ nazwa: p.nazwa, cena: p.cena, zdjecie: p.zdjecie ?? null, url: `${BAZA}${urlProduktu(p)}` }));
 }
 
 /** Wysyła kod jednemu kontu i zapisuje znacznik (żeby cron nie wysłał drugi raz). */
