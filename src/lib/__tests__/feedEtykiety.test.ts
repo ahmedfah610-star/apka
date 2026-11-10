@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { etykietyReklamowe, sztukNaStanie } from "@/lib/feedEtykiety";
+import { etykietyReklamowe, sztukNaStanie, zdjeciaDoReklamy } from "@/lib/feedEtykiety";
+import { ZDJECIA_REKLAMOWE } from "@/data/zdjeciaReklamowe";
 
 // Etykiety do kampanii Google Ads: reklamujemy droższe produkty z zapasem, osobno dziecięce i męskie.
 describe("etykiety reklamowe w pliku produktowym", () => {
@@ -18,5 +19,25 @@ describe("etykiety reklamowe w pliku produktowym", () => {
   it("dział: męskie osobno od dziecięcych", () => {
     expect(etykietyReklamowe({ cena: 50, kategoria: "dorosli", stan: 4 } as never).dzial).toBe("meskie");
     expect(etykietyReklamowe({ cena: 50, kategoria: "dziewczynki", stan: 4 } as never).dzial).toBe("dzieciece");
+  });
+
+  it("wybrane ujęcie reklamowe idzie jako pierwsze, reszta galerii zostaje", () => {
+    const p = { id: "x1", zdjecie: "a", zdjecia: ["a", "b", "c"] };
+    expect(zdjeciaDoReklamy(p, { x1: "c" })).toEqual({ zdjecia: ["c", "a", "b"], top: true });
+    expect(zdjeciaDoReklamy(p, {})).toEqual({ zdjecia: ["a", "b", "c"], top: false });
+  });
+
+  it("gdy wybranego zdjęcia nie ma już w galerii — zostaje główne, bez etykiety top", () => {
+    expect(zdjeciaDoReklamy({ id: "x1", zdjecie: "a", zdjecia: ["a", "b"] }, { x1: "stare" })).toEqual({ zdjecia: ["a", "b"], top: false });
+    expect(zdjeciaDoReklamy({ id: "x2", zdjecie: "a", zdjecia: [] }, {})).toEqual({ zdjecia: ["a"], top: false });
+  });
+
+  it("lista wybranych: poprawne adresy zdjęć i id produktów", () => {
+    const wpisy = Object.entries(ZDJECIA_REKLAMOWE);
+    expect(wpisy.length).toBeGreaterThan(20);
+    for (const [id, url] of wpisy) {
+      expect(id).toMatch(/^(al-m|reczny)-[a-z0-9]+$/);
+      expect(url).toMatch(/^https:\/\/[a-z0-9.-]+\//); // Allegro albo własne zdjęcie wgrane w panelu
+    }
   });
 });

@@ -1,4 +1,5 @@
 import type { Produkt } from "@/data/produkty";
+import { ZDJECIA_REKLAMOWE } from "@/data/zdjeciaReklamowe";
 
 // Etykiety do kampanii Google Ads (custom_label_1..3 w pliku produktowym). Dzięki nim kampanię
 // ustawia się RAZ i steruje nią wyłączaniem grup produktów, bez tworzenia nowych kampanii:
@@ -20,4 +21,14 @@ export function etykietyReklamowe(p: Pick<Produkt, "cena" | "kategoria" | "stan"
     stan: sztukNaStanie(p) >= PROG_STANU_REKLAMY ? "stan-3plus" : "stan-1-2",
     dzial: p.kategoria === "dorosli" ? "meskie" : "dzieciece",
   };
+}
+
+/** Zdjęcia do pliku produktowego: wybrane ujęcie reklamowe jako pierwsze (jeśli nadal jest w galerii). */
+export function zdjeciaDoReklamy(p: Pick<Produkt, "id" | "zdjecie" | "zdjecia">, wybrane: Record<string, string> = ZDJECIA_REKLAMOWE): { zdjecia: string[]; top: boolean } {
+  const galeria = (p.zdjecia?.length ? p.zdjecia : p.zdjecie ? [p.zdjecie] : []).filter(Boolean) as string[];
+  const najlepsze = wybrane[p.id];
+  if (!najlepsze) return { zdjecia: galeria, top: false };
+  // Zdjęcie zniknęło z galerii (np. po ponownym imporcie) — zostaje zdjęcie główne, bez etykiety „top".
+  if (!galeria.includes(najlepsze)) return { zdjecia: galeria, top: false };
+  return { zdjecia: [najlepsze, ...galeria.filter((u) => u !== najlepsze)], top: true };
 }
