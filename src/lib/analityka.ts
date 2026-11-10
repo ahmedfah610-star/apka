@@ -20,8 +20,11 @@ const KLUCZ_ZGODY = "fasolka-zgoda-cookies";
 const KLUCZ_ZAKUPU = "bobas-zakup-oczekujacy";
 const KLUCZ_WYSLANYCH = "bobas-zakupy-wyslane";
 
-export const ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || ""; // np. AW-123456789
-export const ADS_ETYKIETA_ZAKUPU = process.env.NEXT_PUBLIC_GOOGLE_ADS_ZAKUP || ""; // etykieta konwersji „Zakup"
+// Google Ads: konto i konwersja „Zakup sklep kod" (wysyłana dopiero po potwierdzeniu płatności,
+// z prawdziwą kwotą zamówienia). To publiczne identyfikatory (widać je w kodzie strony), tak jak
+// identyfikator Google Analytics — zmienne środowiskowe pozwalają je podmienić bez zmiany kodu.
+export const ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || "AW-18533663809";
+export const ADS_ETYKIETA_ZAKUPU = process.env.NEXT_PUBLIC_GOOGLE_ADS_ZAKUP || "IqzdCNak2rUdEMGIxYVF";
 
 export function zgodaNaPomiar(): boolean {
   try {
