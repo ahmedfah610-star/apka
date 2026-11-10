@@ -1,3 +1,4 @@
+import { etykietyReklamowe } from "@/lib/feedEtykiety";
 import { urlProduktu } from "@/lib/adresProduktu";
 import { katalogWidoczny, opisyRozmiarowTekst } from "@/lib/produktyDb";
 import { czyCieply } from "@/lib/sezon";
@@ -61,6 +62,7 @@ function pozycja(
   wariant: { id: string; rozmiar?: string; dostepny: boolean; grupa?: string; opis?: string },
 ): string {
   const link = `${BAZA_URL}${urlProduktu(p)}`;
+  const etykiety = etykietyReklamowe(p);
   const zdj = (p.zdjecia?.length ? p.zdjecia : p.zdjecie ? [p.zdjecie] : []).filter(Boolean);
   const dodatkowe = zdj.slice(1, 11).map((u) => `    <g:additional_image_link>${txt(u)}</g:additional_image_link>`).join("\n");
   return `  <item>
@@ -77,6 +79,9 @@ ${dodatkowe ? dodatkowe + "\n" : ""}    <g:availability>${wariant.dostepny ? "in
     <g:google_product_category>1604</g:google_product_category>
     <g:product_type>${cdata(KATEGORIE_LABEL[p.kategoria])}</g:product_type>
     <g:custom_label_0>${czyCieply(p) ? "zima" : "inne"}</g:custom_label_0>
+    <g:custom_label_1>${etykiety.cena}</g:custom_label_1>
+    <g:custom_label_2>${etykiety.stan}</g:custom_label_2>
+    <g:custom_label_3>${etykiety.dzial}</g:custom_label_3>
     <g:gender>${plec(p)}</g:gender>
     <g:age_group>${grupaWiekowa(p)}</g:age_group>
 ${p.kolor ? `    <g:color>${cdata(p.kolor.slice(0, 100))}</g:color>\n` : ""}${wysylka(p, dostawa)}${
