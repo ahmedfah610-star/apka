@@ -63,7 +63,6 @@ function Zadanie({ href, ile, tytul, opis, pilne }: { href: string; ile: number;
 export default function PulpitAdmina() {
   const [produkty, setProdukty] = useState<Produkt[]>([]);
   const [zamowienia, setZamowienia] = useState<Zamowienie[]>([]);
-  const [ga4, setGa4] = useState<any>(null);
   const [opinieDoZatw, setOpinieDoZatw] = useState(0);
   const [pytanNowych, setPytanNowych] = useState(0);
   const [raport, setRaport] = useState<{ czas: string; ok: boolean; niedopasowane: number; blad?: string } | null>(null);
@@ -80,10 +79,6 @@ export default function PulpitAdmina() {
       .then((d) => {
         if (Array.isArray(d.items)) setZamowienia(d.items);
       })
-      .catch(() => {});
-    fetch("/api/admin/ga4")
-      .then((r) => r.json())
-      .then((d) => setGa4(d))
       .catch(() => {});
     fetch("/api/admin/opinie")
       .then((r) => r.json())
@@ -259,33 +254,6 @@ export default function PulpitAdmina() {
         <Kafel etykieta="Produkty w sklepie" wartosc={liczba(kat.liczba)} pod={kat.zPromocja ? `${kat.zPromocja} w promocji` : undefined} />
       </div>
 
-      {/* Ruch na stronie (GA4) */}
-      {ga4?.ok ? (
-        <Link
-          href="/admin/analityka"
-          className="mb-8 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-xl border border-linia bg-white px-5 py-4 no-underline transition-colors hover:border-ink"
-        >
-          <span className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[oklch(72%_0.12_150)] opacity-75" />
-              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[oklch(60%_0.13_150)]" />
-            </span>
-            <span className="text-[18px] font-bold tabular-nums text-ink">{liczba(ga4.naZywo ?? 0)}</span>
-            <span className="text-[12.5px] text-ink-2">na stronie teraz</span>
-          </span>
-          <span className="flex items-baseline gap-1.5">
-            <span className="text-[18px] font-bold tabular-nums text-ink">{liczba(ga4.podsumowanie?.uzytkownicy ?? 0)}</span>
-            <span className="text-[12.5px] text-ink-2">odwiedzających / 28 dni</span>
-          </span>
-          {ga4.kanaly?.[0] ? (
-            <span className="flex items-baseline gap-1.5">
-              <span className="text-[14px] font-semibold text-ink">{ga4.kanaly[0].kanal}</span>
-              <span className="text-[12.5px] text-ink-2">główne źródło</span>
-            </span>
-          ) : null}
-          <span className="ml-auto text-[13px] font-semibold text-ink">Ruch na stronie →</span>
-        </Link>
-      ) : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
         {/* Ostatnie zamówienia */}
@@ -346,15 +314,6 @@ export default function PulpitAdmina() {
         </section>
       </div>
 
-      {ga4 && !ga4.ok ? (
-        <p className="mt-6 text-[12.5px] text-ink-2">
-          Google Analytics nie jest podłączone —{" "}
-          <Link href="/admin/analityka" className="text-ink underline underline-offset-2">
-            skonfiguruj
-          </Link>
-          , aby widzieć ruch na stronie.
-        </p>
-      ) : null}
     </div>
   );
 }
