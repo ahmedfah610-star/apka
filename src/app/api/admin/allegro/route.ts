@@ -5,7 +5,7 @@ import { ladnaNazwa } from "@/lib/nazwa";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 import { sbService } from "@/lib/supabase";
 import { ostatniRaport, synchronizujStany } from "@/lib/allegroStany";
-import { kandydaciDoPobrania, pobierzPorcje } from "@/lib/allegroNowe";
+import { kandydaciDoPobrania, pobierzPorcje, odswiezLicznikNowych } from "@/lib/allegroNowe";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // limit planu Hobby
@@ -230,7 +230,9 @@ export async function POST(req: Request) {
   // „Pobierz nowe": najpierw lista ofert, których sklep nie zna, potem porcje (panel woła w pętli).
   if (b.akcja === "nowe_lista") {
     try {
-      return Response.json({ ok: true, ...(await kandydaciDoPobrania()) });
+      const lista = await kandydaciDoPobrania();
+      await odswiezLicznikNowych({ kandydaci: lista.kandydaci }).catch(() => undefined); // Pulpit = stan na teraz
+      return Response.json({ ok: true, ...lista });
     } catch (e) {
       return Response.json({ ok: false, blad: e instanceof Error ? e.message : "błąd" }, { status: 500 });
     }
@@ -242,6 +244,8 @@ export async function POST(req: Request) {
       const noweProdukty = (Array.isArray(b.noweProdukty) ? b.noweProdukty : []).map(String).filter((x) => x.startsWith("al-m-")).slice(0, 2000);
       const wyniki = await pobierzPorcje(ids, { dokladajRozmiary: b.dokladajRozmiary === true, noweProdukty });
       if (wyniki.some((w) => w.wynik === "dodany" || w.wynik === "nowy-rozmiar")) odswiezPoZmianieStanu();
+      const POWIAZANE = ["dodany", "nowy-rozmiar", "brak-rozmiaru", "jest"];
+      await odswiezLicznikNowych({ rozwiazane: wyniki.filter((w) => POWIAZANE.includes(w.wynik)).map((w) => w.oferta) }).catch(() => undefined);
       return Response.json({ ok: true, wyniki });
     } catch (e) {
       return Response.json({ ok: false, blad: e instanceof Error ? e.message : "błąd" }, { status: 500 });

@@ -1,5 +1,5 @@
 import { czyDamski, hash36, HUE, kategoriaIWiek, kluczScalania, mapujOferte, nazwaBezRozmiarow, szczegoly, WIEK_LABEL } from "@/lib/allegroImport";
-import { wszystkieAktywne } from "@/lib/allegroStany";
+import { KLUCZ_RAPORTU, wszystkieAktywne } from "@/lib/allegroStany";
 import { ladnaNazwa } from "@/lib/nazwa";
 import { porownajRozmiary } from "@/lib/rozmiary";
 import { sbService } from "@/lib/supabase";
@@ -239,4 +239,32 @@ async function powiadomCzekajacych(
   } catch {
     /* mail nie blokuje pobierania ofert */
   }
+}
+
+/**
+ * Licznik „Oferty z Allegro, których nie ma w sklepie" (Pulpit) pochodzi z raportu ostatniej
+ * synchronizacji. Po sprawdzeniu / pobraniu nowych ofert poprawiamy go od razu, żeby Pulpit
+ * nie pokazywał nieaktualnej liczby do następnej synchronizacji.
+ */
+export async function odswiezLicznikNowych(opcje: { kandydaci?: Kandydat[]; rozwiazane?: string[] }): Promise<void> {
+  const sb = sbService();
+  if (!sb) return;
+  const { data } = await sb.from("ustawienia").select("wartosc").eq("klucz", KLUCZ_RAPORTU).maybeSingle();
+  const r = data?.wartosc as { niedopasowane?: number; niedopasowaneLista?: { oferta: string; nazwa: string; rozmiar: string | null }[] } | null;
+  if (!r || typeof r !== "object") return;
+  const lista = Array.isArray(r.niedopasowaneLista) ? r.niedopasowaneLista : [];
+  let nowy: typeof r;
+  if (opcje.kandydaci) {
+    const rozmiary = new Map(lista.map((o) => [o.oferta, o.rozmiar]));
+    nowy = {
+      ...r,
+      niedopasowane: opcje.kandydaci.length,
+      niedopasowaneLista: opcje.kandydaci.slice(0, 40).map((k) => ({ oferta: k.id, nazwa: k.nazwa, rozmiar: rozmiary.get(k.id) ?? null })),
+    };
+  } else {
+    const zalatwione = new Set(opcje.rozwiazane ?? []);
+    if (!zalatwione.size) return;
+    nowy = { ...r, niedopasowane: Math.max(0, (Number(r.niedopasowane) || 0) - zalatwione.size), niedopasowaneLista: lista.filter((o) => !zalatwione.has(o.oferta)) };
+  }
+  await sb.from("ustawienia").update({ wartosc: nowy, zaktualizowano: new Date().toISOString() }).eq("klucz", KLUCZ_RAPORTU);
 }
