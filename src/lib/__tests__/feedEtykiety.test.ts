@@ -5,7 +5,9 @@ import { ZDJECIA_REKLAMOWE } from "@/data/zdjeciaReklamowe";
 // Etykiety do kampanii Google Ads: reklamujemy droższe produkty z zapasem, osobno dziecięce i męskie.
 describe("etykiety reklamowe w pliku produktowym", () => {
   it("cena: od 40 zł wzwyż", () => {
-    expect(etykietyReklamowe({ cena: 39.99, kategoria: "niemowleta", stan: 5 } as never).cena).toBe("cena-ponizej-40");
+    expect(etykietyReklamowe({ cena: 39.99, kategoria: "niemowleta", stan: 5 } as never).cena).toBe("cena-20-40");
+    expect(etykietyReklamowe({ cena: 20, kategoria: "niemowleta", stan: 5 } as never).cena).toBe("cena-20-40");
+    expect(etykietyReklamowe({ cena: 19.99, kategoria: "niemowleta", stan: 5 } as never).cena).toBe("cena-ponizej-20");
     expect(etykietyReklamowe({ cena: 40, kategoria: "niemowleta", stan: 5 } as never).cena).toBe("cena-40plus");
   });
 
