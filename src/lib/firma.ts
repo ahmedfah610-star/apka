@@ -13,6 +13,10 @@ export const ZWROTY = {
   adres: "ul. Romantyczna 9/28, 20-532 Lublin",
   paczkomat: "LUB20M",
   paczkomatOpis: "ul. Romantyczna 2, 20-533 Lublin — przy sklepie Lidl",
+  orlen: "automat ORLEN Paczka 815392",
+  orlenOpis: "ul. Jutrzenki 2A, 20-538 Lublin",
+  pocztex: "placówka Poczty Polskiej",
+  pocztexOpis: "ul. Pozytywistów 1, 20-639 Lublin",
 };
 
 /** Rejestracja recyklingu opakowań (w Polsce: numer rejestrowy BDO z urzędu marszałkowskiego). */

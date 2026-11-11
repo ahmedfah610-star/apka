@@ -44,8 +44,9 @@ export default function Kontakt() {
         <p>
           Zasady, terminy oraz wzór formularza odstąpienia znajdziesz na stronie{" "}
           <a href="/dostawa-i-zwroty" className="underline underline-offset-2 hover:text-akcent">Dostawa i zwroty</a>.
-          Adres do zwrotów: {FIRMA.nazwa}, {ZWROTY.adres}. Możesz też nadać zwrot do paczkomatu InPost{" "}
-          <strong>{ZWROTY.paczkomat}</strong> ({ZWROTY.paczkomatOpis}).
+          Adres do zwrotów: {FIRMA.nazwa}, {ZWROTY.adres}. Zwrot nadasz też do punktu: paczkomat InPost{" "}
+          <strong>{ZWROTY.paczkomat}</strong> ({ZWROTY.paczkomatOpis}), {ZWROTY.orlen} ({ZWROTY.orlenOpis}) albo Pocztex
+          do placówki pocztowej przy {ZWROTY.pocztexOpis}.
         </p>
       </Sekcja>
 

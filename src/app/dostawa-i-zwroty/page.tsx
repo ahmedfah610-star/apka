@@ -59,13 +59,22 @@ export default async function DostawaZwroty() {
         </p>
         <Ramka>
           <p className="font-semibold text-ink">Gdzie odesłać zwrot</p>
+          <ul className="mt-1.5 list-disc space-y-1 pl-5">
+            <li>
+              <strong>Paczkomat InPost:</strong> {ZWROTY.paczkomat} ({ZWROTY.paczkomatOpis})
+            </li>
+            <li>
+              <strong>ORLEN Paczka:</strong> {ZWROTY.orlen} ({ZWROTY.orlenOpis})
+            </li>
+            <li>
+              <strong>Pocztex (odbiór w punkcie):</strong> {ZWROTY.pocztex}, {ZWROTY.pocztexOpis}
+            </li>
+            <li>
+              <strong>Poczta lub kurier na adres:</strong> {FIRMA.nazwa}, {ZWROTY.adres}
+            </li>
+          </ul>
           <p className="mt-1.5">
-            <strong>Paczkomat InPost:</strong> {ZWROTY.paczkomat} ({ZWROTY.paczkomatOpis}).
-            <br />
-            Odbiorca: {FIRMA.nazwa}, tel. {FIRMA.telefon}, e-mail {FIRMA.email}.
-          </p>
-          <p className="mt-1.5">
-            <strong>Poczta lub kurier:</strong> {FIRMA.nazwa}, {ZWROTY.adres}.
+            Odbiorca przy nadaniu do punktu: {FIRMA.nazwa}, tel. {FIRMA.telefon}, e-mail {FIRMA.email}.
           </p>
         </Ramka>
         <p>

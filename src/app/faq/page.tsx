@@ -28,7 +28,7 @@ const PYTANIA: { q: string; a: string }[] = [
   { q: "Czy mogę śledzić zamówienie?", a: "Tak. Status sprawdzisz na stronie „Status zamówienia”, podając numer zamówienia i e-mail. Zalogowani klienci widzą historię w panelu konta." },
 
   // Zwroty i reklamacje
-  { q: "Czy mogę zwrócić towar?", a: "Tak — masz 14 dni na zwrot bez podania przyczyny. Zwrot nadasz do paczkomatu InPost LUB20M (ul. Romantyczna 2, Lublin — przy Lidlu) albo pocztą/kurierem na adres: AMIN.KIDS Sp. z o.o., ul. Romantyczna 9/28, 20-532 Lublin. Zasady i wzór formularza znajdziesz na stronie „Dostawa i zwroty”." },
+  { q: "Czy mogę zwrócić towar?", a: "Tak — masz 14 dni na zwrot bez podania przyczyny. Zwrot nadasz do paczkomatu InPost LUB20M (ul. Romantyczna 2, Lublin — przy Lidlu), do automatu ORLEN Paczka 815392 (ul. Jutrzenki 2A, Lublin), Pocztexem do placówki pocztowej przy ul. Pozytywistów 1 w Lublinie albo pocztą/kurierem na adres: AMIN.KIDS Sp. z o.o., ul. Romantyczna 9/28, 20-532 Lublin. Zasady i wzór formularza znajdziesz na stronie „Dostawa i zwroty”." },
   { q: "Jak zgłosić reklamację?", a: "Napisz do nas na adres e-mail podany w Kontakcie, opisując wadę i podając numer zamówienia. Odpowiemy w ciągu 14 dni." },
 
   // Produkty i materiały
