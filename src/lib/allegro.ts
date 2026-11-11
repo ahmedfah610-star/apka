@@ -117,14 +117,37 @@ async function wierszTokenu() {
   return data as { access_token?: string; refresh_token?: string; expires_at?: string } | null;
 }
 
-const waznyAccess = (w: { access_token?: string; expires_at?: string } | null) =>
-  !!w?.access_token && !!w.expires_at && new Date(w.expires_at).getTime() > Date.now();
+/** Czas wygaśnięcia zapisany w samym tokenie (JWT „exp", ms) — Allegro sprawdza właśnie jego. */
+export function wygasaTokenJwt(token: string): number | null {
+  const czesc = token.split(".")[1];
+  if (!czesc) return null;
+  try {
+    const json = JSON.parse(Buffer.from(czesc.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8")) as { exp?: unknown };
+    return typeof json.exp === "number" ? json.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
 
-/** Ważny access_token (odświeżany automatycznie) lub null, gdy brak połączenia. */
-export async function aktualnyToken(): Promise<string | null> {
+const ZAPAS_MS = 5 * 60 * 1000; // odśwież 5 min przed końcem, żeby długa synchronizacja nie trafiła na wygaśnięcie
+
+const waznyAccess = (w: { access_token?: string; expires_at?: string } | null) => {
+  if (!w?.access_token || !w.expires_at || new Date(w.expires_at).getTime() <= Date.now()) return false;
+  const exp = wygasaTokenJwt(w.access_token);
+  return exp === null || exp - ZAPAS_MS > Date.now();
+};
+
+/**
+ * Ważny access_token (odświeżany automatycznie) lub null, gdy brak połączenia.
+ * `wymus` — Allegro odrzuciło token (401), choć według zapisanej daty był ważny: odśwież mimo to.
+ */
+export async function aktualnyToken(opcje: { wymus?: boolean; odrzucony?: string } = {}): Promise<string | null> {
+  // Przy wymuszeniu: token odrzucony przez Allegro nie jest ważny, ale inny (świeższy, np. z równoległego odświeżenia) — tak.
+  const uzywalny = (x: Awaited<ReturnType<typeof wierszTokenu>>) =>
+    waznyAccess(x) && !(opcje.wymus && (!opcje.odrzucony || x!.access_token === opcje.odrzucony));
   const w = await wierszTokenu();
   if (!w?.refresh_token) return null;
-  if (waznyAccess(w)) return w.access_token!;
+  if (uzywalny(w)) return w.access_token!;
   const r = await odswiez(w.refresh_token);
   if (r.token) {
     await zapiszBladTokenu(null);
@@ -132,7 +155,7 @@ export async function aktualnyToken(): Promise<string | null> {
   }
   // Równoległe odświeżenie (np. synchronizacja + panel) mogło już zapisać nową parę — użyj jej.
   const w2 = await wierszTokenu();
-  if (waznyAccess(w2)) return w2!.access_token!;
+  if (uzywalny(w2)) return w2!.access_token!;
   if (w2?.refresh_token && w2.refresh_token !== w.refresh_token) {
     const r2 = await odswiez(w2.refresh_token);
     if (r2.token) return r2.token;
@@ -164,10 +187,17 @@ export async function czyPolaczony(): Promise<boolean> {
 export async function allegroGet<T = unknown>(sciezka: string): Promise<T> {
   const token = await aktualnyToken();
   if (!token) throw new Error("Brak połączenia z Allegro.");
-  const res = await fetch(`${API}${sciezka}`, {
-    headers: { Authorization: `Bearer ${token}`, Accept: ACCEPT },
-    signal: AbortSignal.timeout(10000), // zawieszone zapytanie nie może zjeść limitu funkcji
-  });
+  const zapytaj = (t: string) =>
+    fetch(`${API}${sciezka}`, {
+      headers: { Authorization: `Bearer ${t}`, Accept: ACCEPT },
+      signal: AbortSignal.timeout(10000), // zawieszone zapytanie nie może zjeść limitu funkcji
+    });
+  let res = await zapytaj(token);
+  if (res.status === 401) {
+    // Token wygasł/unieważniony po stronie Allegro, choć według naszej daty był ważny — odśwież i spróbuj raz jeszcze.
+    const nowy = await aktualnyToken({ wymus: true, odrzucony: token });
+    if (nowy && nowy !== token) res = await zapytaj(nowy);
+  }
   if (!res.ok) throw new Error(`Allegro ${sciezka} → ${res.status}: ${await res.text().catch(() => "")}`);
   return (await res.json()) as T;
 }

@@ -82,4 +82,55 @@ describe("token Allegro", () => {
     expect(await aktualnyToken()).toBe("a2");
     expect(ustawienia.size).toBe(0);
   });
+
+  const jwt = (expSek: number) => `x.${Buffer.from(JSON.stringify({ exp: expSek })).toString("base64url")}.y`;
+  const przyszlosc = () => new Date(Date.now() + 3600e3).toISOString();
+
+  it("401 od Allegro mimo „ważnej” daty → odświeża token i ponawia zapytanie", async () => {
+    auth = { access_token: "a1", refresh_token: "r1", expires_at: przyszlosc() };
+    const wywolania: string[] = [];
+    vi.stubGlobal("fetch", async (url: string, init?: { headers?: Record<string, string> }) => {
+      if (String(url).includes("/auth/oauth/token")) {
+        wywolania.push("odswiez");
+        return new Response(JSON.stringify({ access_token: "a2", refresh_token: "r2", expires_in: 43199 }), { status: 200 });
+      }
+      const t = init?.headers?.Authorization ?? "";
+      wywolania.push(t);
+      if (t === "Bearer a1") return new Response(JSON.stringify({ error: "invalid_token", error_description: "Access token expired" }), { status: 401 });
+      return new Response(JSON.stringify({ offers: [] }), { status: 200 });
+    });
+    const { allegroGet } = await import("@/lib/allegro");
+    expect(await allegroGet("/sale/offers?limit=1")).toEqual({ offers: [] });
+    expect(wywolania).toEqual(["Bearer a1", "odswiez", "Bearer a2"]);
+    expect(auth?.refresh_token).toBe("r2");
+  });
+
+  it("401 i nieudane odświeżenie → błąd i „Połącz ponownie” w panelu", async () => {
+    auth = { access_token: "a1", refresh_token: "r1", expires_at: przyszlosc() };
+    vi.stubGlobal("fetch", async (url: string) =>
+      String(url).includes("/auth/oauth/token")
+        ? new Response(JSON.stringify({ error: "invalid_grant", error_description: "Invalid refresh token" }), { status: 400 })
+        : new Response(JSON.stringify({ error: "invalid_token" }), { status: 401 }),
+    );
+    const { allegroGet } = await import("@/lib/allegro");
+    await expect(allegroGet("/sale/offers")).rejects.toThrow(/401/);
+    expect(ustawienia.size).toBe(1);
+  });
+
+  it("token wygasły według JWT (exp) jest odświeżany, mimo że zapisana data mówi „ważny”", async () => {
+    auth = { access_token: jwt(Math.floor(Date.now() / 1000) - 60), refresh_token: "r1", expires_at: przyszlosc() };
+    vi.stubGlobal("fetch", async () => new Response(JSON.stringify({ access_token: "a2", refresh_token: "r2", expires_in: 43199 }), { status: 200 }));
+    const { aktualnyToken } = await import("@/lib/allegro");
+    expect(await aktualnyToken()).toBe("a2");
+  });
+
+  it("token ważny według JWT nie jest odświeżany", async () => {
+    const t = jwt(Math.floor(Date.now() / 1000) + 3600);
+    auth = { access_token: t, refresh_token: "r1", expires_at: przyszlosc() };
+    vi.stubGlobal("fetch", async () => {
+      throw new Error("nie powinno odświeżać");
+    });
+    const { aktualnyToken } = await import("@/lib/allegro");
+    expect(await aktualnyToken()).toBe(t);
+  });
 });
