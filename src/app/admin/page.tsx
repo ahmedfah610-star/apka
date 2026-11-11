@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { fakturDoWystawienia } from "@/lib/faktura";
 import { useEffect, useMemo, useState } from "react";
 import { type Zamowienie } from "@/lib/sklepStore";
 import { statystykiKatalogu, statystykiZamowien } from "@/lib/statystyki";
@@ -115,7 +116,8 @@ export default function PulpitAdmina() {
   const syncStara = raport ? teraz - new Date(raport.czas).getTime() > 30 * 3600 * 1000 : false;
   const syncProblem = !!raport && (!raport.ok || syncStara);
   const wygaslo = !!raport && !raport.ok && /wygasło|połączenia z Allegro/i.test(raport.blad ?? "");
-  const zadan = [doWyslania, nieoplacone, pytanNowych, opinieDoZatw, raport?.niedopasowane ?? 0, syncProblem ? 1 : 0].filter((n) => n > 0).length;
+  const faktury = fakturDoWystawienia(prawdziwe as never);
+  const zadan = [doWyslania, faktury.razem, nieoplacone, pytanNowych, opinieDoZatw, raport?.niedopasowane ?? 0, syncProblem ? 1 : 0].filter((n) => n > 0).length;
   const maxKat = Math.max(1, ...KATEGORIE.map((k) => kat.wgKategorii[k]));
   const ostatnie = useMemo(
     () => [...zamowienia].filter((z) => z.status !== "anulowane").sort((a, b) => +new Date(b.data) - +new Date(a.data)).slice(0, 6),
@@ -174,6 +176,15 @@ export default function PulpitAdmina() {
             ) : null}
             {raport?.niedopasowane ? (
               <Zadanie href="/admin/import" ile={raport.niedopasowane} tytul="Oferty z Allegro, których nie ma w sklepie" opis="Pobierz nowe produkty jednym kliknięciem" />
+            ) : null}
+            {faktury.razem > 0 ? (
+              <Zadanie
+                href="/admin/zamowienia?filtr=faktury"
+                ile={faktury.razem}
+                tytul="Faktury do wystawienia"
+                opis={[faktury.firmy ? `${faktury.firmy} na firmę (KSeF)` : "", faktury.osoby ? `${faktury.osoby} na osobę prywatną` : ""].filter(Boolean).join(", ") + " — wystaw i wyślij z zamówienia"}
+                pilne
+              />
             ) : null}
             {pytanNowych > 0 ? (
               <Zadanie href="/admin/pytania" ile={pytanNowych} tytul="Pytania od klientów" opis="Ktoś pyta o produkt — odpowiedz, póki jest zainteresowany" pilne />

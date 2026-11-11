@@ -24,6 +24,7 @@ export function typZTematu(temat: string): TypMaila {
   const t = temat.toLowerCase();
   if (t.includes("potwierdzenie zamówienia")) return "zamowienie";
   if (t.includes("nowe zamówienie")) return "sklep";
+  if (/^(faktura|korekta faktury|dowód zakupu)\b/.test(t) || / — zamówienie #[0-9a-f]{8} — bobas-shopping$/.test(t)) return "dokument";
   if (t.includes("zostało wysłane")) return "wysylka";
   if (t.includes("oceniasz")) return "opinia";
   if (t.includes("koszyk czeka")) return "koszyk";

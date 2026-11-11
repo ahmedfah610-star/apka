@@ -18,7 +18,7 @@ const PYTANIA: { q: string; a: string }[] = [
   { q: "Czy muszę zakładać konto, żeby kupić?", a: "Nie. Możesz złożyć zamówienie jako gość — wystarczą dane do wysyłki. Konto jest opcjonalne i daje wygodę: historię zamówień, zapisany koszyk i szybsze zakupy." },
   { q: "Co daje założenie konta?", a: "Historię i podgląd wszystkich zamówień, koszyk i ulubione zapisane na każdym urządzeniu oraz szybsze zamawianie — dane do wysyłki uzupełniają się automatycznie." },
   { q: "Jak mogę zapłacić?", a: "Udostępniamy BLIK, kartę płatniczą i Przelewy24 (płatność online). Zamówienie realizujemy po zaksięgowaniu wpłaty." },
-  { q: "Czy wystawiacie fakturę?", a: "Tak, na życzenie. Wpisz dane do faktury (nazwa firmy, NIP, adres) w polu „Informacja dla sprzedawcy” podczas składania zamówienia albo napisz do nas." },
+  { q: "Czy wystawiacie fakturę?", a: "Tak — na firmę i na osobę prywatną. Przy zamówieniu zaznacz „Chcę fakturę”: przy firmie wystarczy wpisać NIP i kliknąć „Pobierz dane”, a nazwa i adres uzupełnią się same. Fakturę wyślemy e-mailem w ciągu 2 dni roboczych od wysyłki paczki, a zalogowani klienci znajdą ją też w zakładce Moje zamówienia. Zapomniałeś zaznaczyć? Napisz do nas — dopiszemy dane i wystawimy fakturę." },
 
   // Dostawa
   { q: "Jakie są sposoby dostawy?", a: "Wysyłamy przez InPost (Paczkomaty 24/7 i kurier), ORLEN Paczkę, DPD Pickup, Pocztex (punkt odbioru i kurier) oraz kurierem DHL — dostawa już od {dostawaOd}. Punkt odbioru lub paczkomat wybierasz na mapie podczas składania zamówienia, a koszt każdej metody widzisz przed zapłatą." },

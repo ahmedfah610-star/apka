@@ -22,6 +22,7 @@ export type TypMaila =
   | "odpowiedz" // do klienta: odpowiedź sklepu na pytanie
   | "przypomnienie" // do klienta: zamówienie czeka na płatność
   | "kod-powitalny" // do nowego konta: kod rabatowy NOWY5
+  | "dokument" // do klienta: faktura / korekta / dowód zakupu z załącznikiem
   | "newsletter"
   | "test"
   | "inny";

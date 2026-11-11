@@ -4,6 +4,8 @@ import { zdjecie } from "@/lib/zdjecia";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { formatCena } from "@/lib/filtrowanie";
 import { PRZEWOZNICY, linkSledzenia } from "@/lib/przewoznicy";
+import { stanFaktury, fakturDoWystawienia, type DaneFaktury, type DokumentZamowienia } from "@/lib/faktura";
+import { SekcjaFaktury, type ZamowienieFaktury } from "./SekcjaFaktury";
 
 interface Pozycja {
   id: string;
@@ -29,6 +31,8 @@ interface Klient {
   test?: boolean;
   przypomnienie?: string; // kiedy wysłano przypomnienie o płatności
   przypomnienieAuto?: boolean; // wysłane automatycznie
+  faktura?: DaneFaktury | null; // klient chce fakturę
+  dokumenty?: DokumentZamowienia[]; // wgrane faktury / dowody zakupu
 }
 interface Zamowienie {
   id: string;
@@ -44,6 +48,7 @@ interface Zamowienie {
   przewoznik?: string | null;
   rabat?: number;
   kodRabatowy?: string | null;
+  wyslanoAt?: string | null;
 }
 
 const STATUSY: { key: string; label: string; klasa: string }[] = [
@@ -77,10 +82,42 @@ export default function AdminZamowienia() {
     void odswiez();
   }, []);
 
+  // Zamówienia, przy których coś zmieniono w sekcji faktury — zostają na liście „Faktury do
+  // wystawienia" do zmiany filtra (inaczej znikałyby razem z komunikatem „Wysłano ✓").
+  const [obsluzone, setObsluzone] = useState<Set<string>>(new Set());
+  useEffect(() => setObsluzone(new Set()), [filtr]);
+
+  // Filtr z adresu (np. z Pulpitu: /admin/zamowienia?filtr=faktury).
+  useEffect(() => {
+    const f = new URLSearchParams(window.location.search).get("filtr");
+    if (f) setFiltr(f);
+  }, []);
+
   const widoczne = useMemo(
-    () => (filtr === "wszystkie" ? lista : lista.filter((z) => z.status === filtr)),
-    [lista, filtr],
+    () =>
+      filtr === "wszystkie"
+        ? lista
+        : filtr === "faktury"
+        ? lista.filter((z) => !z.klient?.test && (stanFaktury(z) === "do-wystawienia" || obsluzone.has(z.id)))
+        : lista.filter((z) => z.status === filtr),
+    [lista, filtr, obsluzone],
   );
+  const doFaktury = useMemo(() => fakturDoWystawienia(lista), [lista]);
+  const zmienKlienta = (id: string, klient: ZamowienieFaktury["klient"]) => {
+    setObsluzone((o) => new Set(o).add(id));
+    setLista((prev) => prev.map((x) => (x.id === id ? { ...x, klient: klient as Klient } : x)));
+  };
+  // Znaczek przy kliencie: FV (czeka na fakturę) / FV ✓ (faktura wgrana).
+  const znaczekFaktury = (z: Zamowienie) => {
+    const s = stanFaktury(z);
+    if (s === "brak") return null;
+    if (s === "gotowa") return <span title="Faktura wystawiona" className="ml-1.5 rounded bg-[oklch(90%_0.07_150)] px-1.5 py-0.5 text-[10.5px] font-extrabold text-[oklch(42%_0.13_150)]">FV ✓</span>;
+    return (
+      <span title={s === "do-wystawienia" ? "Klient chce fakturę — do wystawienia" : "Klient chce fakturę — po opłaceniu"} className="ml-1.5 rounded bg-[oklch(95%_0.04_70)] px-1.5 py-0.5 text-[10.5px] font-extrabold text-[oklch(52%_0.13_55)]">
+        FV
+      </span>
+    );
+  };
 
   // Lokalny bufor pól wysyłki (przewoźnik + numer) per zamówienie.
   const [wys, setWys] = useState<Record<string, { przewoznik: string; numer: string }>>({});
@@ -374,6 +411,16 @@ export default function AdminZamowienia() {
             </button>
           );
         })}
+        {doFaktury.razem > 0 || filtr === "faktury" ? (
+          <button
+            onClick={() => setFiltr(filtr === "faktury" ? "wszystkie" : "faktury")}
+            className={`shrink-0 whitespace-nowrap rounded-full border-[1.5px] px-3 py-1.5 text-[13px] font-semibold transition-colors ${
+              filtr === "faktury" ? "border-[oklch(52%_0.13_55)] bg-[oklch(52%_0.13_55)] text-white" : "border-[oklch(52%_0.13_55)] bg-[oklch(95%_0.04_70)] text-[oklch(52%_0.13_55)]"
+            }`}
+          >
+            🧾 Faktury do wystawienia {doFaktury.razem}
+          </button>
+        ) : null}
       </div>
 
       {ladowanie ? (
@@ -400,7 +447,10 @@ export default function AdminZamowienia() {
                         #{z.id.slice(0, 8)}
                         {z.klient?.test ? <span className="ml-1.5 rounded bg-[oklch(92%_0.07_85)] px-1.5 py-0.5 text-[10.5px] font-bold text-[oklch(45%_0.12_75)]">TEST</span> : null}
                       </span>
-                      <span className="block truncate text-[14px]">{z.klient?.imie || "—"}</span>
+                      <span className="block truncate text-[14px]">
+                        {z.klient?.imie || "—"}
+                        {znaczekFaktury(z)}
+                      </span>
                       <span className="block text-[12.5px] text-ink-2">{data(z)} · {szt} szt.</span>
                     </span>
                     <span className="shrink-0 text-right">
@@ -423,7 +473,12 @@ export default function AdminZamowienia() {
                     ))}
                   </select>
                 </div>
-                {otwarty ? <div className="border-t border-linia bg-szary/40 px-4 py-4">{szczegoly(z)}</div> : null}
+                {otwarty ? (
+                  <div className="border-t border-linia bg-szary/40 px-4 py-4">
+                    {szczegoly(z)}
+                    <SekcjaFaktury key={`fv-${z.id}`} z={z as unknown as ZamowienieFaktury} onZmiana={(k) => zmienKlienta(z.id, k)} />
+                  </div>
+                ) : null}
               </div>
             );
           })}
@@ -457,7 +512,10 @@ export default function AdminZamowienia() {
                         <span className="text-[12px] text-ink-2">{data(z)}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="block leading-tight">{z.klient?.imie || "—"}</span>
+                        <span className="block leading-tight">
+                          {z.klient?.imie || "—"}
+                          {znaczekFaktury(z)}
+                        </span>
                         <span className="text-[12px] text-ink-2">{z.klient?.email || ""}</span>
                       </td>
                       <td className="px-4 py-3">
@@ -490,6 +548,7 @@ export default function AdminZamowienia() {
                       <tr className="bg-szary/40">
                         <td colSpan={5} className="px-4 py-4">
                           {szczegoly(z)}
+                          <SekcjaFaktury key={`fv-${z.id}`} z={z as unknown as ZamowienieFaktury} onZmiana={(k) => zmienKlienta(z.id, k)} />
                         </td>
                       </tr>
                     ) : null}

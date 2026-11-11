@@ -11,6 +11,7 @@ import { KOD_POWITALNY } from "@/lib/kodPowitalny";
 import { kosztDostawy, type MetodaDostawy } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 import { kluczTestowyOk } from "@/lib/zamowienieTestowe";
+import { sprawdzFakture } from "@/lib/faktura";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,7 @@ interface Body {
   klient?: Record<string, unknown>;
   kod?: string;
   test?: string; // klucz zamówienia testowego (bez płatności) — patrz zamowienieTestowe.ts
+  faktura?: unknown; // dane do faktury (null/brak = bez faktury) — lib/faktura.ts
 }
 
 const POLA_KLIENTA: Record<string, number> = {
@@ -135,8 +137,11 @@ export async function POST(req: Request) {
   // Dane klienta — tylko znane pola, przycięte, bez znaczników; wymagane zależnie od metody dostawy.
   const dk = daneKlienta(b.klient, metodaDostawy);
   if ("blad" in dk) return Response.json({ ok: false, blad: dk.blad }, { status: 400 });
+  // Faktura — sprawdzana PRZED zapisem i płatnością: błędne dane nie tworzą zamówienia.
+  const fv = sprawdzFakture(b.faktura);
+  if (!fv.ok) return Response.json({ ok: false, blad: fv.blad }, { status: 400 });
   const test = b.test ? await kluczTestowyOk(b.test) : false;
-  const klient = { ...dk.klient, test: test || undefined };
+  const klient = { ...dk.klient, ...(fv.faktura ? { faktura: fv.faktura } : {}), test: test || undefined };
 
   // ── Płatność online (Przelewy24) — priorytet, wymaga bazy do zapisu ──
   if (!test && p24Wlaczony() && supabaseWlaczony()) {

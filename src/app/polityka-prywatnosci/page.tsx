@@ -59,6 +59,8 @@ export default function PolitykaPrywatnosci() {
             "dostawcy hostingu, infrastruktury oraz bazy danych (m.in. Vercel, Supabase) — utrzymanie Sklepu,",
             "dostawca usługi wysyłki wiadomości e-mail (m.in. Resend) — wiadomości transakcyjne i newsletter,",
             "biuro rachunkowe — obsługa księgowa i podatkowa,",
+            "Krajowy System e-Faktur (KSeF) Ministerstwa Finansów — faktury wystawiane firmom, zgodnie z przepisami podatkowymi,",
+            "Ministerstwo Finansów (publiczny wykaz podatników VAT) — gdy przy fakturze na firmę klikniesz „Pobierz dane”, wysyłamy tam wyłącznie numer NIP, aby uzupełnić nazwę i adres firmy,",
             "uprawnione organy państwowe — gdy obowiązek udostępnienia wynika z przepisów prawa.",
           ]}
         />

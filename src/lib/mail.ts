@@ -7,6 +7,8 @@ import { linkWypisu } from "@/lib/newsletterToken";
 import { zdjecie } from "@/lib/zdjecia";
 import { znajdzPrzewoznika, linkSledzenia } from "@/lib/przewoznicy";
 import { zapiszMail, type TypMaila } from "@/lib/mailLog";
+import { nipCzytelny, type DaneFaktury } from "@/lib/faktura";
+import { mailDokumentuHtml, tematDokumentu, type DaneMailaDokumentu } from "@/lib/mailDokumentu";
 
 const API = "https://api.resend.com/emails";
 const API_BATCH = "https://api.resend.com/emails/batch";
@@ -45,12 +47,24 @@ interface DaneMaila {
   rabat?: number;
   kod?: string | null;
   metoda: string;
-  klient: { imie?: string; email?: string; telefon?: string; adres?: string; miasto?: string; kod?: string; paczkomat?: string; paczkomatOpis?: string; punkt?: string; punktOpis?: string; uwagi?: string; test?: boolean };
+  klient: { imie?: string; email?: string; telefon?: string; adres?: string; miasto?: string; kod?: string; paczkomat?: string; paczkomatOpis?: string; punkt?: string; punktOpis?: string; uwagi?: string; test?: boolean; faktura?: DaneFaktury | null };
 }
 
 const zl = (n: number) => `${Number(n).toFixed(2).replace(".", ",")} zł`;
 
-async function wyslij(to: string, subject: string, html: string, typ: TypMaila, replyTo?: string): Promise<{ ok: boolean; blad?: string }> {
+export interface Zalacznik {
+  nazwa: string;
+  tresc: Uint8Array;
+}
+
+async function wyslij(
+  to: string | string[],
+  subject: string,
+  html: string,
+  typ: TypMaila,
+  replyTo?: string,
+  zalaczniki?: Zalacznik[],
+): Promise<{ ok: boolean; blad?: string }> {
   const { key, from } = konfiguracja();
   if (!key) return { ok: false, blad: "Brak RESEND_API_KEY" };
   let wynik: { ok: boolean; blad?: string; idResend?: string };
@@ -58,7 +72,14 @@ async function wyslij(to: string, subject: string, html: string, typ: TypMaila, 
     const res = await fetch(API, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
+      body: JSON.stringify({
+        from,
+        to,
+        subject,
+        html,
+        ...(replyTo ? { reply_to: replyTo } : {}),
+        ...(zalaczniki?.length ? { attachments: zalaczniki.map((z) => ({ filename: z.nazwa, content: Buffer.from(z.tresc).toString("base64") })) } : {}),
+      }),
     });
     if (!res.ok) {
       const tekst = await res.text().catch(() => "");
@@ -73,8 +94,8 @@ async function wyslij(to: string, subject: string, html: string, typ: TypMaila, 
     console.error(`[mail] wyjątek → ${to}: ${blad}`);
     wynik = { ok: false, blad };
   }
-  // Dziennik (podgląd w panelu) — także nieudane próby.
-  await zapiszMail({ do: to, temat: subject, typ, html, ok: wynik.ok, blad: wynik.blad, idResend: wynik.idResend });
+  // Dziennik (podgląd w panelu) — także nieudane próby. Załączników nie zapisujemy (są w magazynie plików).
+  await zapiszMail({ do: Array.isArray(to) ? to.join(", ") : to, temat: subject, typ, html, ok: wynik.ok, blad: wynik.blad, idResend: wynik.idResend });
   return { ok: wynik.ok, blad: wynik.blad };
 }
 
@@ -157,6 +178,27 @@ function blokDostawy(k: DaneMaila["klient"]): string {
       <strong style="color:${M.ink}">${esc(k.imie || "")}</strong><br>
       ${adres}${k.telefon ? `<br>tel. ${esc(k.telefon)}` : ""}${k.email ? `<br>${esc(k.email)}` : ""}
       ${k.uwagi ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${M.linia}"><span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3}">Informacja dla sprzedawcy</span><br><span style="color:${M.ink}">${esc(k.uwagi)}</span></div>` : ""}
+    </td></tr>
+  </table>`;
+}
+
+/** Dane do faktury (gdy klient jej chce) — w potwierdzeniu i w powiadomieniu dla sklepu. */
+function blokFaktury(k: DaneMaila["klient"], dlaSklepu: boolean): string {
+  const f = k.faktura;
+  if (!f) return "";
+  const nabywca = [
+    `<strong style="color:${M.ink}">${esc(f.nazwa)}</strong>`,
+    f.nip ? `NIP ${esc(nipCzytelny(f.nip))}` : "",
+    esc(f.adres),
+    esc(`${f.kod} ${f.miasto}`),
+    f.email ? `faktura na: ${esc(f.email)}` : "",
+  ].filter(Boolean);
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:14px 0 0;background:${M.tlo};border-radius:12px">
+    <tr><td style="padding:16px 18px;font-size:13.5px;line-height:1.7;color:${M.ink2}">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3};margin-bottom:6px">Faktura ${f.typ === "firma" ? "na firmę" : "imienna"}</div>
+      ${nabywca.join("<br>")}
+      ${f.uwagi ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${M.linia}"><span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${M.ink3}">Uwagi do faktury</span><br><span style="color:${M.ink}">${esc(f.uwagi)}</span></div>` : ""}
+      <div style="margin-top:10px;font-size:12.5px;color:${M.ink2}">${dlaSklepu ? "Wystaw fakturę i wyślij ją z panelu: Zamówienia → szczegóły → Faktura i dokumenty." : "Fakturę wyślemy e-mailem w ciągu 2 dni roboczych od wysyłki paczki."}</div>
     </td></tr>
   </table>`;
 }
@@ -256,7 +298,7 @@ export async function wyslijMaileZamowienia(d: DaneMaila) {
       naglowek: "Dziękujemy za zamówienie!",
       preheader: `Zamówienie ${nr} przyjęte. Zajmujemy się nim.`,
       intro: `${d.klient.imie ? `Cześć ${esc(d.klient.imie)}! ` : ""}Twoje zamówienie <strong style="color:${M.ink}">#${nr}</strong> zostało przyjęte. Poniżej podsumowanie — damy znać, gdy paczka ruszy w drogę.`,
-      tresc: tabelaPozycji(d) + blokDostawy(d.klient),
+      tresc: tabelaPozycji(d) + blokDostawy(d.klient) + blokFaktury(d.klient, false),
       cta: { tekst: "ŚLEDŹ ZAMÓWIENIE", url: `${BAZA}/status-zamowienia` },
     });
     zadania.push(wyslij(d.klient.email, `${tag}Potwierdzenie zamówienia ${nr} — bobas-shopping`, html, "zamowienie"));
@@ -266,12 +308,12 @@ export async function wyslijMaileZamowienia(d: DaneMaila) {
   const htmlSklep = powloka({
     naglowek: `Nowe zamówienie #${nr}`,
     preheader: `${zl(d.razem)} — ${d.klient.imie || "klient"}`,
-    intro: `Wpłynęło nowe zamówienie o wartości <strong style="color:${M.ink}">${zl(d.razem)}</strong>.`,
-    tresc: tabelaPozycji(d) + blokDostawy(d.klient),
+    intro: `Wpłynęło nowe zamówienie o wartości <strong style="color:${M.ink}">${zl(d.razem)}</strong>.${d.klient.faktura ? ` <strong style="color:${M.ink}">Klient chce fakturę.</strong>` : ""}`,
+    tresc: tabelaPozycji(d) + blokDostawy(d.klient) + blokFaktury(d.klient, true),
     cta: { tekst: "PANEL ZAMÓWIEŃ", url: `${BAZA}/admin/zamowienia` },
   });
   for (const adres of odbiorcyZamowien()) {
-    zadania.push(wyslij(adres, `${tag}Nowe zamówienie ${nr} — ${zl(d.razem)}`, htmlSklep, "sklep"));
+    zadania.push(wyslij(adres, `${tag}Nowe zamówienie ${nr} — ${zl(d.razem)}${d.klient.faktura ? " · FAKTURA" : ""}`, htmlSklep, "sklep"));
   }
 
   await Promise.all(zadania);
@@ -603,4 +645,17 @@ export async function wyslijMailKodPowitalny(o: { email: string; imie?: string; 
   const imie = (o.imie ?? "").trim().split(/\s+/)[0];
   const temat = `${imie ? `${imie}, odbierz` : "Odbierz"} swój kod rabatowy −${o.procent}% 🎁 — bobas-shopping`;
   return wyslij(o.email, temat, mailKodPowitalnyHtml(o), "kod-powitalny", adresOdpowiedzi());
+}
+
+// ── Dokumenty do zamówienia (faktura, korekta, dowód zakupu…) ─────────────
+
+/** Mail z dokumentem w załączniku. Odpowiedź klienta trafia do skrzynki firmy. */
+export async function wyslijDokument(
+  do_: string[],
+  d: DaneMailaDokumentu,
+  plik: Zalacznik,
+): Promise<{ ok: boolean; blad?: string }> {
+  if (!mailWlaczony()) return { ok: false, blad: "Wysyłka maili nie jest skonfigurowana." };
+  if (!do_.length) return { ok: false, blad: "Brak adresu e-mail." };
+  return wyslij(do_, tematDokumentu(d), mailDokumentuHtml(d), "dokument", adresOdpowiedzi(), [plik]);
 }

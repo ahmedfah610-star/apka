@@ -10,6 +10,7 @@ import { zdjecie } from "@/lib/zdjecia";
 import { linkSledzenia, znajdzPrzewoznika } from "@/lib/przewoznicy";
 import type { Produkt } from "@/data/produkty";
 import { PrzyciskPlatnosci } from "@/components/PrzyciskPlatnosci";
+import { DokumentyZamowienia } from "@/components/konto/DokumentyZamowienia";
 import {
   ETYKIETY,
   KOLOR,
@@ -148,6 +149,9 @@ export function SzczegolyZamowienia({ id }: { id: string }) {
           )}
         </div>
       ) : null}
+
+      {/* Faktura i dokumenty (do pobrania) */}
+      <DokumentyZamowienia zamowienieId={z.id} klient={z.klient} klasa={ramka} />
 
       {/* Produkty */}
       <div className={ramka}>

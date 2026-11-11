@@ -130,8 +130,12 @@ export default function Regulamin() {
           Zamówienia może skutkować jego anulowaniem.
         </p>
         <p>
-          Na życzenie Klienta Sprzedawca wystawia fakturę. Chęć otrzymania faktury oraz dane do jej wystawienia należy podać
-          podczas składania Zamówienia lub przekazać Sprzedawcy drogą e-mailową.
+          Na życzenie Klienta Sprzedawca wystawia fakturę. Chęć otrzymania faktury oraz dane do jej wystawienia (dla firmy:
+          nazwa, NIP i adres; dla osoby prywatnej: imię, nazwisko i adres) Klient podaje, zaznaczając pole „Chcę fakturę”
+          w formularzu Zamówienia, albo przekazuje Sprzedawcy drogą e-mailową. Sprzedawca przesyła fakturę na adres e-mail
+          Klienta w ciągu 2 dni roboczych od wysłania Zamówienia. Faktury dla przedsiębiorców wystawiane są w Krajowym
+          Systemie e-Faktur (KSeF) zgodnie z przepisami. Konsument może zażądać faktury także po zakupie — w terminie
+          3 miesięcy od końca miesiąca, w którym otrzymał towar.
         </p>
       </Sekcja>
 

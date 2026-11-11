@@ -23,6 +23,8 @@ import { EdycjaDostaw } from "@/components/EdycjaDostaw";
 import { pobierzKatalog } from "@/lib/katalogKlient";
 import { pomiarKoszyka, zapamietajZakup } from "@/lib/analityka";
 import { pozycjaPomiaru } from "@/components/DodajDoKoszyka";
+import { FormularzFaktury, PUSTA_FAKTURA, fakturaDoWyslania, type StanFaktury } from "@/components/FormularzFaktury";
+import { sprawdzFakture, type DaneFaktury } from "@/lib/faktura";
 
 // Płatności obsługuje w całości Przelewy24 — to na jego bezpiecznej stronie
 // klient wybiera BLIK / przelew / kartę. Nie dublujemy tu tego wyboru.
@@ -44,6 +46,8 @@ export default function StronaZamowienia() {
   const [dane, setDane] = useState({ imie: "", email: "", telefon: "", adres: "", miasto: "", kod: "" });
   const [akceptacja, setAkceptacja] = useState(false);
   const [uwagi, setUwagi] = useState("");
+  // Faktura (opcjonalnie) — dane sprawdzane też na serwerze przed zapisem zamówienia.
+  const [faktura, setFaktura] = useState<StanFaktury>(PUSTA_FAKTURA);
   const [blad, setBlad] = useState("");
   const [wysylka, setWysylka] = useState(false);
   const [platnosciOnline, setPlatnosciOnline] = useState(false);
@@ -94,6 +98,15 @@ export default function StronaZamowienia() {
       .then(({ data }) => {
         const k = (data?.klient ?? {}) as Record<string, string | undefined>;
         if (!k) return;
+        // Dane do faktury z poprzedniego zamówienia — gotowe po zaznaczeniu „Chcę fakturę".
+        const kf = (data?.klient as { faktura?: DaneFaktury } | null)?.faktura;
+        if (kf?.nazwa) {
+          setFaktura((f) =>
+            f.nazwa || f.nip
+              ? f
+              : { ...f, typ: kf.typ, nip: kf.nip ?? "", nazwa: kf.nazwa, adres: kf.adres, kod: kf.kod, miasto: kf.miasto, email: kf.email ?? "" },
+          );
+        }
         setDane((d) => ({
           imie: d.imie || (k.imie ?? ""),
           email: d.email || (k.email ?? ""),
@@ -215,6 +228,10 @@ export default function StronaZamowienia() {
     if (metoda.paczkomat && !paczkomat) return setBlad("Wybierz paczkomat InPost.");
     if (metoda.punkt && !punkt) return setBlad(`Wybierz punkt ${metoda.operatorNazwa ?? metoda.nazwa} na mapie.`);
     if (!metoda.paczkomat && !metoda.punkt && (!dane.adres || !dane.miasto || !dane.kod)) return setBlad("Uzupełnij adres dostawy.");
+    if (faktura.chce) {
+      const fv = sprawdzFakture(fakturaDoWyslania(faktura));
+      if (!fv.ok) return setBlad(fv.blad);
+    }
     if (!akceptacja) return setBlad("Zaakceptuj Regulamin i Politykę prywatności.");
     setBlad("");
     setWysylka(true);
@@ -238,6 +255,7 @@ export default function StronaZamowienia() {
           metodaId: metoda.id,
           metoda: `${metoda.nazwa} · ${platnosc.nazwa}`,
           kod: kodPrzyjety?.kod,
+          faktura: fakturaDoWyslania(faktura),
           klient: {
             imie: dane.imie,
             email: dane.email,
@@ -364,6 +382,19 @@ export default function StronaZamowienia() {
             ) : null}
           </section>
 
+          {/* Faktura (opcjonalnie) */}
+          <FormularzFaktury
+            wartosc={faktura}
+            onZmiana={setFaktura}
+            domyslne={{
+              imie: dane.imie,
+              // Adres z dostawy tylko przy kurierze — przy paczkomacie i punkcie nie ma adresu klienta.
+              adres: !metoda?.paczkomat && !metoda?.punkt ? dane.adres : "",
+              kod: !metoda?.paczkomat && !metoda?.punkt ? dane.kod : "",
+              miasto: !metoda?.paczkomat && !metoda?.punkt ? dane.miasto : "",
+            }}
+          />
+
           {/* Płatność */}
           <section className="rounded-2xl border border-linia bg-white p-5 md:p-6">
             <h2 className="mb-4 flex items-center gap-2.5 text-[15px] font-bold">
@@ -402,7 +433,7 @@ export default function StronaZamowienia() {
               onChange={(e) => setUwagi(e.target.value.slice(0, 500))}
               rows={3}
               maxLength={500}
-              placeholder="Np. dane do faktury (nazwa firmy, NIP, adres) albo uwagi do zamówienia"
+              placeholder="Np. uwagi do zamówienia lub dostawy"
               className="w-full resize-y rounded-lg border border-linia-2 bg-white px-3.5 py-2.5 text-[16px] outline-none focus:border-ink md:text-[14px]"
             />
             <p className="mt-1 text-right text-[12px] text-ink-2">{uwagi.length}/500</p>
