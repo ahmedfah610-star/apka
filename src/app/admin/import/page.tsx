@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { SynchronizacjaStanow } from "@/components/SynchronizacjaStanow";
 import { NoweZAllegro } from "@/components/NoweZAllegro";
 
-interface Status { skonfigurowany: boolean; polaczony: boolean; wygaslo?: boolean; bladPolaczenia?: string | null }
+interface Status { skonfigurowany: boolean; polaczony: boolean; wygaslo?: boolean; bladPolaczenia?: string | null; historiaPolaczenia?: { czas: string; co: string }[] }
 interface Wynik { pobrano: number; zapisano: number; bledy: number; blad?: string }
 
 export default function AdminImport() {
@@ -18,7 +18,7 @@ export default function AdminImport() {
     try {
       const r = await fetch("/api/admin/allegro");
       const d = await r.json();
-      if (d.ok) setStatus({ skonfigurowany: d.skonfigurowany, polaczony: d.polaczony, wygaslo: d.wygaslo, bladPolaczenia: d.bladPolaczenia });
+      if (d.ok) setStatus({ skonfigurowany: d.skonfigurowany, polaczony: d.polaczony, wygaslo: d.wygaslo, bladPolaczenia: d.bladPolaczenia, historiaPolaczenia: d.historiaPolaczenia });
     } catch { /* ignoruj */ }
   };
   useEffect(() => { void odswiezStatus(); }, []);
@@ -236,8 +236,20 @@ export default function AdminImport() {
                     Allegro unieważniło dostęp sklepu (dzieje się tak np. po zmianie hasła, wylogowaniu ze wszystkich urządzeń albo
                     usunięciu aplikacji w „Powiązanych aplikacjach”). Stany się nie synchronizują — połącz ponownie, produkty i
                     powiązania zostają bez zmian.
-                    {status.bladPolaczenia ? <span className="mt-1 block text-[12px] text-ink-3">Odpowiedź Allegro: {status.bladPolaczenia}</span> : null}
+                    {status.bladPolaczenia ? <span className="mt-1 block break-words text-[12px] text-ink-3">Odpowiedź Allegro: {status.bladPolaczenia}</span> : null}
                   </p>
+                ) : null}
+                {status.wygaslo && status.historiaPolaczenia?.length ? (
+                  <details className="mb-3 text-[12px] text-ink-2">
+                    <summary className="cursor-pointer font-semibold">Historia połączenia (ostatnie zdarzenia)</summary>
+                    <ul className="mt-1.5 space-y-0.5">
+                      {status.historiaPolaczenia.map((h, i) => (
+                        <li key={i} className="break-words">
+                          <span className="text-ink-3">{new Date(h.czas).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span> — {h.co}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
                 ) : null}
                 <button onClick={polacz} disabled={busy} className="rounded-lg bg-ink px-6 py-2.5 text-[13px] font-semibold tracking-wide text-tlo transition-colors hover:bg-akcent disabled:opacity-60">
                   {busy ? "ŁĄCZENIE…" : status.wygaslo ? "POŁĄCZ PONOWNIE Z ALLEGRO" : "POŁĄCZ Z ALLEGRO"}

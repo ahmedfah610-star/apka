@@ -172,6 +172,7 @@ export async function GET(req: Request) {
     polaczony: polaczenie.stan === "ok",
     wygaslo: polaczenie.stan === "wygaslo",
     bladPolaczenia: polaczenie.blad ?? null,
+    historiaPolaczenia: "historia" in polaczenie ? (polaczenie.historia ?? []) : [],
   });
 }
 

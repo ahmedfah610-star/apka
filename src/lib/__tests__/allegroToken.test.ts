@@ -23,6 +23,11 @@ vi.mock("@/lib/supabase", () => ({
           },
         }),
       }),
+      insert: async (w: Record<string, unknown>) => {
+        if (ustawienia.has(String(w.klucz))) return { error: { message: "duplicate key", code: "23505" } };
+        ustawienia.set(String(w.klucz), w.wartosc);
+        return { error: null };
+      },
       upsert: async (w: Record<string, unknown>) => {
         if (t === "allegro_auth") auth = w as Wiersz;
         else ustawienia.set(String(w.klucz), w.wartosc);
@@ -114,7 +119,8 @@ describe("token Allegro", () => {
     );
     const { allegroGet } = await import("@/lib/allegro");
     await expect(allegroGet("/sale/offers")).rejects.toThrow(/401/);
-    expect(ustawienia.size).toBe(1);
+    expect(ustawienia.has("allegro:blad-tokenu")).toBe(true);
+    expect(ustawienia.has("allegro:odswiezanie")).toBe(false); // blokada zdjęta
   });
 
   it("token wygasły według JWT (exp) jest odświeżany, mimo że zapisana data mówi „ważny”", async () => {
@@ -132,5 +138,54 @@ describe("token Allegro", () => {
     });
     const { aktualnyToken } = await import("@/lib/allegro");
     expect(await aktualnyToken()).toBe(t);
+  });
+
+  it("kilka wątków naraz z wygasłym kluczem → jedno odświeżenie (refresh token jest jednorazowy)", async () => {
+    auth = { access_token: "a1", refresh_token: "r1", expires_at: przeszlosc };
+    let odswiezen = 0;
+    vi.stubGlobal("fetch", async () => {
+      odswiezen++;
+      await new Promise((r) => setTimeout(r, 30));
+      return new Response(JSON.stringify({ access_token: "a2", refresh_token: "r2", expires_in: 43199 }), { status: 200 });
+    });
+    const { aktualnyToken } = await import("@/lib/allegro");
+    const wyniki = await Promise.all(Array.from({ length: 6 }, () => aktualnyToken()));
+    expect(wyniki).toEqual(Array(6).fill("a2"));
+    expect(odswiezen).toBe(1);
+    expect(ustawienia.has("allegro:odswiezanie")).toBe(false);
+  });
+
+  it("inny proces trzyma blokadę → czekamy na jego nowy klucz, nie zużywamy refresh tokenu", async () => {
+    auth = { access_token: "a1", refresh_token: "r1", expires_at: przeszlosc };
+    ustawienia.set("allegro:odswiezanie", { czas: new Date().toISOString() });
+    vi.stubGlobal("fetch", async () => {
+      throw new Error("nie powinno odświeżać");
+    });
+    setTimeout(() => {
+      auth = { access_token: "a2", refresh_token: "r2", expires_at: przyszlosc() };
+    }, 700);
+    const { aktualnyToken } = await import("@/lib/allegro");
+    expect(await aktualnyToken()).toBe("a2");
+  });
+
+  it("blokada po przerwanej funkcji (stara) jest przejmowana", async () => {
+    auth = { access_token: "a1", refresh_token: "r1", expires_at: przeszlosc };
+    ustawienia.set("allegro:odswiezanie", { czas: new Date(Date.now() - 60000).toISOString() });
+    vi.stubGlobal("fetch", async () => new Response(JSON.stringify({ access_token: "a2", refresh_token: "r2", expires_in: 43199 }), { status: 200 }));
+    const { aktualnyToken } = await import("@/lib/allegro");
+    expect(await aktualnyToken()).toBe("a2");
+    expect(ustawienia.has("allegro:odswiezanie")).toBe(false);
+  });
+
+  it("tokeny wklejone przez Allegro do błędów nie trafiają do panelu", async () => {
+    auth = { access_token: "a1", refresh_token: "r1", expires_at: przeszlosc };
+    vi.stubGlobal("fetch", async () =>
+      new Response(JSON.stringify({ error: "invalid_grant", error_description: "Invalid refresh token: eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjF9.c2ln" }), { status: 400 }),
+    );
+    const { stanPolaczenia } = await import("@/lib/allegro");
+    const s = await stanPolaczenia();
+    expect(s.stan).toBe("wygaslo");
+    expect(s.blad).toBe("Allegro 400: Invalid refresh token: [token]");
+    expect(s.historia?.[0]?.co).toMatch(/Odmowa odświeżenia/);
   });
 });
