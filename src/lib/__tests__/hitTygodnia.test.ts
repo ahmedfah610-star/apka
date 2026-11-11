@@ -39,4 +39,12 @@ describe("hit tygodnia", () => {
     expect(rozmiaryTekst(["56", "62"])).toBe("56, 62");
     expect(rozmiaryTekst(["30-34 cm", "35-38 cm", "39-42 cm", "43-46 cm"])).toBe("30-34 cm, 35-38 cm, 39-42 cm i więcej");
   });
+
+  it("ręczny wybór wygrywa ze sprzedażą; wyprzedany → następny z listy, potem automat", () => {
+    const k = [p("a"), p("b"), p("sprzedawany"), p("wyprzedany", { stan: 0, stanRozmiary: { "56": 0, "62": 0 } })];
+    const sprzedaz = new Map([["sprzedawany", 5]]);
+    expect(wybierzHit(k, sprzedaz, new Date(), undefined, ["b", "a"])).toMatchObject({ produkt: { id: "b" }, zrodlo: "polecany" });
+    expect(wybierzHit(k, sprzedaz, new Date(), undefined, ["wyprzedany", "a"])?.produkt.id).toBe("a");
+    expect(wybierzHit(k, sprzedaz, new Date(), undefined, ["nie-ma"])).toMatchObject({ produkt: { id: "sprzedawany" }, zrodlo: "sprzedaz" });
+  });
 });

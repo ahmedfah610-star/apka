@@ -3,7 +3,8 @@ import { sbService } from "@/lib/supabase";
 import { tydzienRoku } from "@/lib/newsletterDobor";
 import { porownajRozmiary } from "@/lib/rozmiary";
 
-// „Hit tygodnia" na stronie głównej — wybierany sam, bez ręcznego ustawiania:
+// „Hit tygodnia" na stronie głównej:
+// 0) produkt wybrany ręcznie (data/hitTygodnia.ts) — pierwszy z listy, który jest na stanie,
 // 1) najchętniej kupowany produkt dziecięcy z ostatnich dni (prawdziwe, opłacone zamówienia),
 // 2) gdy brak sprzedaży — co tydzień inna nowość dziecięca z porządną galerią.
 
@@ -11,7 +12,7 @@ export const DNI_SPRZEDAZY = 14;
 
 export interface Hit {
   produkt: Produkt;
-  zrodlo: "sprzedaz" | "wybor";
+  zrodlo: "sprzedaz" | "wybor" | "polecany";
   rozmiary: string[]; // rozmiary na stanie
 }
 
@@ -30,9 +31,15 @@ export function wybierzHit(
   sprzedaz: Map<string, number>,
   teraz: Date = new Date(),
   preferuj?: (p: Produkt) => boolean, // np. ciepłe zimą — gdy brak sprzedaży, wybór z nich
+  wybrane: readonly string[] = [], // ręczny wybór (data/hitTygodnia.ts) — ma pierwszeństwo, dopóki jest na stanie
 ): Hit | undefined {
   const dostepne = katalog.filter((p) => kandydat(p) && rozmiaryNaStanie(p).length > 0);
   if (!dostepne.length) return undefined;
+
+  for (const id of wybrane) {
+    const p = dostepne.find((x) => x.id === id);
+    if (p) return { produkt: p, zrodlo: "polecany", rozmiary: rozmiaryNaStanie(p) };
+  }
 
   // Pozycja w katalogu = kolejność dodania (od najstarszego) — remis wygrywa nowszy.
   const kolejnosc = new Map(katalog.map((p, i) => [p.id, i]));

@@ -13,6 +13,8 @@ import { formatCena, ZAKRESY_CENY } from "@/lib/filtrowanie";
 import { kwotaTekst, najtanszaDostawa } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 import { rozmiaryTekst, sprzedazOstatnio, wybierzHit } from "@/lib/hitTygodnia";
+import { WYBRANY_HIT } from "@/data/hitTygodnia";
+import { zdjeciaDoReklamy } from "@/lib/feedEtykiety";
 import { cieplePierwsze, czyCieply, sezonZimowy, SLUG_ZIMA } from "@/lib/sezon";
 
 // ISR: strona buduje się i odświeża co 5 minut zamiast przy każdym żądaniu.
@@ -102,7 +104,8 @@ export default async function StronaGlowna() {
 
   // Banery: „Hit tygodnia" (najchętniej kupowany albo co tydzień inna nowość — lib/hitTygodnia)
   const zima = sezonZimowy();
-  const hit = wybierzHit(naStanie, await sprzedazOstatnio(), new Date(), zima ? czyCieply : undefined);
+  const hit = wybierzHit(naStanie, await sprzedazOstatnio(), new Date(), zima ? czyCieply : undefined, WYBRANY_HIT);
+  const zdjecieHitu = hit ? zdjeciaDoReklamy(hit.produkt).zdjecia[0] || hit.produkt.zdjecie : undefined;
   if (hit) [hit.produkt.id, hit.produkt.zdjecie ?? "", hit.produkt.nazwa.toLowerCase()].forEach((k) => zajete.add(k));
   const tanie = naStanie.filter((p) => p.cena >= DO_20.min && p.cena < DO_20.max);
   const tanieFoto = okladka(tanie.filter((p) => p.kategoria !== "dorosli"), zajete);
@@ -150,7 +153,7 @@ export default async function StronaGlowna() {
             >
               <div className="flex min-w-0 flex-col">
                 <span className="mb-2 self-start rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[.08em] md:mb-3 md:text-[12px]">
-                  {hit.zrodlo === "sprzedaz" ? "Najchętniej kupowany" : "Wybór tygodnia"}
+                  {hit.zrodlo === "sprzedaz" ? "Najchętniej kupowany" : hit.zrodlo === "polecany" ? "Polecamy" : "Wybór tygodnia"}
                 </span>
                 <h2 className="text-[26px] font-extrabold leading-[1.02] tracking-tight md:text-[46px]">
                   Hit tygodnia{hit.produkt.kategoria === "niemowleta" ? " dla maluszka" : ""}
@@ -168,7 +171,7 @@ export default async function StronaGlowna() {
                   {formatCena(hit.produkt.cena)} zł
                 </span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={zdjecie(hit.produkt.zdjecie, "s720")} alt={hit.produkt.nazwa} className="aspect-square w-full rounded-xl bg-white object-contain" />
+                <img src={zdjecie(zdjecieHitu, "s720")} alt={hit.produkt.nazwa} className="aspect-square w-full rounded-xl bg-white object-contain" />
               </div>
             </Link>
           ) : null}
