@@ -20,6 +20,7 @@ export interface DaneMailaDokumentu {
   kwota?: number; // korekta
   nazwaPliku: string;
   dopisek?: string;
+  link?: string; // podpisany link „Otwórz" do pliku (w podglądzie w panelu: "#")
 }
 
 const zl = (n: number) => `${n < 0 ? "−" : ""}${Math.abs(n).toFixed(2).replace(".", ",")} zł`;
@@ -53,7 +54,10 @@ export function mailDokumentuHtml(d: DaneMailaDokumentu): string {
   const zam = `<strong style="color:${M.ink}">#${esc(nr)}</strong>`;
   const f = d.faktura;
   const nabywca = f ? `${esc(f.nazwa)}${f.nip ? `<br>NIP ${esc(nipCzytelny(f.nip))}` : ""}` : "";
-  const zalacznik = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 14px"><tr><td style="padding:10px 14px;border:1px solid ${M.linia};border-radius:10px;font-size:13.5px;color:${M.ink}">📎 W załączniku: <strong>${esc(d.nazwaPliku)}</strong></td></tr></table>`;
+  // Ramka z plikiem: z linkiem — cała klikalna i otwiera dokument (klienci klikali ją jak załącznik).
+  const zalacznik = d.link
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 14px"><tr><td style="border:1px solid ${M.linia};border-radius:10px"><a href="${esc(d.link)}" target="_blank" style="display:block;padding:12px 14px;font-size:13.5px;line-height:1.5;color:${M.ink};text-decoration:none">📎 <strong>${esc(d.nazwaPliku)}</strong><br><span style="color:${M.akcent};font-weight:700;text-decoration:underline">Otwórz dokument →</span> <span style="color:${M.ink2};font-size:12.5px">(plik jest też w załączniku maila)</span></a></td></tr></table>`
+    : `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 14px"><tr><td style="padding:10px 14px;border:1px solid ${M.linia};border-radius:10px;font-size:13.5px;color:${M.ink}">📎 W załączniku: <strong>${esc(d.nazwaPliku)}</strong></td></tr></table>`;
   const dopisek = d.dopisek?.trim()
     ? `<p style="margin:0 0 14px;padding:12px 14px;border-left:3px solid ${M.akcent};background:${M.tlo};font-size:14px;line-height:1.6;color:${M.ink}">${esc(d.dopisek.trim()).replace(/\r?\n/g, "<br>")}</p>`
     : "";

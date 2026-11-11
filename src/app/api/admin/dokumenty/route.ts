@@ -3,6 +3,7 @@ import { sbService } from "@/lib/supabase";
 import { wyslijDokument } from "@/lib/mail";
 import { nazwaPlikuDokumentu, type DokumentZamowienia, type TypDokumentu } from "@/lib/faktura";
 import type { DaneMailaDokumentu } from "@/lib/mailDokumentu";
+import { linkDokumentuZMaila } from "@/lib/dokumentToken";
 import {
   MAX_ROZMIAR_DOKUMENTU,
   typPliku,
@@ -52,6 +53,7 @@ function daneMaila(z: ZamowienieZDokumentami, d: DokumentZamowienia, dopisek: st
     kwota: d.kwota,
     nazwaPliku: d.nazwaPliku,
     dopisek,
+    link: linkDokumentuZMaila(z.id, d.id),
   };
 }
 

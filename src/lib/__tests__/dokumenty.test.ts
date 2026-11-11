@@ -201,6 +201,36 @@ describe("klient: pobranie dokumentu z konta", () => {
   });
 });
 
+describe("mail: link „Otwórz dokument”", () => {
+  it("mail z panelu ma klikalną ramkę z podpisanym linkiem, który otwiera plik", async () => {
+    const { mailDokumentuHtml } = await import("@/lib/mailDokumentu");
+    const { linkDokumentuZMaila } = await import("@/lib/dokumentToken");
+    const link = linkDokumentuZMaila(ID, "d1");
+    const h = mailDokumentuHtml({ typ: "faktura", zamowienieId: ID, dataZamowienia: "2026-11-10T09:12:00Z", razem: 1, nazwaPliku: "Faktura.pdf", link });
+    expect(h).toContain("Otwórz dokument");
+    expect(h).toContain(link.replace(/&/g, "&amp;"));
+
+    zamowienie = { ...zamowienie!, klient: { ...(zamowienie!.klient as object), dokumenty: [{ id: "d1", typ: "faktura", plik: `${ID}/d1.pdf`, nazwaPliku: "Faktura_FV 1.pdf", mime: "application/pdf" }] } };
+    const { GET } = await import("@/app/api/dokument/route");
+    const r = await GET(new Request(link, { headers: { "x-forwarded-for": "10.8.8.8" } }));
+    expect(r.status).toBe(200);
+    expect(r.headers.get("content-type")).toBe("application/pdf");
+    expect(r.headers.get("content-disposition")).toBe('inline; filename="Faktura_FV_1.pdf"');
+    expect(new Uint8Array(await r.arrayBuffer())).toEqual(PDF);
+  });
+
+  it("zły podpis albo usunięty dokument → strona z wyjaśnieniem, bez pliku", async () => {
+    const { GET } = await import("@/app/api/dokument/route");
+    const { linkDokumentuZMaila } = await import("@/lib/dokumentToken");
+    const zly = await GET(new Request(`https://x/api/dokument?z=${ID}&d=d1&t=${"0".repeat(32)}`, { headers: { "x-forwarded-for": "10.8.8.9" } }));
+    expect(zly.status).toBe(404);
+    expect(zly.headers.get("content-type")).toContain("text/html");
+    const brak = await GET(new Request(linkDokumentuZMaila(ID, "usuniety"), { headers: { "x-forwarded-for": "10.8.8.9" } }));
+    expect(brak.status).toBe(404);
+    expect(await brak.text()).toContain("Dokument niedostępny");
+  });
+});
+
 describe("panel: dane do faktury po zakupie", () => {
   it("dodanie, walidacja, usunięcie — reszta danych bez zmian", async () => {
     const { PATCH } = await import("@/app/api/admin/faktura/route");

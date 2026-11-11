@@ -119,6 +119,7 @@ export function SekcjaFaktury({ z, onZmiana }: { z: ZamowienieFaktury; onZmiana:
     kwota: typ === "korekta" && kwota.trim() ? Number(kwota.replace(",", ".")) : undefined,
     nazwaPliku: nazwaPlikuPodgladu,
     dopisek,
+    link: "#", // w prawdziwym mailu: podpisany link do pliku
   };
   const temat = tematDokumentu(daneMaila);
   const htmlPodgladu = useMemo(() => (podglad ? mailDokumentuHtml(daneMaila) : ""), [podglad, JSON.stringify(daneMaila)]); // eslint-disable-line react-hooks/exhaustive-deps
