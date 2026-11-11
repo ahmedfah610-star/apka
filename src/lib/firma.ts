@@ -8,6 +8,13 @@ export const FIRMA = {
   telefon: "+48 793 878 222",
 };
 
+/** Zwroty: adres do odsyłki pocztą/kurierem albo paczkomat InPost (adres siedziby bez zmian w FIRMA). */
+export const ZWROTY = {
+  adres: "ul. Romantyczna 9/28, 20-532 Lublin",
+  paczkomat: "LUB20M",
+  paczkomatOpis: "ul. Romantyczna 2, 20-533 Lublin — przy sklepie Lidl",
+};
+
 /** Rejestracja recyklingu opakowań (w Polsce: numer rejestrowy BDO z urzędu marszałkowskiego). */
 export const REJESTRACJE_OPAKOWAN: { kraj: string; numer: string }[] = [{ kraj: "Polska", numer: "000744577" }];
 

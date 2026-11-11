@@ -1,5 +1,6 @@
 import { StronaInfo, Sekcja, DaneSprzedawcy } from "@/components/StronaInfo";
 import { FormularzKontaktowy } from "@/components/FormularzKontaktowy";
+import { FIRMA, ZWROTY } from "@/lib/firma";
 
 export const metadata = { title: "Kontakt" };
 
@@ -43,7 +44,8 @@ export default function Kontakt() {
         <p>
           Zasady, terminy oraz wzór formularza odstąpienia znajdziesz na stronie{" "}
           <a href="/dostawa-i-zwroty" className="underline underline-offset-2 hover:text-akcent">Dostawa i zwroty</a>.
-          Adres do zwrotów: AMIN.KIDS Sp. z o.o., ul. Tomasza Zana 43/2.1, 20-601 Lublin.
+          Adres do zwrotów: {FIRMA.nazwa}, {ZWROTY.adres}. Możesz też nadać zwrot do paczkomatu InPost{" "}
+          <strong>{ZWROTY.paczkomat}</strong> ({ZWROTY.paczkomatOpis}).
         </p>
       </Sekcja>
 

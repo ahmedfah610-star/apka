@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { StronaInfo, Sekcja, Lista, Ramka } from "@/components/StronaInfo";
+import { FIRMA, ZWROTY } from "@/lib/firma";
 import { EdycjaDostaw } from "@/components/EdycjaDostaw";
 import { zl } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
@@ -53,10 +54,20 @@ export default async function DostawaZwroty() {
           formularza, ale nie jest to obowiązkowe. Do zachowania terminu wystarczy wysłanie oświadczenia przed jego upływem.
         </p>
         <p>
-          Zwracany Towar odeślij niezwłocznie, nie później niż w ciągu 14 dni od odstąpienia, na adres:{" "}
-          AMIN.KIDS Sp. z o.o., ul. Tomasza Zana 43/2.1, 20-601 Lublin. Bezpośrednie koszty odesłania Towaru ponosi kupujący. Prosimy
-          o dołączenie informacji pozwalającej powiązać zwrot z zamówieniem (np. numer zamówienia).
+          Zwracany Towar odeślij niezwłocznie, nie później niż w ciągu 14 dni od odstąpienia. Bezpośrednie koszty odesłania
+          Towaru ponosi kupujący. Prosimy o dołączenie informacji pozwalającej powiązać zwrot z zamówieniem (np. numer zamówienia).
         </p>
+        <Ramka>
+          <p className="font-semibold text-ink">Gdzie odesłać zwrot</p>
+          <p className="mt-1.5">
+            <strong>Paczkomat InPost:</strong> {ZWROTY.paczkomat} ({ZWROTY.paczkomatOpis}).
+            <br />
+            Odbiorca: {FIRMA.nazwa}, tel. {FIRMA.telefon}, e-mail {FIRMA.email}.
+          </p>
+          <p className="mt-1.5">
+            <strong>Poczta lub kurier:</strong> {FIRMA.nazwa}, {ZWROTY.adres}.
+          </p>
+        </Ramka>
         <p>
           Zwrotu wszystkich otrzymanych płatności — w tym kosztów najtańszej oferowanej przez nas dostawy — dokonamy
           niezwłocznie, nie później niż w ciągu 14 dni, tą samą metodą płatności, której użyłeś, chyba że zgodzisz się na inne
