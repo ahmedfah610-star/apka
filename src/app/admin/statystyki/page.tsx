@@ -36,13 +36,23 @@ const dzienLabel = (iso: string) => new Date(iso).toLocaleDateString("pl-PL", { 
 
 function Kafel({ etykieta, wartosc, pod }: { etykieta: string; wartosc: string; pod?: string }) {
   return (
-    <div className="rounded-xl border border-linia bg-white p-5">
-      <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-2">{etykieta}</p>
-      <p className="text-[26px] font-bold leading-none tracking-tight">{wartosc}</p>
-      {pod ? <p className="mt-1.5 text-[12px] text-ink-2">{pod}</p> : null}
+    <div className="rounded-xl border border-linia bg-white p-4 md:p-5">
+      <p className="mb-1.5 text-[12.5px] font-semibold text-ink-2">{etykieta}</p>
+      <p className="whitespace-nowrap text-[19px] font-bold leading-none tracking-tight md:text-[26px]">{wartosc}</p>
+      {pod ? <p className="mt-1.5 text-[12px] leading-snug text-ink-2">{pod}</p> : null}
     </div>
   );
 }
+
+/** „+25%" / „−10%" względem poprzedniego okresu (null, gdy nie ma z czym porównać). */
+function zmiana(teraz: number, wczesniej: number): { tekst: string; wzrost: boolean } | null {
+  if (wczesniej <= 0) return null;
+  const pr = Math.round(((teraz - wczesniej) / wczesniej) * 100);
+  return { tekst: `${pr > 0 ? "+" : pr < 0 ? "−" : ""}${Math.abs(pr)}%`, wzrost: pr >= 0 };
+}
+
+/** „z 1 zamówienia", „z 4 zamówień" (dopełniacz). */
+const zZamowien = (n: number) => `z ${n} ${n === 1 ? "zamówienia" : "zamówień"}`;
 
 export default function AdminStatystyki() {
   const [lista, setLista] = useState<Zamowienie[]>([]);
@@ -59,9 +69,17 @@ export default function AdminStatystyki() {
 
   const dane = useMemo(() => {
     const granica = Date.now() - okres * 24 * 60 * 60 * 1000;
-    const wOkresie = lista.filter((z) => new Date(z.data).getTime() >= granica);
-    // Zrealizowane bez zamówień TEST.
-    const zrealizowane = wOkresie.filter((z) => ZREALIZOWANE.includes(z.status) && !z.klient?.test);
+    // Bez zamówień TEST — nigdzie w statystykach.
+    const prawdziwe = lista.filter((z) => !z.klient?.test);
+    const wOkresie = prawdziwe.filter((z) => new Date(z.data).getTime() >= granica);
+    const zrealizowane = wOkresie.filter((z) => ZREALIZOWANE.includes(z.status));
+    // Poprzedni okres tej samej długości — do porównania („+25% vs poprzednie 30 dni").
+    const poprzedniOd = granica - okres * 24 * 60 * 60 * 1000;
+    const obrotPoprzedni = okres >= 3650 ? 0 : prawdziwe
+      .filter((z) => ZREALIZOWANE.includes(z.status) && new Date(z.data).getTime() >= poprzedniOd && new Date(z.data).getTime() < granica)
+      .reduce((s, z) => s + z.razem, 0);
+    const nieoplacone = wOkresie.filter((z) => z.status === "oczekuje_na_platnosc").length;
+    const anulowane = wOkresie.filter((z) => z.status === "anulowane").length;
 
     const obrot = zrealizowane.reduce((s, z) => s + z.razem, 0);
     const dostawa = zrealizowane.reduce((s, z) => s + (Number(z.dostawa) || 0), 0);
@@ -99,7 +117,7 @@ export default function AdminStatystyki() {
     const statusy = new Map<string, number>();
     for (const z of wOkresie) statusy.set(z.status, (statusy.get(z.status) ?? 0) + 1);
 
-    return { obrot, dostawa, darmowych, sztuk, sredniaWartosc, zrealizowane: zrealizowane.length, wszystkie: wOkresie.length, slupki, maxSlupek, bestsellery, maxBest, statusy };
+    return { obrot, obrotPoprzedni, dostawa, darmowych, sztuk, sredniaWartosc, zrealizowane: zrealizowane.length, wszystkie: wOkresie.length, nieoplacone, anulowane, slupki, maxSlupek, bestsellery, maxBest, statusy };
   }, [lista, okres]);
 
   return (
@@ -107,7 +125,7 @@ export default function AdminStatystyki() {
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-[26px] font-bold tracking-tight">Statystyki sprzedaży</h1>
-          <p className="text-[14px] text-ink-2">Obrót liczony z zamówień opłaconych i wysłanych (razem z przesyłkami — kwota za przesyłki osobno).</p>
+          <p className="text-[14px] text-ink-2">Liczymy tylko opłacone zamówienia, bez testowych.</p>
         </div>
         <div className="flex gap-2">
           {OKRESY.map((o) => (
@@ -126,17 +144,47 @@ export default function AdminStatystyki() {
         <p className="text-[13px] text-ink-2">Wczytywanie…</p>
       ) : (
         <>
-          {/* KPI */}
-          <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-5">
-            <Kafel etykieta="Obrót" wartosc={`${formatCena(dane.obrot)} zł`} pod={`${dane.zrealizowane} zam. · produkty ${formatCena(dane.obrot - dane.dostawa)} zł`} />
+          {/* Najważniejsze: ile zarobiono w okresie */}
+          {(() => {
+            const okresTekst = OKRESY.find((o) => o.dni === okres)?.label ?? "";
+            const z = zmiana(dane.obrot, dane.obrotPoprzedni);
+            return (
+              <section className="mb-4 rounded-xl border border-linia bg-white p-5 md:p-6">
+                <p className="text-[13px] font-semibold text-ink-2">Sprzedaż {okres >= 3650 ? "od początku" : `— ostatnie ${okresTekst}`}</p>
+                <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <p className="text-[36px] font-bold leading-none tracking-tight md:text-[44px]">{formatCena(dane.obrot)} zł</p>
+                  {z ? (
+                    <span className={`rounded-full px-2.5 py-1 text-[12.5px] font-bold ${z.wzrost ? "bg-akcent/10 text-akcent" : "bg-[oklch(95%_0.03_25)] text-[oklch(50%_0.19_25)]"}`}>
+                      {z.tekst} vs poprzednie {okresTekst}
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-2 text-[13.5px] text-ink-2">{dane.zrealizowane ? zZamowien(dane.zrealizowane) : "Brak opłaconych zamówień w tym okresie."}</p>
+                {dane.zrealizowane ? (
+                  <div className="mt-4 grid grid-cols-2 gap-3 border-t border-linia pt-4 text-[13.5px]">
+                    <div>
+                      <p className="text-ink-2">Za produkty</p>
+                      <p className="text-[18px] font-bold">{formatCena(dane.obrot - dane.dostawa)} zł</p>
+                    </div>
+                    <div>
+                      <p className="text-ink-2">Za przesyłki</p>
+                      <p className="text-[18px] font-bold">{formatCena(dane.dostawa)} zł</p>
+                      {dane.darmowych ? <p className="text-[12px] text-ink-2">{dane.darmowych} z darmową dostawą</p> : null}
+                    </div>
+                  </div>
+                ) : null}
+              </section>
+            );
+          })()}
+
+          <div className="mb-8 grid grid-cols-3 gap-3 md:gap-4">
+            <Kafel etykieta="Średnio na zamówienie" wartosc={dane.zrealizowane ? `${formatCena(dane.sredniaWartosc)} zł` : "—"} />
+            <Kafel etykieta="Sprzedane sztuki" wartosc={String(dane.sztuk)} />
             <Kafel
-              etykieta="Przesyłki łącznie"
-              wartosc={`${formatCena(dane.dostawa)} zł`}
-              pod={dane.zrealizowane ? `${dane.zrealizowane - dane.darmowych} płatnych · ${dane.darmowych} darmowych` : "brak danych"}
+              etykieta="Nieopłacone"
+              wartosc={String(dane.nieoplacone)}
+              pod={dane.anulowane ? `+ ${dane.anulowane} anulowane` : dane.nieoplacone ? "czekają na płatność" : undefined}
             />
-            <Kafel etykieta="Śr. wartość zam." wartosc={`${formatCena(dane.sredniaWartosc)} zł`} pod={dane.zrealizowane ? "na zamówienie" : "brak danych"} />
-            <Kafel etykieta="Sprzedane szt." wartosc={String(dane.sztuk)} pod="produkty łącznie" />
-            <Kafel etykieta="Zamówienia" wartosc={String(dane.wszystkie)} pod="wszystkie w okresie" />
           </div>
 
           {/* Wykres obrotu */}
