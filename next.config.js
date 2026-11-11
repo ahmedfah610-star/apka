@@ -44,6 +44,8 @@ const nextConfig = {
         permanent: true,
       },
       { source: "/blog/bawelna-organiczna-czy-warto", destination: "/blog/bawelna-w-ubrankach-dzieciecych", permanent: true },
+      // Kolekcja dla dziewczynek to bluzki (bluz bez kompletów prawie nie ma).
+      { source: "/kolekcje/bluzy-dla-dziewczynki", destination: "/kolekcje/bluzki-dla-dziewczynki", permanent: true },
     ];
   },
   // Czytelne adresy produktów: /produkty/<nazwa>-<kolor>-<id> wyświetla tę samą kartę co /produkty/<id>

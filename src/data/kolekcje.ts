@@ -13,6 +13,7 @@ export interface Kolekcja {
   wstep: string; // akapit widoczny na stronie (unikalna treść SEO)
   kategoria: Kategoria | null;
   klucze: string[]; // dopasowanie po nazwie produktu (znormalizowane, małe litery)
+  wyklucz?: string[]; // słowa w nazwie, które wykluczają produkt (np. „komplet" w bluzach)
   dopasuj?: (p: Produkt) => boolean; // własna reguła zamiast kluczy (np. ciepłe ubranka na zimę)
   faq: { q: string; a: string }[];
 }
@@ -33,6 +34,7 @@ export function produktyKolekcji(produkty: Produkt[], kol: Kolekcja): Produkt[] 
     // Kolekcje „dziecięce" bez działu (dresy, komplety, body, czapki) — bez odzieży męskiej.
     if (!kol.kategoria && p.kategoria === "dorosli") return false;
     const n = norm(p.nazwa);
+    if (kol.wyklucz?.some((w) => n.includes(w))) return false;
     return kol.klucze.some((k) => n.includes(k));
   });
 }
@@ -96,13 +98,14 @@ export const KOLEKCJE: Kolekcja[] = [
   },
   {
     slug: "bluzy-dla-chlopca",
-    h1: "Bluzy dla chłopca",
-    tytul: "Bluzy dla chłopca 0–12 lat",
-    opis: "Bluzy dla chłopca — miękkie, ciepłe i wygodne, zakładane przez głowę lub rozpinane. Rozmiary 62–170. Wysyłka InPost, 14 dni na zwrot.",
+    h1: "Bluzy i bluzki dla chłopca",
+    tytul: "Bluzy i bluzki dla chłopca 0–12 lat",
+    opis: "Bluzy i bluzki dla chłopca — miękkie, wygodne, zakładane przez głowę lub rozpinane. Rozmiary 62–170. Wysyłka InPost, 14 dni na zwrot.",
     wstep:
-      "Bluzy dla chłopca to podstawa garderoby na chłodniejsze dni. Wybieramy modele z miękkiej, przyjaznej skórze dzianiny — wygodne do zabawy i łatwe do łączenia ze spodniami czy dresami. Znajdziesz tu zarówno bluzy zakładane przez głowę, jak i rozpinane, w rozmiarach od niemowlęcych po szkolne.",
+      "Bluzy i bluzki dla chłopca to podstawa garderoby na chłodniejsze dni. Wybieramy modele z miękkiej, przyjaznej skórze dzianiny — wygodne do zabawy i łatwe do łączenia ze spodniami czy dresami. Komplety bluza + spodnie znajdziesz w osobnej kolekcji kompletów.",
     kategoria: "chlopcy",
-    klucze: ["bluza", "bluzka", "kaftanik"],
+    klucze: ["bluza", "bluzk", "bluzecz", "kaftanik"],
+    wyklucz: ["komplet", "spodnie"],
     faq: [FAQ_ROZMIAR, FAQ_DOSTAWA],
   },
   {
@@ -152,14 +155,15 @@ export const KOLEKCJE: Kolekcja[] = [
     faq: [FAQ_ROZMIAR, FAQ_DOSTAWA],
   },
   {
-    slug: "bluzy-dla-dziewczynki",
-    h1: "Bluzy dla dziewczynki",
-    tytul: "Bluzy dla dziewczynki 0–12 lat",
-    opis: "Bluzy dla dziewczynki — miękkie i ciepłe, idealne na chłodniejsze dni. Rozmiary 62–170. Wysyłka InPost, 14 dni na zwrot.",
+    slug: "bluzki-dla-dziewczynki",
+    h1: "Bluzki dla dziewczynki",
+    tytul: "Bluzki dla dziewczynki 0–12 lat",
+    opis: "Bluzki dla dziewczynki — z krótkim i długim rękawem, bawełniane, z kokardkami i nadrukami. Rozmiary 62–170. Wysyłka InPost, 14 dni na zwrot.",
     wstep:
-      "Bluzy dla dziewczynki na chłodniejsze dni — miękkie, ciepłe i wygodne. Przyjazna skórze dzianina świetnie łączy się z legginsami, spodniami i sukienkami. Uniwersalne fasony do zabawy i na wyjście, w rozmiarach od 62 do 170.",
+      "Bluzki dla dziewczynki na co dzień i na wyjście — z krótkim i długim rękawem, z miękkiej, przyjaznej skórze bawełny. Kokardki, falbanki i wesołe nadruki świetnie łączą się z legginsami, spódniczkami i spodniami. Rozmiary od 62 do 170.",
     kategoria: "dziewczynki",
-    klucze: ["bluza", "bluzka", "kaftanik"],
+    klucze: ["bluzk", "bluzecz", "bluza", "kaftanik"],
+    wyklucz: ["komplet", "spodnie"],
     faq: [FAQ_ROZMIAR, FAQ_DOSTAWA],
   },
   {

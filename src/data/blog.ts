@@ -860,8 +860,8 @@ const POLECANE: Record<string, LinkSklep[]> = {
   ],
   "ubranka-na-wiosne-dla-dziecka": [
     { tekst: "Dresy dziecięce", url: "/kolekcje/dresy-dzieciece" },
-    { tekst: "Bluzy dla dziewczynki", url: "/kolekcje/bluzy-dla-dziewczynki" },
-    { tekst: "Bluzy dla chłopca", url: "/kolekcje/bluzy-dla-chlopca" },
+    { tekst: "Bluzki dla dziewczynki", url: "/kolekcje/bluzki-dla-dziewczynki" },
+    { tekst: "Bluzy i bluzki dla chłopca", url: "/kolekcje/bluzy-dla-chlopca" },
   ],
   "jak-spakowac-dziecko-na-wakacje": [
     { tekst: "Komplety dziecięce", url: "/kolekcje/komplety-dzieciece" },
@@ -886,7 +886,7 @@ const POLECANE: Record<string, LinkSklep[]> = {
   "jak-ubrac-dziecko-na-zime": [
     { tekst: "Dresy dziecięce", url: "/kolekcje/dresy-dzieciece" },
     { tekst: "Czapki dziecięce", url: "/kolekcje/czapki-dzieciece" },
-    { tekst: "Bluzy dla chłopca", url: "/kolekcje/bluzy-dla-chlopca" },
+    { tekst: "Bluzy i bluzki dla chłopca", url: "/kolekcje/bluzy-dla-chlopca" },
   ],
   "body-czy-pajacyk-dla-noworodka": [
     { tekst: "Body niemowlęce", url: "/kolekcje/body-niemowlece" },
@@ -920,8 +920,8 @@ const POLECANE: Record<string, LinkSklep[]> = {
   ],
   "ubranka-na-jesien-dla-dziecka": [
     { tekst: "Dresy dziecięce", url: "/kolekcje/dresy-dzieciece" },
-    { tekst: "Bluzy dla dziewczynki", url: "/kolekcje/bluzy-dla-dziewczynki" },
-    { tekst: "Bluzy dla chłopca", url: "/kolekcje/bluzy-dla-chlopca" },
+    { tekst: "Bluzki dla dziewczynki", url: "/kolekcje/bluzki-dla-dziewczynki" },
+    { tekst: "Bluzy i bluzki dla chłopca", url: "/kolekcje/bluzy-dla-chlopca" },
   ],
   "jak-zaoszczedzic-na-ubrankach-dzieciecych": [
     { tekst: "Komplety dziecięce", url: "/kolekcje/komplety-dzieciece" },

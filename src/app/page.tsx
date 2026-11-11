@@ -14,14 +14,13 @@ import { kwotaTekst, najtanszaDostawa } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 import { rozmiaryTekst, sprzedazOstatnio, wybierzHit } from "@/lib/hitTygodnia";
 import { WYBRANY_HIT } from "@/data/hitTygodnia";
-import { zdjeciaDoReklamy } from "@/lib/feedEtykiety";
+import { sztukNaStanie, zdjeciaDoReklamy } from "@/lib/feedEtykiety";
 import { cieplePierwsze, czyCieply, sezonZimowy, SLUG_ZIMA } from "@/lib/sezon";
 
 // ISR: strona buduje się i odświeża co 5 minut zamiast przy każdym żądaniu.
 export const revalidate = 900;
 
-// „Kupuj według rodzaju" — strony kolekcji (te same filtry co na stronie kolekcji,
-// więc cena „od" zgadza się z tym, co klient zobaczy po kliknięciu).
+// „Kupuj według rodzaju" — strony kolekcji (te same filtry co na stronie kolekcji).
 const RODZAJE: { slug: string; label: string }[] = [
   { slug: "body-niemowlece", label: "Body" },
   { slug: "pajacyki-i-spiochy-niemowlece", label: "Pajacyki" },
@@ -30,7 +29,7 @@ const RODZAJE: { slug: string; label: string }[] = [
   { slug: "spodnie-dla-dziewczynki", label: "Legginsy" },
   { slug: "spodnie-dla-chlopca", label: "Spodnie" },
   { slug: "sukienki-dla-dziewczynki", label: "Sukienki" },
-  { slug: "bluzy-dla-dziewczynki", label: "Bluzy" },
+  { slug: "bluzki-dla-dziewczynki", label: "Bluzki" },
   { slug: "czapki-dzieciece", label: "Czapki" },
 ];
 
@@ -71,6 +70,29 @@ function okladka(lista: Produkt[], zajete: Set<string>): Produkt | undefined {
   return p;
 }
 
+// Okładka kafelka „Kupuj według rodzaju": ładny przedstawiciel kategorii, nie najtańszy produkt.
+// 1) zdjęcie wybrane do reklam (data/zdjeciaReklamowe), 2) świeży produkt z ceną co najmniej
+// środkową w kategorii, porządną galerią i zapasem, 3) awaryjnie najnowszy z galerią.
+// Najpierw produkty, których nazwa ZACZYNA SIĘ od rodzaju („Spodnie…", „Body…") — kafelek „Spodnie"
+// nie pokazuje kompletu, który tylko ma spodnie w nazwie.
+const bezOgonkow = (s: string) => s.toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+function okladkaKategorii(caLista: Produkt[], zajete: Set<string>, klucze: string[] = []): string | undefined {
+  const dostepne = caLista.filter((p) => p.zdjecie && !zajete.has(p.zdjecie) && !zajete.has(p.id));
+  const tegoRodzaju = dostepne.filter((p) => klucze.some((k) => bezOgonkow(p.nazwa).startsWith(k)));
+  const wolne = tegoRodzaju.length ? tegoRodzaju : dostepne;
+  if (!wolne.length) return undefined;
+  const ceny = wolne.map((p) => p.cena).sort((a, b) => a - b);
+  const srodek = ceny[Math.floor(ceny.length / 2)];
+  const reklamowe = wolne.filter((p) => zdjeciaDoReklamy(p).top);
+  const porzadne = wolne.filter((p) => p.cena >= srodek && (p.zdjecia?.length ?? 0) >= 3 && sztukNaStanie(p) >= 2);
+  const zGaleria = wolne.filter((p) => (p.zdjecia?.length ?? 0) >= 2);
+  const pula = reklamowe.length ? reklamowe : porzadne.length ? porzadne : zGaleria.length ? zGaleria : wolne;
+  const p = pula[pula.length - 1]; // lista od najstarszego — bierzemy najnowszy
+  const foto = zdjeciaDoReklamy(p).zdjecia[0] || p.zdjecie!;
+  [p.id, p.zdjecie ?? "", foto].forEach((k) => zajete.add(k));
+  return foto;
+}
+
 const minCena = (l: Produkt[]) => (l.length ? Math.min(...l.map((p) => p.cena)) : 0);
 
 function Rzad({ tytul, link, linkTekst, pozycje }: { tytul: string; link: string; linkTekst: string; pozycje: Zwiniety[] }) {
@@ -106,6 +128,7 @@ export default async function StronaGlowna() {
   const zima = sezonZimowy();
   const hit = wybierzHit(naStanie, await sprzedazOstatnio(), new Date(), zima ? czyCieply : undefined, WYBRANY_HIT);
   const zdjecieHitu = hit ? zdjeciaDoReklamy(hit.produkt).zdjecia[0] || hit.produkt.zdjecie : undefined;
+  if (zdjecieHitu) zajete.add(zdjecieHitu);
   if (hit) [hit.produkt.id, hit.produkt.zdjecie ?? "", hit.produkt.nazwa.toLowerCase()].forEach((k) => zajete.add(k));
   const tanie = naStanie.filter((p) => p.cena >= DO_20.min && p.cena < DO_20.max);
   const tanieFoto = okladka(tanie.filter((p) => p.kategoria !== "dorosli"), zajete);
@@ -120,7 +143,7 @@ export default async function StronaGlowna() {
   const rodzaje = (zima ? [{ slug: SLUG_ZIMA, label: "Na zimę" }, ...RODZAJE] : RODZAJE).map((r) => {
     const kol = KOLEKCJE.find((k) => k.slug === r.slug);
     const lista = kol ? produktyKolekcji(naStanie, kol) : [];
-    return { ...r, liczba: lista.length, od: minCena(lista), foto: okladka(lista, zajete) };
+    return { ...r, liczba: lista.length, foto: okladkaKategorii(lista, zajete, kol?.klucze.slice(0, 1)) }; // główne słowo kolekcji („spodnie", nie „dres")
   })
     .filter((r) => r.liczba > 0)
     .slice(0, 8);
@@ -216,13 +239,12 @@ export default async function StronaGlowna() {
             {rodzaje.map((r) => (
               <Link key={r.slug} href={`/kolekcje/${r.slug}`} className="group flex min-w-0 flex-col items-center text-center no-underline md:w-[120px] md:shrink-0">
                 <span className="mb-1.5 flex aspect-square w-full max-w-[76px] items-center justify-center rounded-full bg-szary p-2 md:mb-2 md:max-w-none transition-colors group-hover:bg-akcent-2 md:h-[112px] md:w-[112px] md:p-3.5">
-                  {r.foto?.zdjecie ? (
+                  {r.foto ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={zdjecie(r.foto.zdjecie, "s360")} alt="" className="h-full w-full object-contain mix-blend-multiply" />
+                    <img src={zdjecie(r.foto, "s360")} alt="" className="h-full w-full object-contain mix-blend-multiply" />
                   ) : null}
                 </span>
                 <span className="text-[13px] font-bold text-ink md:text-[14px]">{r.label}</span>
-                <span className="text-[11.5px] text-ink-2 md:text-[12.5px]">od {formatCena(r.od)} zł</span>
               </Link>
             ))}
           </div>
