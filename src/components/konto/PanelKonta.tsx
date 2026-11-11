@@ -308,7 +308,7 @@ export function PanelKonta() {
         <Link href="/ulubione" className={kafel}>
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-szary/70 text-ink transition-colors group-hover:bg-akcent group-hover:text-tlo">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <path d="M12 21s-7-4.5-9.5-9A5 5 0 0 1 12 6a5 5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9Z" />
+              <path d="M12 20.5C12 20.5 3 14.8 3 8.9 3 6.2 5.1 4.2 7.6 4.2c1.8 0 3.5 1.1 4.4 2.7.9-1.6 2.6-2.7 4.4-2.7 2.5 0 4.6 2 4.6 4.7 0 5.9-9 11.6-9 11.6Z" />
             </svg>
           </span>
           <span>

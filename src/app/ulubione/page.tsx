@@ -48,7 +48,7 @@ export default function StronaUlubionych() {
           <div className="mx-auto max-w-md border border-linia bg-white px-6 py-16 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-szary">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-ink-2">
-                <path d="M12 21s-7.5-4.9-9.7-9.2C.9 8.9 2.3 5.5 5.5 5.1c1.9-.2 3.4.8 4.5 2.3 1.1-1.5 2.6-2.5 4.5-2.3 3.2.4 4.6 3.8 3.2 6.7C19.5 16.1 12 21 12 21Z" />
+                <path d="M12 20.5C12 20.5 3 14.8 3 8.9 3 6.2 5.1 4.2 7.6 4.2c1.8 0 3.5 1.1 4.4 2.7.9-1.6 2.6-2.7 4.4-2.7 2.5 0 4.6 2 4.6 4.7 0 5.9-9 11.6-9 11.6Z" />
               </svg>
             </div>
             <p className="mb-2 text-[18px] font-semibold">Brak ulubionych</p>
