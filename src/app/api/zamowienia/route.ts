@@ -2,6 +2,8 @@ import { czyAdmin } from "@/lib/adminAuth";
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { wyslijMailWyslano, wyslijPrzypomnieniePlatnosci } from "@/lib/mail";
 import { danePrzypomnienia } from "@/lib/przypomnieniaPlatnosci";
+import { zamowienieTestoweFaktury } from "@/lib/testFaktury";
+import { usunPlikDokumentu } from "@/lib/dokumentyMagazyn";
 
 export const dynamic = "force-dynamic";
 
@@ -96,7 +98,15 @@ export async function POST(req: Request) {
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
   const sb = sbService();
   if (!sb) return Response.json({ ok: false, blad: "Brak bazy." }, { status: 501 });
-  const b = (await req.json().catch(() => ({}))) as { id?: unknown; akcja?: unknown };
+  const b = (await req.json().catch(() => ({}))) as { id?: unknown; akcja?: unknown; email?: unknown };
+  if (b.akcja === "test-faktura") {
+    // Zamówienie testowe do sprawdzenia faktur: bez płatności, bez maili, bez stanów, 0 zł.
+    const t = zamowienieTestoweFaktury(b.email);
+    if (!t.ok) return Response.json({ ok: false, blad: t.blad }, { status: 400 });
+    const { data, error } = await sb.from("zamowienia").insert(t.wiersz).select("id").single();
+    if (error || !data) return Response.json({ ok: false, blad: error?.message || "Zapis nieudany." }, { status: 500 });
+    return Response.json({ ok: true, id: data.id });
+  }
   const id = String(b.id ?? "");
   if (b.akcja !== "przypomnienie" || !id) return Response.json({ ok: false, blad: "Zła akcja." }, { status: 400 });
 
@@ -122,7 +132,10 @@ export async function DELETE() {
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
   const sb = sbService();
   if (!sb) return Response.json({ ok: false, powod: "brak_bazy" }, { status: 501 });
-  const { data, error } = await sb.from("zamowienia").delete().eq("klient->>test", "true").eq("status", "anulowane").select("id");
+  const { data, error } = await sb.from("zamowienia").delete().eq("klient->>test", "true").eq("status", "anulowane").select("id, klient");
   if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
+  // Wgrane do nich dokumenty (testowe faktury) też usuwamy z magazynu plików.
+  const pliki = (data ?? []).flatMap((z) => ((z.klient as { dokumenty?: { plik?: string }[] } | null)?.dokumenty ?? []).map((d) => d.plik).filter(Boolean) as string[]);
+  for (const p of pliki) await usunPlikDokumentu(sb, p).catch(() => undefined);
   return Response.json({ ok: true, usunieto: data?.length ?? 0 });
 }

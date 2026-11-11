@@ -203,6 +203,18 @@ export default function AdminZamowienia() {
     await odswiez();
   }
 
+  // Zamówienie testowe do sprawdzenia faktur: 0 zł, bez płatności i bez maili (znacznik TEST).
+  async function utworzTestFaktury() {
+    const email = prompt("Zamówienie testowe (0 zł, bez płatności i bez maili) do sprawdzenia faktury.\n\nNa jaki e-mail ma przyjść testowa faktura?");
+    if (!email) return;
+    const r = await fetch("/api/zamowienia", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ akcja: "test-faktura", email }) });
+    const d = (await r.json().catch(() => ({}))) as { ok?: boolean; id?: string; blad?: string };
+    if (!r.ok || !d.ok) return alert(d.blad || "Nie udało się utworzyć zamówienia testowego.");
+    setFiltr("wszystkie");
+    await odswiez();
+    if (d.id) setRozwiniety(d.id);
+  }
+
   const liczby = useMemo(() => {
     const m: Record<string, number> = {};
     for (const z of lista) m[z.status] = (m[z.status] ?? 0) + 1;
@@ -386,6 +398,13 @@ export default function AdminZamowienia() {
           <h1 className="text-[26px] font-bold tracking-tight">Zamówienia</h1>
           <p className="text-[14px] text-ink-2">{lista.length} łącznie</p>
         </div>
+        <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => void utworzTestFaktury()}
+          className="rounded-lg border border-linia-2 bg-white px-3.5 py-2 text-[13px] font-semibold text-ink hover:border-akcent hover:text-akcent"
+        >
+          + Zamówienie testowe z fakturą
+        </button>
         {testowe > 0 ? (
           <button
             onClick={() => void usunTestowe()}
@@ -394,6 +413,7 @@ export default function AdminZamowienia() {
             Usuń zamówienia testowe ({testowe})
           </button>
         ) : null}
+        </div>
       </div>
 
       {/* Filtry statusów */}
