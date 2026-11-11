@@ -88,7 +88,9 @@ describe("szablony maili z dokumentem", () => {
     expect(fk).toContain("−39,99 zł");
 
     expect(tematDokumentu({ ...baza, typ: "dowod" })).toBe("Dowód zakupu — zamówienie #31d013de — bobas-shopping");
-    expect(mailDokumentuHtml({ ...baza, typ: "dowod" })).toContain("przy zwrocie lub reklamacji");
+    const dowod = mailDokumentuHtml({ ...baza, typ: "dowod" });
+    expect(dowod).toContain("przesyłamy dowód zakupu");
+    expect(dowod).not.toMatch(/zwrot/i);
     expect(tematDokumentu({ ...baza, typ: "inny", nazwaDokumentu: "Duplikat faktury" })).toBe("Duplikat faktury — zamówienie #31d013de — bobas-shopping");
   });
 

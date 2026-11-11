@@ -92,13 +92,12 @@ export function mailDokumentuHtml(d: DaneMailaDokumentu): string {
     if (d.ksef) wiersze.push(["Numer KSeF", esc(d.ksef)]);
     koniec = "Masz pytania dotyczące korekty? Odpisz na tego maila.";
   } else if (d.typ === "dowod") {
-    intro = `${czesc}W załączniku przesyłamy dowód zakupu do zamówienia ${zam}. Zachowaj go — przyda się przy zwrocie lub reklamacji.`;
+    intro = `${czesc}W załączniku przesyłamy dowód zakupu do zamówienia ${zam}.`;
     wiersze = [
       ["Dokument", "Dowód zakupu"],
       ["Data zakupu", esc(dzien(d.dataZamowienia))],
       ["Kwota", zl(d.razem)],
     ];
-    koniec = "Na zwrot masz 14 dni od otrzymania paczki — szczegóły znajdziesz w zakładce Dostawa i zwroty na naszej stronie.";
   } else {
     intro = `${czesc}W załączniku przesyłamy dokument do zamówienia ${zam}.`;
     wiersze = [["Dokument", esc(nazwa(d))]];
