@@ -28,10 +28,10 @@ const liczba = (n: number) => new Intl.NumberFormat("pl-PL").format(n);
 
 function Kafel({ etykieta, wartosc, pod }: { etykieta: string; wartosc: string; pod?: string }) {
   return (
-    <div className="rounded-xl border border-linia bg-white p-5">
-      <p className="mb-2 text-[12.5px] font-medium text-ink-2">{etykieta}</p>
-      <p className="text-[26px] font-bold leading-none tracking-tight tabular-nums">{wartosc}</p>
-      {pod ? <p className="mt-2 text-[12px] text-ink-2">{pod}</p> : null}
+    <div className="rounded-xl border border-linia bg-white p-4 md:p-5">
+      <p className="mb-2 text-[12.5px] font-medium leading-snug text-ink-2">{etykieta}</p>
+      <p className="whitespace-nowrap text-[19px] font-bold leading-none tracking-tight tabular-nums md:text-[26px]">{wartosc}</p>
+      {pod ? <p className="mt-2 text-[12px] leading-snug text-ink-2">{pod}</p> : null}
     </div>
   );
 }
@@ -103,7 +103,20 @@ export default function PulpitAdmina() {
   const kat = useMemo(() => statystykiKatalogu(widoczne), [widoczne]);
   // Realne = opłacone/wysłane (prawdziwa sprzedaż przez P24). Nowe/oczekujące/anulowane nie liczą się do obrotu.
   const realne = useMemo(() => zamowienia.filter((z) => (z.status === "oplacone" || z.status === "wyslane") && !z.klient?.test), [zamowienia]);
-  const zam = useMemo(() => statystykiZamowien(realne), [realne]);
+  // Pulpit: ostatnie 30 dni (+ porównanie z poprzednimi 30) i dzisiaj. Pełne zestawienia — Statystyki.
+  const okresy = useMemo(() => {
+    const dzien = 86400000;
+    const teraz = Date.now();
+    const wOkresie = (od: number, do_: number) => realne.filter((z) => { const t = new Date(z.data).getTime(); return t >= od && t < do_; });
+    const polnoc = new Date();
+    polnoc.setHours(0, 0, 0, 0);
+    return {
+      m30: statystykiZamowien(wOkresie(teraz - 30 * dzien, Infinity)),
+      poprzednie30: statystykiZamowien(wOkresie(teraz - 60 * dzien, teraz - 30 * dzien)),
+      dzis: statystykiZamowien(wOkresie(polnoc.getTime(), Infinity)),
+    };
+  }, [realne]);
+  const zam = okresy.m30;
   // „Na dziś": zamówienia bez znacznika TEST.
   const prawdziwe = useMemo(() => zamowienia.filter((z) => !z.klient?.test), [zamowienia]);
   const teraz = Date.now();
@@ -120,8 +133,8 @@ export default function PulpitAdmina() {
   const zadan = [doWyslania, faktury.razem, nieoplacone, pytanNowych, opinieDoZatw, raport?.niedopasowane ?? 0, syncProblem ? 1 : 0].filter((n) => n > 0).length;
   const maxKat = Math.max(1, ...KATEGORIE.map((k) => kat.wgKategorii[k]));
   const ostatnie = useMemo(
-    () => [...zamowienia].filter((z) => z.status !== "anulowane").sort((a, b) => +new Date(b.data) - +new Date(a.data)).slice(0, 6),
-    [zamowienia],
+    () => [...prawdziwe].filter((z) => z.status !== "anulowane").sort((a, b) => +new Date(b.data) - +new Date(a.data)).slice(0, 6),
+    [prawdziwe],
   );
 
   return (
@@ -202,25 +215,48 @@ export default function PulpitAdmina() {
         ) : null}
       </section>
 
-      {/* Wskaźniki */}
-      <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-5">
-        <Kafel
-          etykieta="Obrót"
-          wartosc={`${formatCena(zam.obrot)} zł`}
-          pod={zam.liczba ? `produkty ${formatCena(zam.produkty)} zł + przesyłki ${formatCena(zam.dostawa)} zł` : "brak opłaconych zamówień"}
-        />
-        <Kafel
-          etykieta="Przesyłki łącznie"
-          wartosc={`${formatCena(zam.dostawa)} zł`}
-          pod={zam.liczba ? `${zam.liczba - zam.darmowych} płatnych · ${zam.darmowych} z darmową dostawą` : "brak opłaconych zamówień"}
-        />
-        <Kafel
-          etykieta="Zamówienia"
-          wartosc={liczba(zam.liczba)}
-          pod={zam.liczba ? `${zam.sztuk} szt. · śr. ${formatCena(zam.sredniaWartosc)} zł` : "opłacone i wysłane"}
-        />
+      {/* Sprzedaż — ostatnie 30 dni */}
+      {(() => {
+        const wczesniej = okresy.poprzednie30.obrot;
+        const pr = wczesniej > 0 ? Math.round(((zam.obrot - wczesniej) / wczesniej) * 100) : null;
+        return (
+          <Link href="/admin/statystyki" className="mb-3 block rounded-xl border border-linia bg-white p-5 text-ink no-underline transition-colors hover:border-ink md:p-6">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[13px] font-semibold text-ink-2">Sprzedaż — ostatnie 30 dni</p>
+              <span className="text-[13px] font-semibold text-ink-2">Statystyki →</span>
+            </div>
+            <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <p className="text-[36px] font-bold leading-none tracking-tight tabular-nums md:text-[42px]">{formatCena(zam.obrot)} zł</p>
+              {pr !== null ? (
+                <span className={`rounded-full px-2.5 py-1 text-[12.5px] font-bold ${pr >= 0 ? "bg-akcent/10 text-akcent" : "bg-[oklch(95%_0.03_25)] text-[oklch(50%_0.19_25)]"}`}>
+                  {pr > 0 ? "+" : pr < 0 ? "−" : ""}
+                  {Math.abs(pr)}% vs poprzednie 30 dni
+                </span>
+              ) : null}
+            </div>
+            <p className="mt-2 text-[13.5px] text-ink-2">
+              {zam.liczba ? `z ${zam.liczba} ${zam.liczba === 1 ? "zamówienia" : "zamówień"} · ${zam.sztuk} szt.` : "Brak opłaconych zamówień w ostatnich 30 dniach."}
+            </p>
+            {zam.liczba ? (
+              <div className="mt-4 grid grid-cols-2 gap-3 border-t border-linia pt-4 text-[13.5px]">
+                <div>
+                  <p className="text-ink-2">Za produkty</p>
+                  <p className="text-[18px] font-bold tabular-nums">{formatCena(zam.produkty)} zł</p>
+                </div>
+                <div>
+                  <p className="text-ink-2">Za przesyłki</p>
+                  <p className="text-[18px] font-bold tabular-nums">{formatCena(zam.dostawa)} zł</p>
+                </div>
+              </div>
+            ) : null}
+          </Link>
+        );
+      })()}
+
+      <div className="mb-8 grid grid-cols-3 gap-3">
+        <Kafel etykieta="Dzisiaj" wartosc={`${formatCena(okresy.dzis.obrot)} zł`} pod={okresy.dzis.liczba ? `${okresy.dzis.liczba} zam.` : "brak zamówień"} />
+        <Kafel etykieta="Średnio na zamówienie" wartosc={zam.liczba ? `${formatCena(zam.sredniaWartosc)} zł` : "—"} pod="30 dni" />
         <Kafel etykieta="Produkty w sklepie" wartosc={liczba(kat.liczba)} pod={kat.zPromocja ? `${kat.zPromocja} w promocji` : undefined} />
-        <Kafel etykieta="Średnia cena" wartosc={`${formatCena(kat.sredniaCena)} zł`} pod={kat.liczba ? `${formatCena(kat.minCena)}–${formatCena(kat.maxCena)} zł` : undefined} />
       </div>
 
       {/* Ruch na stronie (GA4) */}
