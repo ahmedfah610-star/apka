@@ -6,7 +6,7 @@ import { ARTYKULY } from "@/data/blog";
 
 export const metadata: Metadata = {
   title: "Blog — poradniki dla rodziców",
-  description: "Poradniki o ubrankach dziecięcych: jak dobrać rozmiar, wyprawka dla noworodka, ubieranie niemowlęcia, pranie i pielęgnacja.",
+  description: "Praktyczne poradniki dla rodziców: jak dobrać rozmiar, co do wyprawki, jak ubrać niemowlę zimą i latem. Czytaj i kupuj mądrzej!",
   alternates: { canonical: "/blog" },
 };
 

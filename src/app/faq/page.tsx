@@ -3,7 +3,10 @@ import { jsonLd } from "@/lib/seo";
 import { zProgiem } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 
-export const metadata = { title: "FAQ — najczęstsze pytania" };
+export const metadata = {
+  title: "FAQ — najczęstsze pytania",
+  description: "Jak dobrać rozmiar, ile trwa wysyłka, jak zrobić zwrot? Krótkie odpowiedzi na najczęstsze pytania o zakupy w bobas-shopping — sprawdź, zanim zamówisz.",
+};
 
 // Próg darmowej dostawy edytowany w trybie edycji sklepu.
 export const revalidate = 600;
@@ -52,7 +55,7 @@ export default async function Faq() {
   };
 
   return (
-    <StronaInfo tytul="Najczęstsze pytania" wstep="Krótkie odpowiedzi na to, o co pytacie najczęściej.">
+    <StronaInfo tytul="Najczęstsze pytania" wstep="Rozmiar, wysyłka, zwrot — wszystko, co warto wiedzieć przed zakupem, w kilku zdaniach. Nie ma tu Twojego pytania? Napisz, odpowiemy szybko.">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(faqLd)} />
       <div className="flex flex-col divide-y divide-linia border-y border-linia">
         {pytania.map((p) => (

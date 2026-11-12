@@ -6,7 +6,7 @@ import { jsonLd } from "@/lib/seo";
 export const metadata: Metadata = {
   title: "Tabela rozmiarów dziecięcych — wzrost, wiek, jak mierzyć",
   description:
-    "Tabela rozmiarów ubranek dla dzieci 0–14 lat: rozmiar, wzrost w cm i orientacyjny wiek. Dowiedz się, jak zmierzyć dziecko i dobrać rozmiar bez zwrotów.",
+    "Jaki rozmiar wybrać? Tabela rozmiarów dla dzieci 0–14 lat — wzrost w cm i wiek — plus prosty sposób, jak zmierzyć dziecko. Trafiaj w rozmiar za pierwszym razem!",
   alternates: { canonical: "/rozmiary" },
 };
 

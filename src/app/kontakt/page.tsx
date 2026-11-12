@@ -2,7 +2,10 @@ import { StronaInfo, Sekcja, DaneSprzedawcy } from "@/components/StronaInfo";
 import { FormularzKontaktowy } from "@/components/FormularzKontaktowy";
 import { FIRMA, ZWROTY } from "@/lib/firma";
 
-export const metadata = { title: "Kontakt" };
+export const metadata = {
+  title: "Kontakt",
+  description: "Masz pytanie o rozmiar, zamówienie lub zwrot? Napisz albo zadzwoń — odpowiadamy zwykle w ciągu jednego dnia roboczego. Chętnie pomożemy dobrać ubranko!",
+};
 
 export default function Kontakt() {
   return (

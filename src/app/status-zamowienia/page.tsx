@@ -4,7 +4,7 @@ import { SledzenieZamowienia } from "@/components/SledzenieZamowienia";
 
 export const metadata: Metadata = {
   title: "Sprawdź status zamówienia",
-  description: "Sprawdź status swojego zamówienia w bobas-shopping — podaj numer zamówienia i e-mail.",
+  description: "Gdzie jest moja paczka? Podaj numer zamówienia i e-mail, a od razu zobaczysz, na jakim etapie jest Twoje zamówienie.",
   alternates: { canonical: "/status-zamowienia" },
   robots: { index: false, follow: true },
 };

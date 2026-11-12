@@ -2,7 +2,10 @@ import { StronaInfo, Sekcja, Lista, DaneSprzedawcy } from "@/components/StronaIn
 import { pobierzDostawe } from "@/lib/dostawaDb";
 import { kwotaTekst, najtanszaDostawa, zl } from "@/lib/dostawa";
 
-export const metadata = { title: "O nas" };
+export const metadata = {
+  title: "O nas",
+  description: "Polski sklep z ubrankami dla dzieci 0–12 lat i odzieżą męską. Zdjęcia prawdziwego towaru, wymiary w cm i szybka wysyłka — poznaj bobas-shopping!",
+};
 
 const ALLEGRO = "https://allegro.pl/uzytkownik/bobas-shopping/oceny";
 
@@ -15,7 +18,7 @@ export default async function ONas() {
   return (
     <StronaInfo
       tytul="O nas"
-      wstep="bobas-shopping to sklep internetowy z ubrankami dla dzieci w wieku 0–12 lat i odzieżą męską. Sklep prowadzi AMIN.KIDS Sp. z o.o. z siedzibą w Lublinie."
+      wstep="Ubieramy dzieci od pierwszych dni po szkołę — wygodnie, ciepło i w dobrej cenie. Pokazujemy prawdziwy towar, podajemy wymiary w centymetrach i wysyłamy w 1–2 dni. Dla taty mamy bluzy, swetry i dresy do 7XL."
     >
       <Sekcja tytul="Kim jesteśmy">
         <p>

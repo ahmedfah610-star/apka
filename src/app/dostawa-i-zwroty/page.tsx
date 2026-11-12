@@ -5,7 +5,10 @@ import { EdycjaDostaw } from "@/components/EdycjaDostaw";
 import { zl } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 
-export const metadata = { title: "Dostawa i zwroty" };
+export const metadata = {
+  title: "Dostawa i zwroty",
+  description: "Wysyłka w 1–2 dni do paczkomatu, punktu odbioru lub kurierem, darmowa dostawa od 150 zł i 14 dni na zwrot. Kupuj spokojnie — zobacz, jakie to proste!",
+};
 
 export const revalidate = 600;
 
