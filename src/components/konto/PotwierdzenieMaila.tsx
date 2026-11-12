@@ -32,13 +32,9 @@ function Rdzen() {
       } else {
         setStan("ok");
         // Konto właśnie aktywowane → wyślij mail powitalny (w tle).
-        const u = data.user;
-        if (u?.email) {
-          fetch("/api/konto/powitanie", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: u.email, imie: u.user_metadata?.imie }),
-          }).catch(() => {});
+        const token = data.session?.access_token;
+        if (token) {
+          fetch("/api/konto/powitanie", { method: "POST", headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
         }
         setTimeout(() => router.replace(next), 900);
       }

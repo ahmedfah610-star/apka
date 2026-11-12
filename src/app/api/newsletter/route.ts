@@ -16,9 +16,11 @@ export async function POST(req: Request) {
   if (supabaseWlaczony()) {
     const sb = sbService();
     if (sb) {
-      const { error } = await sb.from("newsletter").upsert({ email: adres }, { onConflict: "email", ignoreDuplicates: true });
+      const { data: nowe, error } = await sb.from("newsletter").upsert({ email: adres }, { onConflict: "email", ignoreDuplicates: true }).select("email");
       if (error) return Response.json({ ok: false, blad: "Nie udało się zapisać." }, { status: 500 });
-      await wyslijMailPowitalny(adres);
+      // Mail powitalny tylko przy PIERWSZYM zapisie adresu — ponowne „zapisz" nie zasypie skrzynki
+      // (ani cudzej, jeśli ktoś wpisze nie swój adres).
+      if ((nowe ?? []).length > 0) await wyslijMailPowitalny(adres);
     }
   }
   // Bez bazy — po prostu potwierdzamy (nie blokujemy UI).

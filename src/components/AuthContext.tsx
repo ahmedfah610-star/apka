@@ -58,12 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const klucz = `powitano:${u.id}`;
           if (swieze && !localStorage.getItem(klucz)) {
             localStorage.setItem(klucz, "1");
-            const imie = (u.user_metadata?.full_name || u.user_metadata?.name || u.user_metadata?.imie) as string | undefined;
-            fetch("/api/konto/powitanie", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ email: u.email, imie }),
-            }).catch(() => {});
+            fetch("/api/konto/powitanie", { method: "POST", headers: { Authorization: `Bearer ${sesja!.access_token}` } }).catch(() => {});
           }
         } catch {
           /* ignoruj */
@@ -89,11 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Gdy wymagane potwierdzenie — powitanie wyśle się po kliknięciu linku
     // aktywacyjnego (ze strony /auth/confirm), więc tu nic nie wysyłamy.
     if (data.session) {
-      fetch("/api/konto/powitanie", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), imie }),
-      }).catch(() => {});
+      fetch("/api/konto/powitanie", { method: "POST", headers: { Authorization: `Bearer ${data.session.access_token}` } }).catch(() => {});
     }
     return { ok: true, potwierdzenie: !data.session };
   }, [sb]);

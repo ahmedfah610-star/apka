@@ -41,6 +41,9 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, blad: "Nie udało się wysłać pytania. Spróbuj za chwilę." }, { status: 500 });
   }
   // Maile nie blokują odpowiedzi przy błędzie — pytanie i tak jest w panelu.
-  await Promise.allSettled([wyslijPytanieDoSklepu(pytanie), wyslijKopiePytania(pytanie)]);
+  // Kopia do pytającego najwyżej 2× na dobę na adres — formularz nie posłuży do wysyłania
+  // naszych maili z dowolną treścią na cudze adresy.
+  const kopia = wLimicie(`pytanie-kopia:${pytanie.email.toLowerCase()}`, 2, 24 * 3600 * 1000);
+  await Promise.allSettled([wyslijPytanieDoSklepu(pytanie), ...(kopia ? [wyslijKopiePytania(pytanie)] : [])]);
   return Response.json({ ok: true });
 }
