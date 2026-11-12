@@ -69,7 +69,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: SLUG_ZIMA,
     h1: "Ubranka na zimę dla dzieci",
     tytul: "Ciepłe ubranka na zimę dla dzieci i niemowląt",
-    opis: "Ciepłe ubranka na zimę: sweterki, ocieplane spodnie i dresy, welurowe komplety, czapki i kamizelki dla niemowląt i dzieci. Wysyłka w 1–2 dni, 14 dni na zwrot.",
+    opis: "Ciepłe ubranka na zimę dla dzieci: sweterki, ocieplane spodnie, welurowe komplety i czapki. Wysyłka w 1–2 dni — ubierz malucha na mrozy!",
     wstep:
       "Zimą liczy się ciepło bez przegrzewania. Zebraliśmy tu ciepłe ubranka dla niemowląt i dzieci: sweterki i kamizelki z dzianiny, spodnie ocieplane meszkiem i polarem, welurowe komplety oraz czapki na chłodne dni. Ubieraj malucha na cebulkę — cienka warstwa przy skórze, sweterek lub bluza, a na spacer czapka. Przy każdym rozmiarze podajemy wymiary w centymetrach, a paczki wysyłamy w 1–2 dni robocze.",
     kategoria: null,
@@ -89,7 +89,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "spodnie-dla-chlopca",
     h1: "Spodnie dla chłopca",
     tytul: "Spodnie dla chłopca 0–12 lat",
-    opis: "Spodnie dla chłopca — dresowe, sportowe i na co dzień. Wygodna gumka w pasie, miękkie tkaniny, rozmiary 62–170. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Spodnie dla chłopca — dresowe, sportowe i na co dzień. Wygodna gumka w pasie, miękkie tkaniny, rozmiary 62–170. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Szukasz spodni dla chłopca, które wytrzymają bieganie, plac zabaw i częste pranie? W tej kolekcji znajdziesz spodnie dresowe i sportowe z miękką gumką w pasie, która nie uciska brzuszka. Wygodne fasony sprawdzają się do przedszkola, szkoły i na wyjście — a rozmiary od 62 do 170 pozwalają dobrać je dla malucha i starszaka.",
     kategoria: "chlopcy",
@@ -100,7 +100,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "bluzy-dla-chlopca",
     h1: "Bluzy i bluzki dla chłopca",
     tytul: "Bluzy i bluzki dla chłopca 0–12 lat",
-    opis: "Bluzy i bluzki dla chłopca — miękkie, wygodne, zakładane przez głowę lub rozpinane. Rozmiary 62–170. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Bluzy i bluzki dla chłopca — miękkie, wygodne, zakładane przez głowę lub rozpinane. Rozmiary 62–170. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Bluzy i bluzki dla chłopca to podstawa garderoby na chłodniejsze dni. Wybieramy modele z miękkiej, przyjaznej skórze dzianiny — wygodne do zabawy i łatwe do łączenia ze spodniami czy dresami. Komplety bluza + spodnie znajdziesz w osobnej kolekcji kompletów.",
     kategoria: "chlopcy",
@@ -112,7 +112,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "komplety-dla-chlopca",
     h1: "Komplety dla chłopca",
     tytul: "Komplety dla chłopca 0–12 lat",
-    opis: "Komplety dla chłopca — dresy i zestawy bluza + spodnie gotowe do noszenia. Miękkie tkaniny, rozmiary 62–170. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Komplety dla chłopca — dresy i zestawy bluza + spodnie gotowe do noszenia. Miękkie tkaniny, rozmiary 62–170. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Komplet dla chłopca to najwygodniejszy wybór — dostajesz gotowy zestaw i nie musisz nic dobierać. W tej kolekcji znajdziesz komplety dresowe i zestawy bluza + spodnie z miękkich, oddychających tkanin. Idealne na co dzień, do przedszkola i na spacer, w rozmiarach od 62 do 170.",
     kategoria: "chlopcy",
@@ -123,7 +123,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "koszulki-dla-chlopca",
     h1: "Koszulki i body dla chłopca",
     tytul: "Koszulki i body dla chłopca 0–12 lat",
-    opis: "Koszulki i body dla chłopca — lekkie, bawełniane, na co dzień i pod bluzę. Rozmiary 62–170. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Koszulki i body dla chłopca — lekkie, bawełniane, na co dzień i pod bluzę. Rozmiary 62–170. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Koszulki i body dla chłopca to baza garderoby na cały sezon. Lekka, bawełniana dzianina jest przyjemna w dotyku i przewiewna — świetnie sprawdza się solo w cieplejsze dni i jako warstwa pod bluzę. Proste, wygodne fasony w rozmiarach od 62 do 170.",
     kategoria: "chlopcy",
@@ -136,7 +136,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "spodnie-dla-dziewczynki",
     h1: "Spodnie i legginsy dla dziewczynki",
     tytul: "Spodnie i legginsy dla dziewczynki 0–12 lat",
-    opis: "Spodnie i legginsy dla dziewczynki — prążkowane, dresowe i na co dzień. Miękka gumka, rozmiary 62–170. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Spodnie i legginsy dla dziewczynki — prążkowane, dresowe i na co dzień. Miękka gumka, rozmiary 62–170. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Spodnie i legginsy dla dziewczynki, które dają pełną swobodę ruchu podczas zabawy. Prążkowana dzianina i miękka gumka w pasie układają się na sylwetce i nie krępują ruchów. Świetnie łączą się z bluzami i tunikami — do przedszkola, szkoły i na spacer, w rozmiarach od 62 do 170.",
     kategoria: "dziewczynki",
@@ -147,7 +147,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "sukienki-dla-dziewczynki",
     h1: "Sukienki dla dziewczynki",
     tytul: "Sukienki dla dziewczynki 0–12 lat",
-    opis: "Sukienki dla dziewczynki — zwiewne, wygodne, na co dzień i na specjalne okazje. Rozmiary 62–170. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Sukienki dla dziewczynki — zwiewne, wygodne, na co dzień i na specjalne okazje. Rozmiary 62–170. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Sukienki dla dziewczynki, w których wygoda idzie w parze z ładnym wyglądem. Zwiewne, przyjazne skórze materiały sprawdzają się i na co dzień, i na specjalne okazje. Dziewczęce fasony w rozmiarach od 62 do 170 — dla maluszka i starszej dziewczynki.",
     kategoria: "dziewczynki",
@@ -158,7 +158,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "bluzki-dla-dziewczynki",
     h1: "Bluzki dla dziewczynki",
     tytul: "Bluzki dla dziewczynki 0–12 lat",
-    opis: "Bluzki dla dziewczynki — z krótkim i długim rękawem, bawełniane, z kokardkami i nadrukami. Rozmiary 62–170. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Bluzki dla dziewczynki — z krótkim i długim rękawem, bawełniane, z kokardkami i nadrukami. Rozmiary 62–170. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Bluzki dla dziewczynki na co dzień i na wyjście — z krótkim i długim rękawem, z miękkiej, przyjaznej skórze bawełny. Kokardki, falbanki i wesołe nadruki świetnie łączą się z legginsami, spódniczkami i spodniami. Rozmiary od 62 do 170.",
     kategoria: "dziewczynki",
@@ -170,7 +170,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "komplety-dla-dziewczynki",
     h1: "Komplety dla dziewczynki",
     tytul: "Komplety dla dziewczynki 0–12 lat",
-    opis: "Komplety dla dziewczynki — gotowe zestawy z miękkich tkanin. Rozmiary 62–170. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Komplety dla dziewczynki — gotowe zestawy z miękkich tkanin. Rozmiary 62–170. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Komplet dla dziewczynki to gotowy, spójny zestaw — wygoda i ładny wygląd bez dobierania. Miękkie, oddychające tkaniny sprawdzają się na co dzień i na wyjście. Rozmiary od 62 do 170, dla maluszka i starszej dziewczynki.",
     kategoria: "dziewczynki",
@@ -183,7 +183,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "body-niemowlece",
     h1: "Body niemowlęce",
     tytul: "Body niemowlęce — bawełniane 56–92",
-    opis: "Body niemowlęce z miękkiej bawełny — zapinane na zatrzaski, łatwe przewijanie. Rozmiary 56–92. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Body niemowlęce z miękkiej bawełny na zatrzaski — szybkie przewijanie bez marudzenia. Rozmiary 56–92, wysyłka w 1–2 dni. Dobierz na zapas!",
     wstep:
       "Body niemowlęce to podstawa wyprawki. Wybieramy modele z miękkiej, oddychającej bawełny, delikatnej dla wrażliwej skóry noworodka. Zapięcia na zatrzaski ułatwiają przewijanie i przebieranie, także w nocy. Rozmiary od 56 do 92 — na pierwsze tygodnie i kolejne miesiące.",
     kategoria: "niemowleta",
@@ -194,7 +194,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "pajacyki-i-spiochy-niemowlece",
     h1: "Pajacyki i śpiochy niemowlęce",
     tytul: "Pajacyki i śpiochy niemowlęce 56–92",
-    opis: "Pajacyki i śpiochy niemowlęce — zapinane na zatrzaski, miękka bawełna, wygodne do spania i na co dzień. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Pajacyki i śpiochy niemowlęce — zapinane na zatrzaski, miękka bawełna, wygodne do spania i na co dzień. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Pajacyki i śpiochy niemowlęce zapewniają maluchowi komfort przez cały dzień i noc. Zapięcia na zatrzaski wzdłuż nogawek to błyskawiczne przewijanie, a miękka bawełna nie podrażnia delikatnej skóry. Jednoczęściowy fason nie podwija się — idealny do spania, na spacer i do domu.",
     kategoria: "niemowleta",
@@ -205,7 +205,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "komplety-niemowlece",
     h1: "Komplety niemowlęce",
     tytul: "Komplety niemowlęce — dresy i zestawy 56–92",
-    opis: "Komplety niemowlęce — gotowe zestawy bluza + spodnie z miękkiej bawełny. Łatwe zakładanie. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Komplety niemowlęce bluza + spodnie z miękkiej bawełny — gotowy strój w jednym kliknięciu. Wymiary w cm, wysyłka w 1–2 dni. Wybierz zestaw!",
     wstep:
       "Komplet niemowlęcy to gotowy zestaw na co dzień — bez dobierania i kombinowania. Miękka bawełna jest przyjazna dla wrażliwej skóry, a wygodny krój ułatwia zakładanie i zdejmowanie. Idealny na spacer, do domu i jako element wyprawki, w rozmiarach 56–92.",
     kategoria: "niemowleta",
@@ -216,7 +216,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "czapki-niemowlece",
     h1: "Czapki niemowlęce",
     tytul: "Czapki niemowlęce — bawełniane",
-    opis: "Czapki niemowlęce z miękkich, przyjaznych skórze materiałów — chronią główkę malucha. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Czapki niemowlęce z miękkich, przyjaznych skórze materiałów — chronią główkę malucha. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Czapki niemowlęce to drobny, ale niezbędny dodatek, który chroni główkę malucha przed chłodem i wiatrem. Miękkie, przyjazne skórze materiały są delikatne dla wrażliwej skóry noworodka. Dopełniają każdy zestaw i wyprawkę.",
     kategoria: "niemowleta",
@@ -229,7 +229,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "dresy-dzieciece",
     h1: "Dresy dziecięce",
     tytul: "Dresy dziecięce 0–12 lat",
-    opis: "Dresy dziecięce — komplety i spodnie dresowe dla dziewczynek, chłopców i niemowląt. Miękkie i wytrzymałe. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Dresy dziecięce na co dzień i do przedszkola — miękkie, wytrzymałe, w wesołe wzory. Rozmiary 62–170, wysyłka w 1–2 dni. Sprawdź komplety!",
     wstep:
       "Dresy dziecięce to najwygodniejszy wybór na co dzień — dla dziewczynek, chłopców i niemowląt. Miękkie, oddychające tkaniny i wytrzymałe wykończenie znoszą intensywną zabawę i częste pranie. Komplety i pojedyncze spodnie dresowe w rozmiarach od 56 do 170.",
     kategoria: null,
@@ -240,7 +240,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "komplety-dzieciece",
     h1: "Komplety dziecięce",
     tytul: "Komplety dziecięce 0–12 lat",
-    opis: "Komplety dziecięce — gotowe zestawy dla dziewczynek, chłopców i niemowląt. Miękkie tkaniny, rozmiary 56–170. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Komplety dziecięce — gotowe zestawy dla dziewczynek, chłopców i niemowląt. Miękkie tkaniny, rozmiary 56–170. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Komplety dziecięce to gotowe zestawy, które oszczędzają czas — nie trzeba nic dobierać. Znajdziesz tu komplety dla dziewczynek, chłopców i niemowląt z miękkich, przyjaznych skórze tkanin. Idealne na co dzień, do żłobka, przedszkola i na wyjście.",
     kategoria: null,
@@ -251,7 +251,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "body-dzieciece",
     h1: "Body dziecięce",
     tytul: "Body dziecięce i niemowlęce",
-    opis: "Body dziecięce — bawełniane, zapinane na zatrzaski, dla niemowląt i starszaków. Rozmiary 56–170. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Body dziecięce — bawełniane, zapinane na zatrzaski, dla niemowląt i starszaków. Rozmiary 56–170. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Body dziecięce z miękkiej, oddychającej bawełny — przyjazne dla delikatnej skóry. Zapięcia na zatrzaski ułatwiają zakładanie i przewijanie. To baza garderoby zarówno dla niemowląt, jak i starszych dzieci, w rozmiarach od 56 do 170.",
     kategoria: null,
@@ -262,7 +262,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "czapki-dzieciece",
     h1: "Czapki dziecięce",
     tytul: "Czapki dziecięce 0–12 lat",
-    opis: "Czapki dziecięce dla niemowląt i starszaków — miękkie i przyjazne skórze, chronią przed chłodem. Wysyłka InPost, 14 dni na zwrot.",
+    opis: "Czapki dziecięce dla niemowląt i starszaków — miękkie i przyjazne skórze, chronią przed chłodem. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Czapki dziecięce chronią główkę przed chłodem i wiatrem — dla niemowląt i starszych dzieci. Miękkie, przyjazne skórze materiały są delikatne i wygodne. Dopełniają każdą stylizację i sprawdzają się przez cały sezon.",
     kategoria: null,
@@ -274,7 +274,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "swetry-meskie",
     h1: "Swetry męskie",
     tytul: "Swetry męskie — rozpinane, z półgolfem i dekoltem V",
-    opis: "Swetry męskie: rozpinane na zamek, z półgolfem, z dekoltem V i okrągłym, cienkie i ocieplane polarem. Rozmiary od M do 7XL. Wysyłka w 1–2 dni, 14 dni na zwrot.",
+    opis: "Swetry męskie rozpinane, z półgolfem i ocieplane — od M do 7XL, wymiary w cm przy każdym rozmiarze. Wysyłka w 1–2 dni. Zamów ciepły sweter!",
     wstep:
       "Sweter męski na co dzień i do pracy — w tej kolekcji znajdziesz swetry rozpinane na zamek, modele z półgolfem na zamek lub guziki, klasyczne z dekoltem V i z okrągłym dekoltem. Są cienkie, lekkie swetry pod marynarkę oraz ciepłe, podszyte polarem lub futerkiem na zimę. Większość modeli ma szeroką rozmiarówkę — od M do 3XL, a wybrane także większe. Przy każdym rozmiarze podajemy wymiary w centymetrach, więc łatwo dobrać sweter bez przymierzania.",
     kategoria: "dorosli",
@@ -293,7 +293,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "bluzy-meskie",
     h1: "Bluzy męskie",
     tytul: "Bluzy męskie — z kapturem, rozpinane i bez kaptura",
-    opis: "Bluzy męskie i młodzieżowe: z kapturem typu kangur, rozpinane na zamek oraz bez kaptura. Ciepłe i wygodne, rozmiary od M do 7XL. Wysyłka w 1–2 dni, 14 dni na zwrot.",
+    opis: "Bluzy męskie z kapturem i rozpinane — ciepłe, wygodne, od M do 7XL. Wymiary w cm przy każdym rozmiarze, wysyłka w 1–2 dni. Wybierz swoją!",
     wstep:
       "Bluza męska to najwygodniejsza warstwa na chłodniejsze dni. Mamy bluzy z kapturem i kieszenią kangurką, bluzy rozpinane na zamek oraz modele bez kaptura — także sportowe i w stylu college. Ciepłe, miękkie od środka dzianiny sprawdzają się na spacer, trening i do domu. Bluzy młodzieżowe i męskie dobierzesz po wymiarach w centymetrach podanych przy każdym rozmiarze.",
     kategoria: "dorosli",
@@ -304,7 +304,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "spodnie-dresowe-meskie",
     h1: "Spodnie dresowe męskie",
     tytul: "Spodnie dresowe męskie — cienkie i ocieplane",
-    opis: "Spodnie dresowe męskie: cienkie na co dzień i ocieplane na zimę, także bojówki. Wygodna gumka w pasie, rozmiary od M do 7XL. Wysyłka w 1–2 dni, 14 dni na zwrot.",
+    opis: "Męskie spodnie dresowe cienkie i ocieplane, także bojówki — od M do 7XL, wymiary w cm. Wysyłka w 1–2 dni, 14 dni na zwrot. Sprawdź!",
     wstep:
       "Męskie spodnie dresowe do domu, na trening i na co dzień. W kolekcji są cienkie dresy na cieplejsze dni, spodnie ocieplane od środka na zimę oraz wygodne bojówki z kieszeniami. Wszystkie mają elastyczną gumkę w pasie i luźny, sportowy fason. Rozmiar dobierzesz po wymiarach w centymetrach podanych na karcie produktu.",
     kategoria: "dorosli",
@@ -323,7 +323,7 @@ export const KOLEKCJE: Kolekcja[] = [
     slug: "odziez-meska-duze-rozmiary",
     h1: "Odzież męska — duże rozmiary",
     tytul: "Odzież męska duże rozmiary 3XL–7XL — swetry, bluzy, dresy",
-    opis: "Odzież męska w dużych rozmiarach: swetry, bluzy i spodnie dresowe 3XL, 4XL, 5XL, 6XL i 7XL. Wymiary w centymetrach przy każdym rozmiarze. Wysyłka w 1–2 dni, 14 dni na zwrot.",
+    opis: "Duże rozmiary męskie 3XL–7XL: swetry, bluzy i dresy z wymiarami w cm — bez zgadywania rozmiaru. Wysyłka w 1–2 dni. Znajdź swój rozmiar!",
     wstep:
       "Duże rozmiary bez przepłacania. Zebraliśmy tu swetry, bluzy i spodnie dresowe dostępne w rozmiarach 3XL i większych — aż do 7XL. Fasony są luźne i wygodne, a dzianiny miękkie i rozciągliwe. Żeby nie zgadywać, przy każdym rozmiarze podajemy wymiary w centymetrach. Wystarczy zmierzyć ubranie, które dobrze leży, i porównać.",
     kategoria: "dorosli",

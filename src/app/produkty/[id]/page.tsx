@@ -7,7 +7,8 @@ import { katalogWidoczny, znajdzProduktDb } from "@/lib/produktyDb";
 import { pobierzOpinie, agregat, type Opinia } from "@/lib/opinieDb";
 import { najtanszaDostawa } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
-import { BAZA_URL, NAZWA_SKLEPU, jsonLd } from "@/lib/seo";
+import { BAZA_URL, NAZWA_SKLEPU, jsonLd, opisMetaProduktu } from "@/lib/seo";
+import { rozmiaryNaStanie } from "@/lib/hitTygodnia";
 
 // Zasady dostawy i zwrotu wg schema.org (wymagane przez Google Merchant listings).
 // Cena = najtańsza widoczna dostawa z ustawień sklepu.
@@ -48,7 +49,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   const p = await znajdzProduktDb(params.id);
   if (!p) return { title: "Produkt niedostępny", robots: { index: false, follow: true } };
   const zdjecia = (p.zdjecia?.length ? p.zdjecia : p.zdjecie ? [p.zdjecie] : []).slice(0, 4);
-  const opis = opisProduktu(p);
+  const opis = opisMetaProduktu(p, rozmiaryNaStanie(p).filter(Boolean));
   return {
     title: `${p.nazwa} — ${KATEGORIE_LABEL[p.kategoria]}`,
     description: opis,

@@ -8,22 +8,22 @@ const META_KATEGORII: Record<string, { title: string; description: string }> = {
   dziewczynki: {
     title: "Ubranka dla dziewczynek 0–12 lat",
     description:
-      "Ubranka dla dziewczynek 0–12 lat — sukienki, legginsy, bluzy, komplety i body. Miękkie, bezpieczne tkaniny i wygodne fasony. Wysyłka InPost, 14 dni na zwrot.",
+      "Sukienki, legginsy, bluzki i komplety dla dziewczynek 0–12 lat. Miękkie tkaniny, śliczne wzory i wymiary w cm. Wysyłka w 1–2 dni — wybierz coś dla niej!",
   },
   chlopcy: {
     title: "Ubranka dla chłopców 0–12 lat",
     description:
-      "Ubranka dla chłopców 0–12 lat — dresy, spodnie, bluzy, komplety i koszulki. Wytrzymałe i wygodne, gotowe na zabawę. Wysyłka InPost, 14 dni na zwrot.",
+      "Dresy, bluzy i komplety dla chłopców 0–12 lat — wygodne i gotowe na każdą zabawę. Wymiary w cm przy każdym rozmiarze, wysyłka w 1–2 dni. Sprawdź!",
   },
   niemowleta: {
     title: "Ubranka dla niemowląt i noworodków",
     description:
-      "Ubranka dla niemowląt i noworodków — body, pajacyki, śpiochy, komplety i czapeczki. Delikatna bawełna i łatwe przewijanie. Wysyłka InPost, 14 dni na zwrot.",
+      "Body, pajacyki i komplety dla niemowląt z miękkiej bawełny — łatwe przewijanie, wymiary w cm. Wysyłka w 1–2 dni, 14 dni na zwrot. Skompletuj wyprawkę!",
   },
   dorosli: {
     title: "Odzież męska — swetry, bluzy i spodnie dresowe do 7XL",
     description:
-      "Odzież męska: swetry rozpinane i z półgolfem, bluzy z kapturem, spodnie dresowe cienkie i ocieplane. Rozmiary od M do 7XL, wymiary w cm. Wysyłka InPost, 14 dni na zwrot.",
+      "Męskie swetry, bluzy i dresy od M do 7XL — ciepłe na zimę, z wymiarami w cm przy każdym rozmiarze. Wysyłka w 1–2 dni, 14 dni na zwrot. Zamów swój rozmiar!",
   },
 };
 
@@ -56,7 +56,7 @@ export function generateMetadata({
   return {
     title: "Wszystkie produkty — ubranka dziecięce 0–12 lat",
     description:
-      "Pełna oferta ubranek dla dzieci 0–12 lat: dziewczynki, chłopcy i niemowlęta. Miękkie, bezpieczne i wygodne. Wysyłka InPost, 14 dni na zwrot.",
+      "Wszystkie ubranka dla dzieci 0–12 lat w jednym miejscu: komplety, dresy, body i sukienki. Wymiary w cm, wysyłka w 1–2 dni. Znajdź idealny rozmiar!",
     alternates: { canonical: "/produkty" },
   };
 }
