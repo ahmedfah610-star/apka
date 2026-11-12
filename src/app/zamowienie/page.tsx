@@ -277,6 +277,13 @@ export default function StronaZamowienia() {
       const dane2 = (await res.json().catch(() => ({}))) as { ok?: boolean; blad?: string; url?: string; id?: string };
       if (!res.ok || dane2.ok === false) {
         setWysylka(false);
+        // Kod przestał działać (np. promocja skończyła się w trakcie) — zdejmujemy rabat z ekranu,
+        // żeby klient zobaczył prawdziwą kwotę, zanim zapłaci.
+        if (kodPrzyjety && /Usuń kod/.test(dane2.blad ?? "")) {
+          setKodPrzyjety(null);
+          setKodBlad(dane2.blad ?? "");
+          return setBlad("Kod rabatowy przestał obowiązywać — sprawdź nową kwotę i kliknij jeszcze raz.");
+        }
         return setBlad(dane2.blad || "Nie udało się złożyć zamówienia. Spróbuj ponownie.");
       }
       // Płatność online → przekierowanie do Stripe (BLIK / Przelewy24 / karta).
