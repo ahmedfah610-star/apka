@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import { PROMOCJA, stanPromocji, zakresPromocji } from "@/lib/promocja";
 import { doKiedy } from "@/components/PasekPromocji";
 
-const dwa = (n: number) => String(n).padStart(2, "0");
-
-// Duży baner promocji na stronie głównej (nad hitem tygodnia). Liczony w przeglądarce, więc znika
+// Krótki baner promocji na stronie głównej (nad hitem tygodnia): ile, kod, do kiedy. Liczony w przeglądarce, więc znika
 // sam po końcu promocji, także na stronie z cache.
 export function BanerPromocji() {
   const [teraz, setTeraz] = useState<number | null>(null);
@@ -14,16 +12,13 @@ export function BanerPromocji() {
 
   useEffect(() => {
     setTeraz(Date.now());
-    const t = setInterval(() => setTeraz(Date.now()), 1000);
+    const t = setInterval(() => setTeraz(Date.now()), 60_000);
     return () => clearInterval(t);
   }, []);
 
   if (!PROMOCJA || teraz === null || stanPromocji(PROMOCJA, teraz) !== "trwa") return null;
   const p = PROMOCJA;
   const koniec = new Date(p.do).getTime();
-  const s = Math.max(0, Math.floor((koniec - teraz) / 1000));
-  const d = Math.floor(s / 86400);
-  const licznik = `${d > 0 ? `${d} d ` : ""}${dwa(Math.floor((s % 86400) / 3600))}:${dwa(Math.floor((s % 3600) / 60))}:${dwa(s % 60)}`;
 
   const kopiuj = async () => {
     try {
@@ -46,12 +41,9 @@ export function BanerPromocji() {
           🎁 −{p.procent}% {zakresPromocji(p)}
         </span>{" "}
         z kodem <strong className="tracking-wide">{p.kod}</strong>
-        <span className="text-ink-2">
-          <span className="hidden sm:inline"> · {p.minKoszyk > 0 ? `od ${p.minKoszyk} zł` : "bez minimum"}, dostawa bez rabatu</span>
-          <br className="sm:hidden" />
-          <span className="hidden sm:inline"> · </span>
-          {doKiedy(koniec, teraz).replace(/^tylko /, "")} <span className="font-semibold tabular-nums text-ink">({licznik})</span>
-        </span>
+        <br className="sm:hidden" />
+        <span className="hidden text-ink-2 sm:inline"> · </span>
+        <span className="text-ink-2">{doKiedy(koniec, teraz).replace(/^tylko /, "").replace(/, \d{1,2}:\d{2}$/, "")}</span>
       </p>
       <button
         type="button"
