@@ -14,6 +14,7 @@ import { kwotaTekst, najtanszaDostawa } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 import { rozmiaryTekst, sprzedazOstatnio, wybierzHit } from "@/lib/hitTygodnia";
 import { WYBRANY_HIT } from "@/data/hitTygodnia";
+import { BanerPromocji } from "@/components/BanerPromocji";
 import { sztukNaStanie, zdjeciaDoReklamy } from "@/lib/feedEtykiety";
 import { cieplePierwsze, czyCieply, sezonZimowy, SLUG_ZIMA } from "@/lib/sezon";
 
@@ -167,6 +168,7 @@ export default async function StronaGlowna() {
 
       <main className="mx-auto max-w-content px-3 pb-10 pt-3 md:px-10 md:pb-16 md:pt-6">
         <h1 className="sr-only">bobas-shopping — ubranka dla dzieci i niemowląt oraz odzież męska</h1>
+        <BanerPromocji />
         {/* Banery z cenami */}
         <div className="grid grid-cols-2 gap-2.5 md:grid-cols-[2fr_1fr] md:gap-4">
           {hit ? (

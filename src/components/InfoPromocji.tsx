@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { promocjaTrwa, warunkiPromocji, type Promocja } from "@/lib/promocja";
+import { promocjaTrwa, warunkiPromocji, zakresPromocji, type Promocja } from "@/lib/promocja";
 import { doKiedy } from "@/components/PasekPromocji";
 
 // Informacja o trwającym kodzie rabatowym przy produktach (karta na liście i strona produktu).
@@ -22,7 +22,7 @@ export function PromocjaNaKarcie() {
   if (!promo) return null;
   return (
     <p className="-mt-0.5 mb-1 truncate text-[11.5px] font-bold text-cena md:text-[12px]" title={`${warunkiPromocji(promo)}. Kod: ${promo.kod}`}>
-      {promo.kod}: −{promo.procent}% od {promo.minKoszyk} zł
+      {promo.kod}: −{promo.procent}% {zakresPromocji(promo)}
     </p>
   );
 }
@@ -59,7 +59,8 @@ export function PromocjaProduktu() {
         </button>
       </div>
       <p className="mt-1.5 text-[13px] leading-snug text-ink-2">
-        Przy zakupie produktów za min. {promo.minKoszyk} zł (bez kosztu dostawy). Kod wpisz przy składaniu zamówienia. Ważny{" "}
+        {promo.minKoszyk > 0 ? `Przy zakupie produktów za min. ${promo.minKoszyk} zł (bez kosztu dostawy).` : "Na wszystkie produkty, bez minimalnej kwoty (rabat nie obejmuje dostawy)."} Kod wpisz przy
+        składaniu zamówienia. Ważny{" "}
         {doKiedy(new Date(promo.do).getTime(), Date.now()).replace(/^tylko /, "")}.
       </p>
     </div>

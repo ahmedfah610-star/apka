@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import { sezonZimowy, SLUG_ZIMA } from "@/lib/sezon";
-import { promocjaTrwa, type Promocja } from "@/lib/promocja";
+import { promocjaTrwa, zakresPromocji, type Promocja } from "@/lib/promocja";
 import type { Kategoria } from "@/data/produkty";
 
 // Boczne menu na telefonie — proste i zwarte: kod promocyjny w jednej linijce, lista działów
@@ -116,7 +116,7 @@ export function MenuMobilne({ aktywna: _aktywna }: { aktywna?: "home" | "produkt
                   className="flex w-full items-center justify-between gap-2 bg-[oklch(97%_0.025_55)] px-4 py-2 text-left text-[13px] text-cena"
                 >
                   <span>
-                    <strong>−{promo.procent}%</strong> od {promo.minKoszyk} zł z kodem <strong>{promo.kod}</strong>
+                    <strong>−{promo.procent}%</strong> {zakresPromocji(promo)} z kodem <strong>{promo.kod}</strong>
                   </span>
                   <span className="shrink-0 text-[12px] font-bold underline">{skopiowano ? "skopiowano ✓" : "kopiuj"}</span>
                 </button>

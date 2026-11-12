@@ -25,6 +25,7 @@ import { pomiarKoszyka, zapamietajZakup } from "@/lib/analityka";
 import { pozycjaPomiaru } from "@/components/DodajDoKoszyka";
 import { FormularzFaktury, PUSTA_FAKTURA, fakturaDoWyslania, type StanFaktury } from "@/components/FormularzFaktury";
 import { sprawdzFakture, type DaneFaktury } from "@/lib/faktura";
+import { promocjaTrwa, type Promocja } from "@/lib/promocja";
 
 // Płatności obsługuje w całości Przelewy24 — to na jego bezpiecznej stronie
 // klient wybiera BLIK / przelew / kartę. Nie dublujemy tu tego wyboru.
@@ -57,6 +58,9 @@ export default function StronaZamowienia() {
   const [kodPrzyjety, setKodPrzyjety] = useState<{ kod: string; rabat: number } | null>(null);
   const [kodBlad, setKodBlad] = useState("");
   const [kodSprawdzanie, setKodSprawdzanie] = useState(false);
+  // Trwająca promocja — liczona po wczytaniu w przeglądarce (bez rozjazdu z HTML z serwera).
+  const [promo, setPromo] = useState<Promocja | null>(null);
+  useEffect(() => setPromo(promocjaTrwa()), []);
 
   const [katalogGotowy, setKatalogGotowy] = useState(false);
   useEffect(() => {
@@ -189,8 +193,9 @@ export default function StronaZamowienia() {
 
   const numer = "flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-tlo";
 
-  async function sprawdzKod() {
-    const kod = kodRabatu.trim();
+  async function sprawdzKod(kodZPromocji?: string) {
+    const kod = (kodZPromocji ?? kodRabatu).trim();
+    if (kodZPromocji) setKodRabatu(kodZPromocji);
     if (!kod) return;
     setKodSprawdzanie(true);
     setKodBlad("");
@@ -505,6 +510,17 @@ export default function StronaZamowienia() {
                 </button>
               </div>
               {kodBlad ? <p className="mt-1.5 text-[12px] text-akcent">{kodBlad}</p> : null}
+              {/* Trwa promocja (lib/promocja) — kod jednym kliknięciem, żeby klient nie przepłacił przez zapomnienie. */}
+              {promo && suma >= promo.minKoszyk ? (
+                <button
+                  type="button"
+                  onClick={() => void sprawdzKod(promo.kod)}
+                  disabled={kodSprawdzanie}
+                  className="mt-2 w-full rounded-lg border-[1.5px] border-dashed border-cena bg-[oklch(97%_0.025_55)] px-3 py-2 text-left text-[13px] font-bold text-cena transition-colors hover:bg-[oklch(95%_0.04_55)] disabled:opacity-60"
+                >
+                  🎁 Użyj kodu {promo.kod}: −{promo.procent}% (−{formatCena(Math.round(suma * promo.procent) / 100)} zł)
+                </button>
+              ) : null}
             </div>
           )}
 

@@ -11,11 +11,11 @@ export interface Promocja {
 }
 
 export const PROMOCJA: Promocja | null = {
-  kod: "ZIMA5",
+  kod: "CIEPLO5",
   procent: 5,
-  minKoszyk: 50,
-  od: "2026-11-05T00:00:00+01:00",
-  do: "2026-11-08T23:59:59+01:00",
+  minKoszyk: 0, // bez minimum — rabat od wartości produktów, dostawa bez rabatu
+  od: "2026-11-12T00:00:00+01:00",
+  do: "2026-11-16T23:59:59+01:00",
 };
 
 export type StanPromocji = "przed" | "trwa" | "po";
@@ -33,5 +33,10 @@ export function promocjaTrwa(teraz: number = Date.now()): Promocja | null {
 
 /** Warunki kodu w jednym zdaniu (pasek, karta produktu, koszyk). */
 export function warunkiPromocji(p: Promocja): string {
-  return `−${p.procent}% przy zakupie produktów za min. ${p.minKoszyk} zł (bez kosztu dostawy)`;
+  return p.minKoszyk > 0
+    ? `−${p.procent}% przy zakupie produktów za min. ${p.minKoszyk} zł (bez kosztu dostawy)`
+    : `−${p.procent}% na wszystkie produkty, bez minimalnej kwoty (rabat nie obejmuje dostawy)`;
 }
+
+/** „na zakupy od 50 zł" / „na wszystko" — krótko, do paska i kart. */
+export const zakresPromocji = (p: Promocja) => (p.minKoszyk > 0 ? `od ${p.minKoszyk} zł` : "na wszystko");
