@@ -11,11 +11,11 @@ export interface Promocja {
 }
 
 export const PROMOCJA: Promocja | null = {
-  kod: "CIEPLO5",
+  kod: "ZIMA5",
   procent: 5,
   minKoszyk: 0, // bez minimum — rabat od wartości produktów, dostawa bez rabatu
   od: "2026-11-12T00:00:00+01:00",
-  do: "2026-11-16T23:59:59+01:00",
+  do: "2026-11-14T23:59:59+01:00", // sobota
 };
 
 export type StanPromocji = "przed" | "trwa" | "po";
