@@ -15,7 +15,7 @@ export const PROMOCJA: Promocja | null = {
   procent: 5,
   minKoszyk: 0, // bez minimum — rabat od wartości produktów, dostawa bez rabatu
   od: "2026-11-12T00:00:00+01:00",
-  do: "2026-11-14T23:59:59+01:00", // sobota
+  do: "2026-11-14T10:00:00+01:00", // sobota, 10:00
 };
 
 export type StanPromocji = "przed" | "trwa" | "po";

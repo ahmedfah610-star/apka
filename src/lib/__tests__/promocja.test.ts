@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// ZIMA5: −5% od wartości produktów (dostawa bez rabatu), BEZ minimum, 12.11 00:00 – 14.11 (sobota) 23:59 czasu polskiego.
+// ZIMA5: −5% od wartości produktów (dostawa bez rabatu), BEZ minimum, 12.11 00:00 – 14.11 (sobota) 10:00 czasu polskiego.
 let wierszZBazy: Record<string, unknown> | null = null;
 vi.mock("@/lib/supabase", () => ({
   supabaseWlaczony: () => true,
@@ -30,16 +30,16 @@ describe("promocja ZIMA5", () => {
   it("przed startem i po końcu — kod nie działa", async () => {
     vi.setSystemTime(new Date("2026-11-11T23:59:00+01:00"));
     expect((await sprawdz("ZIMA5", 100)).ok).toBe(false);
-    vi.setSystemTime(new Date("2026-11-15T00:00:01+01:00"));
+    vi.setSystemTime(new Date("2026-11-14T10:00:01+01:00"));
     const po = await sprawdz("ZIMA5", 100);
     expect(po.ok).toBe(false);
     expect(po.blad).toMatch(/zakończyła/);
   });
 
-  it("pierwsza i ostatnia sekunda (sobota 23:59:59) działają; inny kod nie", async () => {
+  it("pierwsza i ostatnia sekunda (sobota 10:00:00) działają; inny kod nie", async () => {
     vi.setSystemTime(new Date("2026-11-12T00:00:00+01:00"));
     expect((await sprawdz("ZIMA5", 50)).ok).toBe(true);
-    vi.setSystemTime(new Date("2026-11-14T23:59:59+01:00"));
+    vi.setSystemTime(new Date("2026-11-14T10:00:00+01:00"));
     expect((await sprawdz("ZIMA5", 50)).ok).toBe(true);
     expect((await sprawdz("CIEPLO5", 50)).ok).toBe(false);
   });

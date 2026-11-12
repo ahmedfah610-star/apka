@@ -43,7 +43,7 @@ export function BanerPromocji() {
         z kodem <strong className="tracking-wide">{p.kod}</strong>
         <br className="sm:hidden" />
         <span className="hidden text-ink-2 sm:inline"> · </span>
-        <span className="text-ink-2">{doKiedy(koniec, teraz).replace(/^tylko /, "").replace(/, \d{1,2}:\d{2}$/, "")}</span>
+        <span className="text-ink-2">{doKiedy(koniec, teraz).replace(/^tylko /, "").replace(/, 23:59$/, "")}</span>
       </p>
       <button
         type="button"
