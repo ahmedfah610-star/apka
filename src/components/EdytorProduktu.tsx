@@ -74,6 +74,7 @@ export function EdytorProduktu({
       const start = lista.length ? lista[0] : "*";
       setZakladka(start);
       setStartZakladki(start === "*" ? baza : mapa[start] ?? baza);
+      if (!zmianaZdjec.current) setZdjeciaStan(galeria(p));
       setWczytany(true);
     };
     // Lista produktów nie zawiera opisów (są ciężkie) — dociągamy pełny produkt.
@@ -87,8 +88,16 @@ export function EdytorProduktu({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nowy, produkt.id]);
 
-  const startZdj = produkt.zdjecia?.length ? produkt.zdjecia : produkt.zdjecie ? [produkt.zdjecie] : [];
-  const [zdjecia, setZdjecia] = useState<string[]>(startZdj);
+  // Lista produktów (wersja „lekka") ma zamiast adresów zdjęć puste miejsca — edytor bierze
+  // galerię z pełnego produktu (dociąganego niżej), a zapis wysyła zdjęcia TYLKO, gdy admin
+  // coś w nich zmienił. Inaczej zapis z ołówka na liście kasował zdjęcia produktu.
+  const galeria = (p: Produkt) => (p.zdjecia?.length ? p.zdjecia : p.zdjecie ? [p.zdjecie] : []).filter((z) => !!z && !!z.trim());
+  const [zdjecia, setZdjeciaStan] = useState<string[]>(() => galeria(produkt));
+  const zmianaZdjec = useRef(false);
+  const setZdjecia: typeof setZdjeciaStan = (v) => {
+    zmianaZdjec.current = true;
+    setZdjeciaStan(v);
+  };
   const [urlZdj, setUrlZdj] = useState("");
   const [wgrywanie, setWgrywanie] = useState(false);
 
@@ -202,8 +211,7 @@ export function EdytorProduktu({
       badge: badge || null,
       kolor: kolor.trim() || null,
       ...(zmianaOpisu || nowy ? daneOpisu() : {}),
-      zdjecia,
-      zdjecie: zdjecia[0] ?? null,
+      ...(zmianaZdjec.current || nowy ? { zdjecia, zdjecie: zdjecia[0] ?? null } : {}),
       hue: HUE[kategoria],
     };
     if (maRozmiary && rozmiary.length) {

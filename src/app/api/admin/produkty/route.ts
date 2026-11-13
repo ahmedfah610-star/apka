@@ -70,11 +70,15 @@ export async function PATCH(req: Request) {
   if ("badge" in zmiany) map.badge = zmiany.badge ?? null;
   if ("ukryty" in zmiany) map.ukryty = zmiany.ukryty;
   if ("rozmiary" in zmiany) map.rozmiary = zmiany.rozmiary ?? [];
-  if ("zdjecia" in zmiany) {
-    map.zdjecia = zmiany.zdjecia ?? [];
-    map.zdjecie = zmiany.zdjecia?.[0] ?? null;
+  // Puste adresy zdjęć nigdy nie trafiają do bazy. Lista złożona z samych pustych adresów
+  // (np. z „lekkiej" listy produktów, gdzie galeria jest wycięta) nie nadpisuje istniejących zdjęć.
+  const zdjeciaZPustych = Array.isArray(zmiany.zdjecia) && zmiany.zdjecia.length > 0 && zmiany.zdjecia.every((z) => !String(z ?? "").trim());
+  if ("zdjecia" in zmiany && !zdjeciaZPustych) {
+    const czyste = (zmiany.zdjecia ?? []).map((z) => String(z ?? "").trim()).filter(Boolean);
+    map.zdjecia = czyste;
+    map.zdjecie = czyste[0] ?? null;
   }
-  if ("zdjecie" in zmiany && !("zdjecia" in zmiany)) map.zdjecie = zmiany.zdjecie ?? null;
+  if ("zdjecie" in zmiany && !("zdjecia" in zmiany) && String(zmiany.zdjecie ?? "").trim()) map.zdjecie = String(zmiany.zdjecie).trim();
   const zmianaStanu = "stan" in zmiany || "stanRozmiary" in zmiany;
   if ("stan" in zmiany) map.stan = zmiany.stan ?? null;
   if ("stanRozmiary" in zmiany) {

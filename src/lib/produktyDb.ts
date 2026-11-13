@@ -60,7 +60,7 @@ const bezpieczneOpisy = (m: Record<string, string> | null) =>
 function zRzedu(r: any): Produkt {
   const pop = poprawki(r);
   // Kolejność zdjęć (własne zdjęcie koloru jako pierwsze) ustala scalanie.
-  const zdjecia: string[] = r.zdjecia ?? [];
+  const zdjecia: string[] = ((r.zdjecia ?? []) as unknown[]).map((z) => String(z ?? "").trim()).filter(Boolean);
   return {
     id: r.id,
     nazwa: pop.nazwa ?? ladnaNazwa(r.nazwa), // schludny tytuł (bez KRZYKU, „cm", literówek) — spójnie wszędzie
@@ -70,7 +70,7 @@ function zRzedu(r: any): Produkt {
     wiekLabel: r.wiek_label,
     badge: r.badge ?? null,
     rozmiary: r.rozmiary ?? [],
-    zdjecie: zdjecia[0] ?? r.zdjecie ?? null,
+    zdjecie: zdjecia[0] ?? (r.zdjecie || null),
     zdjecia,
     // Opis poprawiony w edytorze (poprawki) zastępuje opis z Allegro — także opisy per rozmiar.
     opis: pop.opisHtml ? tekstZHtml(pop.opisHtml) : oczyscTekstOpisu(r.opis), // bez „zobacz inne aukcje" i zepsutych znaków
