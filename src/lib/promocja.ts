@@ -1,5 +1,6 @@
 // Bieżąca promocja z kodem rabatowym — jedno źródło dla paska z odliczaniem i walidacji kodu
 // (koszyk, zamówienie, serwer). Kod działa tylko w podanym oknie czasowym; po końcu pasek znika sam.
+// do = null → promocja bez daty końca: bez licznika i bez „do kiedy” (wyłącza się ręcznie, ustawiając datę albo PROMOCJA = null).
 // Minimum liczone z wartości produktów (bez dostawy) — tak jak każdy kod rabatowy w sklepie.
 
 export interface Promocja {
@@ -7,7 +8,7 @@ export interface Promocja {
   procent: number;
   minKoszyk: number; // zł, wartość produktów bez dostawy
   od: string; // ISO z przesunięciem strefy (czas polski)
-  do: string;
+  do: string | null;
 }
 
 export const PROMOCJA: Promocja | null = {
@@ -15,7 +16,7 @@ export const PROMOCJA: Promocja | null = {
   procent: 5,
   minKoszyk: 0, // bez minimum — rabat od wartości produktów, dostawa bez rabatu
   od: "2026-11-12T00:00:00+01:00",
-  do: "2026-11-14T10:00:00+01:00", // sobota, 10:00
+  do: null, // przedłużona bez daty końca (wcześniej do soboty 14.11, 10:00)
 };
 
 export type StanPromocji = "przed" | "trwa" | "po";
@@ -23,7 +24,7 @@ export type StanPromocji = "przed" | "trwa" | "po";
 export function stanPromocji(p: Promocja | null, teraz: number = Date.now()): StanPromocji | null {
   if (!p) return null;
   if (teraz < new Date(p.od).getTime()) return "przed";
-  if (teraz > new Date(p.do).getTime()) return "po";
+  if (p.do && teraz > new Date(p.do).getTime()) return "po";
   return "trwa";
 }
 

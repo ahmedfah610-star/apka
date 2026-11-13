@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// ZIMA5: −5% od wartości produktów (dostawa bez rabatu), BEZ minimum, 12.11 00:00 – 14.11 (sobota) 10:00 czasu polskiego.
+// ZIMA5: −5% od wartości produktów (dostawa bez rabatu), BEZ minimum, od 12.11 00:00 czasu polskiego, bez daty końca.
 let wierszZBazy: Record<string, unknown> | null = null;
 vi.mock("@/lib/supabase", () => ({
   supabaseWlaczony: () => true,
@@ -27,21 +27,26 @@ describe("promocja ZIMA5", () => {
     expect((await sprawdz("ZIMA5", 89.99)).rabat).toBe(4.5);
   });
 
-  it("przed startem i po końcu — kod nie działa", async () => {
+  it("przed startem nie działa; po dawnym końcu (sobota 10:00) dalej działa — promocja bez daty końca", async () => {
     vi.setSystemTime(new Date("2026-11-11T23:59:00+01:00"));
     expect((await sprawdz("ZIMA5", 100)).ok).toBe(false);
-    vi.setSystemTime(new Date("2026-11-14T10:00:01+01:00"));
-    const po = await sprawdz("ZIMA5", 100);
-    expect(po.ok).toBe(false);
-    expect(po.blad).toMatch(/zakończyła/);
-  });
-
-  it("pierwsza i ostatnia sekunda (sobota 10:00:00) działają; inny kod nie", async () => {
     vi.setSystemTime(new Date("2026-11-12T00:00:00+01:00"));
     expect((await sprawdz("ZIMA5", 50)).ok).toBe(true);
-    vi.setSystemTime(new Date("2026-11-14T10:00:00+01:00"));
-    expect((await sprawdz("ZIMA5", 50)).ok).toBe(true);
+    vi.setSystemTime(new Date("2026-11-14T10:00:01+01:00"));
+    expect((await sprawdz("ZIMA5", 100)).rabat).toBe(5);
+    vi.setSystemTime(new Date("2026-12-20T12:00:00+01:00"));
+    expect((await sprawdz("ZIMA5", 100)).ok).toBe(true);
     expect((await sprawdz("CIEPLO5", 50)).ok).toBe(false);
+  });
+
+  it("stan promocji: bez daty końca trwa, z datą końca — kończy się po niej", async () => {
+    const { stanPromocji } = await import("@/lib/promocja");
+    const baza = { kod: "X", procent: 5, minKoszyk: 0, od: "2026-11-12T00:00:00+01:00" };
+    const t = (d: string) => new Date(d).getTime();
+    expect(stanPromocji({ ...baza, do: null }, t("2027-01-01T00:00:00+01:00"))).toBe("trwa");
+    expect(stanPromocji({ ...baza, do: null }, t("2026-11-11T12:00:00+01:00"))).toBe("przed");
+    expect(stanPromocji({ ...baza, do: "2026-11-14T10:00:00+01:00" }, t("2026-11-14T10:00:00+01:00"))).toBe("trwa");
+    expect(stanPromocji({ ...baza, do: "2026-11-14T10:00:00+01:00" }, t("2026-11-14T10:00:01+01:00"))).toBe("po");
   });
 
   it("kod o tej nazwie dodany w panelu ma pierwszeństwo", async () => {

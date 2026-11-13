@@ -54,7 +54,7 @@ export function PasekPromocji() {
 
   if (!widoczny || !PROMOCJA || teraz === null) return null;
 
-  const koniec = new Date(PROMOCJA.do).getTime();
+  const koniec = PROMOCJA.do ? new Date(PROMOCJA.do).getTime() : null;
   const kopiuj = async () => {
     try {
       await navigator.clipboard.writeText(PROMOCJA!.kod);
@@ -79,9 +79,11 @@ export function PasekPromocji() {
             {skopiowano ? "skopiowano ✓" : PROMOCJA.kod}
           </button>
         </span>
-        <span className="whitespace-nowrap font-semibold">
-          {doKiedy(koniec, teraz)} · <span className="font-extrabold tabular-nums">{pozostalo(koniec - teraz)}</span>
-        </span>
+        {koniec !== null ? (
+          <span className="whitespace-nowrap font-semibold">
+            {doKiedy(koniec, teraz)} · <span className="font-extrabold tabular-nums">{pozostalo(koniec - teraz)}</span>
+          </span>
+        ) : null}
       </div>
     </div>
   );

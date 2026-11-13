@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Płatność z kodem promocji ZIMA5 (−5% od produktów, bez minimum, do sob. 14.11 10:00):
+// Płatność z kodem promocji ZIMA5 (−5% od produktów, bez minimum, od 12.11, bez daty końca):
 // kwota zamówienia w bazie = kwota zarejestrowana w Przelewy24 = to, co klient widzi na ekranie.
 const zapisane: Record<string, unknown>[] = [];
 const p24: { amount: number; sessionId: string }[] = [];
@@ -85,11 +85,11 @@ describe("checkout z kodem ZIMA5", () => {
     expect(p24[0].amount).toBe(15196);
   });
 
-  it("promocja skończyła się w trakcie zamawiania → zamówienie wstrzymane z komunikatem (nie pełna kwota po cichu)", async () => {
-    vi.setSystemTime(new Date("2026-11-14T10:00:01+01:00"));
+  it("kod promocji poza jej oknem → zamówienie wstrzymane z komunikatem (nie pełna kwota po cichu)", async () => {
+    vi.setSystemTime(new Date("2026-11-11T23:59:00+01:00"));
     const r = await zamow(2, "ZIMA5");
     expect(r.status).toBe(400);
-    expect(r.dane.blad).toMatch(/zakończyła.*Usuń kod/);
+    expect(r.dane.blad).toMatch(/nie rozpoczęła.*Usuń kod/);
     expect(zapisane).toHaveLength(0);
     expect(p24).toHaveLength(0);
   });

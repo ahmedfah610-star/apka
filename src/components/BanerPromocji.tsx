@@ -18,7 +18,7 @@ export function BanerPromocji() {
 
   if (!PROMOCJA || teraz === null || stanPromocji(PROMOCJA, teraz) !== "trwa") return null;
   const p = PROMOCJA;
-  const koniec = new Date(p.do).getTime();
+  const koniec = p.do ? new Date(p.do).getTime() : null;
 
   const kopiuj = async () => {
     try {
@@ -41,9 +41,13 @@ export function BanerPromocji() {
           🎁 −{p.procent}% {zakresPromocji(p)}
         </span>{" "}
         z kodem <strong className="tracking-wide">{p.kod}</strong>
-        <br className="sm:hidden" />
-        <span className="hidden text-ink-2 sm:inline"> · </span>
-        <span className="text-ink-2">{doKiedy(koniec, teraz).replace(/^tylko /, "").replace(/, 23:59$/, "")}</span>
+        {koniec !== null ? (
+          <>
+            <br className="sm:hidden" />
+            <span className="hidden text-ink-2 sm:inline"> · </span>
+            <span className="text-ink-2">{doKiedy(koniec, teraz).replace(/^tylko /, "").replace(/, 23:59$/, "")}</span>
+          </>
+        ) : null}
       </p>
       <button
         type="button"

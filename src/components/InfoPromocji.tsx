@@ -60,8 +60,8 @@ export function PromocjaProduktu() {
       </div>
       <p className="mt-1.5 text-[13px] leading-snug text-ink-2">
         {promo.minKoszyk > 0 ? `Przy zakupie produktów za min. ${promo.minKoszyk} zł (bez kosztu dostawy).` : "Na wszystkie produkty, bez minimalnej kwoty (rabat nie obejmuje dostawy)."} Kod wpisz przy
-        składaniu zamówienia. Ważny{" "}
-        {doKiedy(new Date(promo.do).getTime(), Date.now()).replace(/^tylko /, "")}.
+        składaniu zamówienia.
+        {promo.do ? ` Ważny ${doKiedy(new Date(promo.do).getTime(), Date.now()).replace(/^tylko /, "")}.` : ""}
       </p>
     </div>
   );
