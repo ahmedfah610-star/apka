@@ -34,3 +34,16 @@ export function zdjeciaDoReklamy(p: Pick<Produkt, "id" | "zdjecie" | "zdjecia">,
   if (!galeria.includes(najlepsze)) return { zdjecia: galeria, top: false };
   return { zdjecia: [najlepsze, ...galeria.filter((u) => u !== najlepsze)], top: true };
 }
+
+/**
+ * Tytuł do pliku dla Google (sklep zostaje bez zmian). Cienkie swetry męskie, które w nazwie z Allegro
+ * nie mają słowa „cienki” (a w opisie tak), dostają je w tytule — klienci szukają np. „cienki sweter
+ * męski rozpinany” i to hasło już sprzedawało. Ciepłych modeli (ocieplane, polar, futerko) nie ruszamy.
+ */
+export function tytulDoFeedu(p: Pick<Produkt, "nazwa" | "opis" | "kategoria">): string {
+  const n = p.nazwa;
+  const cienkiWOpisie = /cienk/i.test((p.opis ?? "").slice(0, 400));
+  if (p.kategoria !== "dorosli" || !/sweter/i.test(n) || /cienk/i.test(n) || !cienkiWOpisie || /ociepl|podszyt|polar|futer/i.test(n)) return n;
+  const m = n.match(/^(sweter męski|męski sweter)\s+/i);
+  return m ? `${m[0]}cienki ${n.slice(m[0].length)}` : `Cienki ${n.charAt(0).toLowerCase()}${n.slice(1)}`;
+}

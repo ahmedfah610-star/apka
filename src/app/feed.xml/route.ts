@@ -1,4 +1,4 @@
-import { etykietyReklamowe, zdjeciaDoReklamy } from "@/lib/feedEtykiety";
+import { etykietyReklamowe, tytulDoFeedu, zdjeciaDoReklamy } from "@/lib/feedEtykiety";
 import { urlProduktu } from "@/lib/adresProduktu";
 import { katalogWidoczny, opisyRozmiarowTekst } from "@/lib/produktyDb";
 import { czyCieply } from "@/lib/sezon";
@@ -68,7 +68,7 @@ function pozycja(
   const dodatkowe = zdj.slice(1, 11).map((u) => `    <g:additional_image_link>${txt(u)}</g:additional_image_link>`).join("\n");
   return `  <item>
     <g:id>${txt(wariant.id)}</g:id>
-    <g:title>${cdata(p.nazwa)}</g:title>
+    <g:title>${cdata(tytulDoFeedu(p))}</g:title>
     <g:description>${cdata(wariant.opis ? wariant.opis.slice(0, 4900) : opisFeed(p))}</g:description>
     <g:link>${txt(link)}</g:link>
     <g:image_link>${txt(zdj[0]!)}</g:image_link>

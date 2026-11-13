@@ -43,3 +43,20 @@ describe("etykiety reklamowe w pliku produktowym", () => {
     }
   });
 });
+
+describe("tytuł do pliku Google", () => {
+  it("cienki sweter męski (cienki tylko w opisie) dostaje „cienki” w tytule", async () => {
+    const { tytulDoFeedu } = await import("@/lib/feedEtykiety");
+    const opis = "CIENKI SWETER MĘSKI SZARY PÓŁGOLF Z ZAMKIEM Lekki, cienki sweter";
+    expect(tytulDoFeedu({ nazwa: "Sweter męski rozpinany półgolf klasyczny fason", opis, kategoria: "dorosli" })).toBe(
+      "Sweter męski cienki rozpinany półgolf klasyczny fason",
+    );
+    // już ma „cienki”, ciepły model albo inny dział — bez zmian
+    expect(tytulDoFeedu({ nazwa: "Sweter męski cienki półgolf z zamkiem", opis, kategoria: "dorosli" })).toBe("Sweter męski cienki półgolf z zamkiem");
+    expect(tytulDoFeedu({ nazwa: "Sweter męski rozpinany półgolf Ciepły podszyty polarem", opis, kategoria: "dorosli" })).toBe(
+      "Sweter męski rozpinany półgolf Ciepły podszyty polarem",
+    );
+    expect(tytulDoFeedu({ nazwa: "Sweterek dla chłopca", opis, kategoria: "chlopcy" })).toBe("Sweterek dla chłopca");
+    expect(tytulDoFeedu({ nazwa: "Sweter męski rozpinany", opis: "Gruby, ciepły sweter", kategoria: "dorosli" })).toBe("Sweter męski rozpinany");
+  });
+});
