@@ -76,8 +76,17 @@ function MeskieZMenu({ aktualny }: { aktualny: string }) {
         type="button"
         aria-label="Podkategorie męskie"
         aria-expanded={otwarte}
-        onClick={() => (otwarte ? setOtwarte(false) : otworz())}
-        className={`-mb-px border-b-[3px] pl-1 ${wDziale ? "border-akcent text-akcent" : "border-transparent text-ink-2 hover:text-akcent"}`}
+        // Myszką menu otwiera się już po najechaniu — kliknięcie strzałki go nie zamyka (inaczej szybkie
+        // ponowne kliknięcie zaznaczało tekst menu). Dotykiem (tablet) strzałka otwiera i zamyka.
+        onPointerDown={(e) => {
+          if (e.pointerType === "mouse") e.preventDefault();
+        }}
+        onClick={(e) => {
+          const mysz = (e.nativeEvent as PointerEvent).pointerType === "mouse";
+          if (otwarte && !mysz) setOtwarte(false);
+          else otworz();
+        }}
+        className={`-mb-px select-none border-b-[3px] pl-1 ${wDziale ? "border-akcent text-akcent" : "border-transparent text-ink-2 hover:text-akcent"}`}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden className={`transition-transform ${otwarte ? "rotate-180" : ""}`}>
           <path d="m6 9 6 6 6-6" />
@@ -88,7 +97,7 @@ function MeskieZMenu({ aktualny }: { aktualny: string }) {
         <div
           role="menu"
           style={{ top: poz.top, left: Math.max(8, poz.left - 12) }}
-          className="fixed z-[80] w-[250px] rounded-xl border border-linia bg-white p-1.5 shadow-[0_12px_32px_-8px_rgba(0,0,0,0.25)]"
+          className="fixed z-[80] w-[250px] select-none rounded-xl border border-linia bg-white p-1.5 shadow-[0_12px_32px_-8px_rgba(0,0,0,0.25)]"
           onMouseEnter={otworz}
           onMouseLeave={zamknijZaChwile}
         >
