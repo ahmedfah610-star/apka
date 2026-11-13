@@ -7,6 +7,7 @@ import { useAuth } from "@/components/AuthContext";
 import { sezonZimowy, SLUG_ZIMA } from "@/lib/sezon";
 import { promocjaTrwa, zakresPromocji, type Promocja } from "@/lib/promocja";
 import type { Kategoria } from "@/data/produkty";
+import { MESKIE_PODKATEGORIE } from "@/data/meskiePodkategorie";
 
 // Boczne menu na telefonie — proste i zwarte: kod promocyjny w jednej linijce, lista działów
 // i okazji (zimą „Na zimę" na górze), rodzaje jako małe przyciski, pomoc drobnym drukiem.
@@ -126,15 +127,21 @@ export function MenuMobilne({ aktywna: _aktywna }: { aktywna?: "home" | "produkt
                 {[
                   ...(zima ? [{ href: `/kolekcje/${SLUG_ZIMA}`, label: "❄ Na zimę", kolor: "text-akcent" }] : []),
                   { href: "/produkty", label: "Wszystkie produkty" },
-                  ...DZIALY.map((d) => ({ href: `/produkty?kategoria=${d.kat}`, label: d.label })),
+                  ...DZIALY.flatMap((d) => [
+                    { href: `/produkty?kategoria=${d.kat}`, label: d.label },
+                    // Męskie: podkategorie (swetry, bluzy, dresy, duże rozmiary) wcięte pod działem.
+                    ...(d.kat === "dorosli" ? MESKIE_PODKATEGORIE.map((m) => ({ href: m.href, label: m.label, pod: true })) : []),
+                  ]),
                   { href: "/produkty?sort=nowosci", label: "Nowości" },
                   { href: "/produkty?cena=do-20", label: "Do 20 zł", kolor: "text-cena" },
-                ].map((l: { href: string; label: string; kolor?: string }) => (
+                ].map((l: { href: string; label: string; kolor?: string; pod?: boolean }) => (
                   <li key={l.href} className="border-b border-linia">
                     <Link
                       href={l.href}
                       onClick={zamknij}
-                      className={`flex items-center justify-between py-2.5 text-[15px] font-semibold no-underline ${l.kolor ?? "text-ink"}`}
+                      className={`flex items-center justify-between no-underline ${
+                        l.pod ? "py-2 pl-4 text-[14px] font-medium" : "py-2.5 text-[15px] font-semibold"
+                      } ${l.kolor ?? "text-ink"}`}
                     >
                       {l.label}
                       <span className="text-ink-3/60"><Strzalka /></span>
