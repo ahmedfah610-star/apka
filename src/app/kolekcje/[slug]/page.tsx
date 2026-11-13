@@ -71,7 +71,7 @@ export default async function StronaKolekcji({ params }: { params: { slug: strin
           <Link href="/produkty" className="no-underline hover:text-akcent">Produkty</Link> / <span className="text-ink">{kol.h1}</span>
         </nav>
         <h1 className="mb-3 text-[32px] font-extrabold tracking-tight md:text-[40px]">{kol.h1}</h1>
-        <p className="mb-2 max-w-3xl text-[15.5px] leading-relaxed text-ink-2">{kol.wstep}</p>
+        <p className="mb-2 max-w-3xl text-[15.5px] leading-relaxed text-ink-2">{kol.krotko}</p>
         <p className="mb-7 text-[14px] text-ink-2">{produkty.length} {produkty.length === 1 ? "produkt" : "produktów"}</p>
       </div>
 
@@ -92,9 +92,17 @@ export default async function StronaKolekcji({ params }: { params: { slug: strin
         )}
       </div>
 
+      {/* Dłuższy opis kolekcji (treść dla Google) — pod produktami, żeby klient od razu widział towar */}
+      <section className="px-6 pb-12 md:px-12">
+        <div className="mx-auto max-w-content border-t border-linia pt-10">
+          <h2 className="mb-3 text-[20px] font-bold tracking-tight">O kolekcji: {kol.h1.toLowerCase()}</h2>
+          <p className="max-w-3xl text-[15px] leading-relaxed text-ink-2">{kol.wstep}</p>
+        </div>
+      </section>
+
       {/* FAQ — także jako dane strukturalne (rich results) */}
       <section className="px-6 pb-16 md:px-12">
-        <div className="mx-auto max-w-content border-t border-linia pt-10">
+        <div className="mx-auto max-w-content">
           <h2 className="mb-5 text-[20px] font-bold tracking-tight">Najczęstsze pytania</h2>
           <div className="flex flex-col divide-y divide-linia border-y border-linia">
             {faq.map((f) => (
