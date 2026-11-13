@@ -4,5 +4,4 @@ export const MESKIE_PODKATEGORIE: { label: string; href: string; opis?: string; 
   { label: "Męskie swetry", href: "/kolekcje/swetry-meskie", opis: "rozpinane, półgolfy, ocieplane", wPasku: true },
   { label: "Męskie bluzy", href: "/kolekcje/bluzy-meskie", opis: "z kapturem i bez", wPasku: true },
   { label: "Męskie dresy", href: "/kolekcje/spodnie-dresowe-meskie", opis: "spodnie dresowe, także ocieplane", wPasku: true },
-  { label: "Duże rozmiary", href: "/kolekcje/odziez-meska-duze-rozmiary", opis: "3XL–7XL" },
 ];
