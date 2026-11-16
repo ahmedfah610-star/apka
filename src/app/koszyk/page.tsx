@@ -11,7 +11,7 @@ import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { useDostawa } from "@/lib/dostawaKlient";
 import { najtanszaDostawa } from "@/lib/dostawa";
-import { promocjaTrwa } from "@/lib/promocja";
+import { promocjaWidoczna } from "@/lib/promocja";
 import { EdycjaDostaw } from "@/components/EdycjaDostaw";
 import { ZAMOWIENIA_WYLACZONE } from "@/lib/sklep";
 import { PrzerwaTechniczna } from "@/components/PrzerwaTechniczna";
@@ -132,7 +132,7 @@ export default function StronaKoszyka() {
                   <div className="h-full rounded-full bg-akcent transition-all duration-500" style={{ width: `${procent}%` }} />
                 </div>
                 {(() => {
-                  const promo = promocjaTrwa();
+                  const promo = promocjaWidoczna();
                   if (!promo) return null;
                   return (
                     <p className="mt-3 border-t border-linia pt-3 text-[13.5px] text-ink-2">

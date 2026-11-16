@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Płatność z kodem promocji ZIMA5 (−5% od produktów, bez minimum, od 12.11, bez daty końca):
+// Płatność z kodem promocji ZIMA5 (−5% od produktów, bez minimum, od 12.11, bez daty końca, limit 100 zamówień):
 // kwota zamówienia w bazie = kwota zarejestrowana w Przelewy24 = to, co klient widzi na ekranie.
 const zapisane: Record<string, unknown>[] = [];
 const p24: { amount: number; sessionId: string }[] = [];
@@ -23,7 +23,7 @@ vi.mock("@/lib/supabase", () => ({
   sbService: () => ({
     from: (t: string) => ({
       // kody_rabatowe: brak wpisu → kod promocji z lib/promocja
-      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
+      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }), not: async () => ({ count: 0, error: null }) }) }),
       insert: (w: Record<string, unknown>) => {
         if (t === "zamowienia") zapisane.push(w);
         return { select: () => ({ single: async () => ({ data: { id: "11111111-1111-4111-8111-111111111111" }, error: null }) }) };

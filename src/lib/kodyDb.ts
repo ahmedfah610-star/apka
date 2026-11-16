@@ -63,6 +63,18 @@ export async function sprawdzKod(kodTekst: string, suma: number, email?: string)
     const stan = stanPromocji(PROMOCJA);
     if (stan === "przed") return { ok: false, blad: "Promocja jeszcze się nie rozpoczęła." };
     if (stan === "po") return { ok: false, blad: "Promocja już się zakończyła." };
+    // Limit: liczą się zamówienia opłacone (i dalsze statusy) — nieopłacone i anulowane nie zajmują puli.
+    let uzyto = 0;
+    if (PROMOCJA.limitUzyc !== null) {
+      const { count, error: eLicz } = await sb
+        .from("zamowienia")
+        .select("id", { count: "exact", head: true })
+        .eq("kod_rabatowy", PROMOCJA.kod)
+        .not("status", "in", '("oczekuje_na_platnosc","anulowane")');
+      if (eLicz) return { ok: false, blad: "Błąd sprawdzania kodu." };
+      uzyto = count ?? 0;
+      if (uzyto >= PROMOCJA.limitUzyc) return { ok: false, blad: "Pula kodu została już wykorzystana." };
+    }
     const kodPromo: Kod = {
       kod: PROMOCJA.kod,
       typ: "procent",
@@ -70,8 +82,8 @@ export async function sprawdzKod(kodTekst: string, suma: number, email?: string)
       minKoszyk: PROMOCJA.minKoszyk,
       aktywny: true,
       waznyDo: PROMOCJA.do,
-      limitUzyc: null,
-      uzyto: 0,
+      limitUzyc: PROMOCJA.limitUzyc,
+      uzyto,
       createdAt: PROMOCJA.od,
     };
     if (suma < kodPromo.minKoszyk) return { ok: false, blad: `Kod działa od ${kodPromo.minKoszyk.toFixed(2).replace(".", ",")} zł w koszyku (bez dostawy).` };

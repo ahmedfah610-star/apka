@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import { sezonZimowy, SLUG_ZIMA } from "@/lib/sezon";
-import { promocjaTrwa, zakresPromocji, type Promocja } from "@/lib/promocja";
+import { promocjaWidoczna, zakresPromocji, type Promocja } from "@/lib/promocja";
 import type { Kategoria } from "@/data/produkty";
 import { MESKIE_PODKATEGORIE } from "@/data/meskiePodkategorie";
 
@@ -57,7 +57,7 @@ export function MenuMobilne({ aktywna: _aktywna }: { aktywna?: "home" | "produkt
   useEffect(() => setOtwarte(false), [sciezka]);
   useEffect(() => {
     if (!otwarte) return;
-    setPromo(promocjaTrwa());
+    setPromo(promocjaWidoczna());
     const poprzedni = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const esc = (e: KeyboardEvent) => e.key === "Escape" && setOtwarte(false);

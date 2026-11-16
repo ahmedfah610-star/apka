@@ -41,7 +41,7 @@ export function PasekPromocji() {
     return () => clearInterval(t);
   }, []);
 
-  const widoczny = !panel && !!PROMOCJA && teraz !== null && stanPromocji(PROMOCJA, teraz) === "trwa";
+  const widoczny = !panel && !!PROMOCJA && PROMOCJA.widoczna && teraz !== null && stanPromocji(PROMOCJA, teraz) === "trwa";
 
   useEffect(() => {
     const html = document.documentElement;

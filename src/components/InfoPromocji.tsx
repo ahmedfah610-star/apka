@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { promocjaTrwa, warunkiPromocji, zakresPromocji, type Promocja } from "@/lib/promocja";
+import { promocjaWidoczna, warunkiPromocji, zakresPromocji, type Promocja } from "@/lib/promocja";
 import { doKiedy } from "@/components/PasekPromocji";
 
 // Informacja o trwającym kodzie rabatowym przy produktach (karta na liście i strona produktu).
@@ -9,8 +9,8 @@ import { doKiedy } from "@/components/PasekPromocji";
 function useTrwajacaPromocja(): Promocja | null {
   const [promo, setPromo] = useState<Promocja | null>(null);
   useEffect(() => {
-    setPromo(promocjaTrwa());
-    const t = setInterval(() => setPromo(promocjaTrwa()), 60_000);
+    setPromo(promocjaWidoczna());
+    const t = setInterval(() => setPromo(promocjaWidoczna()), 60_000);
     return () => clearInterval(t);
   }, []);
   return promo;

@@ -1,11 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// ZIMA5: −5% od wartości produktów (dostawa bez rabatu), BEZ minimum, od 12.11 00:00 czasu polskiego, bez daty końca.
+// ZIMA5: −5% od wartości produktów (dostawa bez rabatu), BEZ minimum, od 12.11 00:00 czasu polskiego, bez daty końca,
+// ukryta na stronie (działa po wpisaniu), limit 100 opłaconych zamówień.
 let wierszZBazy: Record<string, unknown> | null = null;
+let oplaconeZKodem = 0;
 vi.mock("@/lib/supabase", () => ({
   supabaseWlaczony: () => true,
   sbService: () => ({
-    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: wierszZBazy, error: null }) }) }) }),
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({ data: wierszZBazy, error: null }),
+          not: async () => ({ count: oplaconeZKodem, error: null }),
+        }),
+      }),
+    }),
   }),
 }));
 
@@ -15,6 +24,7 @@ describe("promocja ZIMA5", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     wierszZBazy = null;
+    oplaconeZKodem = 0;
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -41,7 +51,7 @@ describe("promocja ZIMA5", () => {
 
   it("stan promocji: bez daty końca trwa, z datą końca — kończy się po niej", async () => {
     const { stanPromocji } = await import("@/lib/promocja");
-    const baza = { kod: "X", procent: 5, minKoszyk: 0, od: "2026-11-12T00:00:00+01:00" };
+    const baza = { kod: "X", procent: 5, minKoszyk: 0, od: "2026-11-12T00:00:00+01:00", widoczna: true, limitUzyc: null };
     const t = (d: string) => new Date(d).getTime();
     expect(stanPromocji({ ...baza, do: null }, t("2027-01-01T00:00:00+01:00"))).toBe("trwa");
     expect(stanPromocji({ ...baza, do: null }, t("2026-11-11T12:00:00+01:00"))).toBe("przed");
@@ -59,5 +69,23 @@ describe("promocja ZIMA5", () => {
     const { warunkiPromocji, zakresPromocji, PROMOCJA } = await import("@/lib/promocja");
     expect(zakresPromocji(PROMOCJA!)).toBe("na wszystko");
     expect(warunkiPromocji(PROMOCJA!)).toMatch(/bez minimalnej kwoty/);
+  });
+
+  it("limit 100 opłaconych zamówień: 99 → działa, 100 → pula wykorzystana", async () => {
+    vi.setSystemTime(new Date("2026-11-20T12:00:00+01:00"));
+    oplaconeZKodem = 99;
+    expect((await sprawdz("ZIMA5", 100)).ok).toBe(true);
+    oplaconeZKodem = 100;
+    const w = await sprawdz("ZIMA5", 100);
+    expect(w.ok).toBe(false);
+    expect(w.blad).toMatch(/wykorzystana/);
+  });
+
+  it("promocja ukryta: kod działa, ale sklep jej nie pokazuje", async () => {
+    vi.setSystemTime(new Date("2026-11-20T12:00:00+01:00"));
+    const { promocjaTrwa, promocjaWidoczna, PROMOCJA } = await import("@/lib/promocja");
+    expect(PROMOCJA!.widoczna).toBe(false);
+    expect(promocjaTrwa()).not.toBeNull();
+    expect(promocjaWidoczna()).toBeNull();
   });
 });

@@ -9,6 +9,10 @@ export interface Promocja {
   minKoszyk: number; // zł, wartość produktów bez dostawy
   od: string; // ISO z przesunięciem strefy (czas polski)
   do: string | null;
+  // false = kod działa po wpisaniu, ale sklep go nigdzie nie pokazuje (pasek, baner, karty, koszyk, menu)
+  widoczna: boolean;
+  // ile opłaconych zamówień może użyć kodu (null = bez limitu)
+  limitUzyc: number | null;
 }
 
 export const PROMOCJA: Promocja | null = {
@@ -17,6 +21,8 @@ export const PROMOCJA: Promocja | null = {
   minKoszyk: 0, // bez minimum — rabat od wartości produktów, dostawa bez rabatu
   od: "2026-11-12T00:00:00+01:00",
   do: null, // przedłużona bez daty końca (wcześniej do soboty 14.11, 10:00)
+  widoczna: false, // od 16.11 bez reklamy na stronie — kod działa dla tych, którzy go znają
+  limitUzyc: 100, // pierwsze 100 opłaconych zamówień
 };
 
 export type StanPromocji = "przed" | "trwa" | "po";
@@ -30,6 +36,12 @@ export function stanPromocji(p: Promocja | null, teraz: number = Date.now()): St
 
 export function promocjaTrwa(teraz: number = Date.now()): Promocja | null {
   return stanPromocji(PROMOCJA, teraz) === "trwa" ? PROMOCJA : null;
+}
+
+/** Promocja do pokazania w sklepie (pasek, baner, karty, koszyk) — trwa i nie jest ukryta. */
+export function promocjaWidoczna(teraz: number = Date.now()): Promocja | null {
+  const p = promocjaTrwa(teraz);
+  return p && p.widoczna ? p : null;
 }
 
 /** Warunki kodu w jednym zdaniu (pasek, karta produktu, koszyk). */

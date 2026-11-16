@@ -16,7 +16,7 @@ export function BanerPromocji() {
     return () => clearInterval(t);
   }, []);
 
-  if (!PROMOCJA || teraz === null || stanPromocji(PROMOCJA, teraz) !== "trwa") return null;
+  if (!PROMOCJA || !PROMOCJA.widoczna || teraz === null || stanPromocji(PROMOCJA, teraz) !== "trwa") return null;
   const p = PROMOCJA;
   const koniec = p.do ? new Date(p.do).getTime() : null;
 
