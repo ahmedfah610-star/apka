@@ -17,6 +17,8 @@ export interface MetodaDostawy {
   info?: string;
   /** Widoczna w zamówieniu (wyłączona w trybie admina = ukryta dla klientów). */
   aktywna?: boolean;
+  /** Płatna zawsze — próg darmowej dostawy jej nie obejmuje (pole techniczne, tylko z kodu). */
+  bezDarmowej?: boolean;
 }
 
 /** Ustawienia dostawy edytowane w trybie admina (domyślne = wartości z kodu poniżej). */
@@ -79,18 +81,20 @@ export const METODY_DOSTAWY: MetodaDostawy[] = [
     nazwa: "Kurier InPost",
     opis: "Dostawa pod wskazany adres",
     cena: 14.99,
+    bezDarmowej: true,
   },
   {
     id: "kurier-dhl",
     nazwa: "Kurier DHL",
     opis: "Dostawa pod adres w 1–2 dni robocze",
     cena: 19.99,
+    bezDarmowej: true,
   },
 ];
 
-/** Koszt dostawy z uwzględnieniem darmowego progu. */
+/** Koszt dostawy z uwzględnieniem darmowego progu (Kurier InPost i Kurier DHL — zawsze płatne). */
 export function kosztDostawy(metoda: MetodaDostawy, sumaKoszyka: number, darmowaOd: number = DARMOWA_DOSTAWA_OD): number {
-  return sumaKoszyka >= darmowaOd ? 0 : metoda.cena;
+  return sumaKoszyka >= darmowaOd && !metoda.bezDarmowej ? 0 : metoda.cena;
 }
 
 export const DOMYSLNA_DOSTAWA: UstawieniaDostawy = { metody: uporzadkujMetody(METODY_DOSTAWY.map((m) => ({ ...m, aktywna: true }))), darmowaOd: DARMOWA_DOSTAWA_OD };

@@ -51,3 +51,16 @@ describe("metody dostawy", () => {
     expect(u.metody.filter((m) => m.paczkomat).map((m) => m.id).sort()).toEqual(["inpost-paczkomat", "inpost-paczkomat-eko"]);
   });
 });
+
+describe("darmowa dostawa od progu — tylko wybrane metody", () => {
+  it("od 150 zł: punkty, Pocztex Kurier, ORLEN, InPost Paczkomat — 0 zł; Kurier InPost i DHL — pełna cena", async () => {
+    const { kosztDostawy, polaczUstawienia } = await import("@/lib/dostawa");
+    // także po edycji ceny w panelu (zapis z bazy nie może zdjąć wyjątku)
+    const u = polaczUstawienia({ metody: [{ id: "kurier-dhl", cena: 18.5 }], darmowaOd: 150 });
+    const koszt = (id: string, suma: number) => kosztDostawy(u.metody.find((m) => m.id === id)!, suma, u.darmowaOd);
+    for (const id of ["pocztex-punkt", "dpd-punkt", "pocztex-kurier", "orlen-paczka", "inpost-paczkomat", "inpost-paczkomat-eko"]) expect(koszt(id, 150)).toBe(0);
+    expect(koszt("inpost-kurier", 150)).toBe(14.99);
+    expect(koszt("kurier-dhl", 200)).toBe(18.5);
+    expect(koszt("pocztex-kurier", 149.99)).toBeGreaterThan(0);
+  });
+});
