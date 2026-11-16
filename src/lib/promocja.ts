@@ -13,17 +13,34 @@ export interface Promocja {
   widoczna: boolean;
   // ile opłaconych zamówień może użyć kodu (null = bez limitu)
   limitUzyc: number | null;
+  // true = jeden numer telefonu może użyć kodu tylko raz (liczą się opłacone zamówienia)
+  razNaTelefon: boolean;
 }
 
-export const PROMOCJA: Promocja | null = {
-  kod: "ZIMA5",
+// Kody działające bez wpisu w panelu. Ukryte (widoczna: false) działają tylko po wpisaniu przy zamówieniu.
+// Każdy kod: osobna pula 100 osób, raz na numer telefonu, do 20.02.2027 włącznie.
+const WSPOLNE = {
   procent: 5,
   minKoszyk: 0, // bez minimum — rabat od wartości produktów, dostawa bez rabatu
   od: "2026-11-12T00:00:00+01:00",
-  do: null, // przedłużona bez daty końca (wcześniej do soboty 14.11, 10:00)
-  widoczna: false, // od 16.11 bez reklamy na stronie — kod działa dla tych, którzy go znają
-  limitUzyc: 100, // pierwsze 100 opłaconych zamówień
+  do: "2027-02-20T23:59:59+01:00",
+  widoczna: false,
+  limitUzyc: 100,
+  razNaTelefon: true,
 };
+export const PROMOCJE: Promocja[] = [
+  { kod: "ZIMA5", ...WSPOLNE },
+  { kod: "BOBAS5", ...WSPOLNE },
+];
+
+/** Promocja reklamowana w sklepie (pasek, baner, karty) — pierwsza widoczna; null = żadnej nie pokazujemy. */
+export const PROMOCJA: Promocja | null = PROMOCJE.find((p) => p.widoczna) ?? null;
+
+/** Ostatnie 9 cyfr numeru (bez +48, spacji, myślników) — do porównania „ten sam telefon”. */
+export function numerTelefonu(t: unknown): string {
+  const cyfry = String(t ?? "").replace(/\D/g, "");
+  return cyfry.length >= 9 ? cyfry.slice(-9) : "";
+}
 
 export type StanPromocji = "przed" | "trwa" | "po";
 

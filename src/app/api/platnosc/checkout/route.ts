@@ -121,7 +121,12 @@ export async function POST(req: Request) {
   let rabat = 0;
   let kodRabatowy: string | null = null;
   if (b.kod && b.kod.trim()) {
-    const w = await sprawdzKod(b.kod, suma, typeof b.klient?.email === "string" ? b.klient.email : undefined);
+    const w = await sprawdzKod(
+      b.kod,
+      suma,
+      typeof b.klient?.email === "string" ? b.klient.email : undefined,
+      typeof b.klient?.telefon === "string" ? b.klient.telefon : "",
+    );
     if (w.ok && w.rabat) {
       rabat = w.rabat;
       kodRabatowy = w.kod!.kod;

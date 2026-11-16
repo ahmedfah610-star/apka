@@ -25,6 +25,7 @@ import { pomiarKoszyka, zapamietajZakup } from "@/lib/analityka";
 import { pozycjaPomiaru } from "@/components/DodajDoKoszyka";
 import { FormularzFaktury, PUSTA_FAKTURA, fakturaDoWyslania, type StanFaktury } from "@/components/FormularzFaktury";
 import { sprawdzFakture, type DaneFaktury } from "@/lib/faktura";
+import { PROMOCJE, numerTelefonu } from "@/lib/promocja";
 
 // Płatności obsługuje w całości Przelewy24 — to na jego bezpiecznej stronie
 // klient wybiera BLIK / przelew / kartę. Nie dublujemy tu tego wyboru.
@@ -159,7 +160,7 @@ export default function StronaZamowienia() {
       return;
     }
     sumaKodu.current = suma;
-    fetch("/api/kod", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kod: kodPrzyjety.kod, suma }) })
+    fetch("/api/kod", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kod: kodPrzyjety.kod, suma, telefon: dane.telefon }) })
       .then((r) => r.json())
       .then((d: { ok?: boolean; kod?: string; rabat?: number; blad?: string }) => {
         if (d.ok && d.kod && typeof d.rabat === "number") setKodPrzyjety({ kod: d.kod, rabat: d.rabat });
@@ -198,7 +199,7 @@ export default function StronaZamowienia() {
       const r = await fetch("/api/kod", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kod, suma }),
+        body: JSON.stringify({ kod, suma, telefon: dane.telefon }),
       });
       const d = (await r.json().catch(() => ({}))) as { ok?: boolean; kod?: string; rabat?: number; blad?: string };
       if (d.ok && d.kod && typeof d.rabat === "number") {
@@ -233,6 +234,9 @@ export default function StronaZamowienia() {
       if (!fv.ok) return setBlad(fv.blad);
     }
     if (!akceptacja) return setBlad("Zaakceptuj Regulamin i Politykę prywatności.");
+    // Kody „raz na numer” (ZIMA5, BOBAS5) wymagają telefonu — mówimy przed wysłaniem, bez zdejmowania kodu.
+    if (kodPrzyjety && PROMOCJE.some((p) => p.razNaTelefon && p.kod === kodPrzyjety.kod) && !numerTelefonu(dane.telefon))
+      return setBlad(`Aby użyć kodu ${kodPrzyjety.kod}, podaj numer telefonu (9 cyfr).`);
     setBlad("");
     setWysylka(true);
     // Zakup zgłosimy do GA4/Google Ads na stronie podziękowania, gdy serwer potwierdzi opłacenie.
@@ -277,7 +281,7 @@ export default function StronaZamowienia() {
         if (kodPrzyjety && /Usuń kod/.test(dane2.blad ?? "")) {
           setKodPrzyjety(null);
           setKodBlad(dane2.blad ?? "");
-          return setBlad("Kod rabatowy przestał obowiązywać — sprawdź nową kwotę i kliknij jeszcze raz.");
+          return setBlad(`${(dane2.blad ?? "").replace(/\s*Usuń kod lub wpisz inny\.$/, "")} Rabat został zdjęty — sprawdź nową kwotę i kliknij jeszcze raz.`);
         }
         return setBlad(dane2.blad || "Nie udało się złożyć zamówienia. Spróbuj ponownie.");
       }

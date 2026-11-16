@@ -7,9 +7,11 @@ export const dynamic = "force-dynamic";
 // Zwraca kwotę rabatu — ale ostateczny rabat i tak przelicza checkout na serwerze.
 export async function POST(req: Request) {
   if (!wLimicie(`kod:${ipZadania(req)}`, 20, 60 * 1000)) return limitOdpowiedz();
-  const b = (await req.json().catch(() => ({}))) as { kod?: string; suma?: number };
+  const b = (await req.json().catch(() => ({}))) as { kod?: string; suma?: number; telefon?: string };
   const suma = Math.max(0, Number(b.suma) || 0);
-  const r = await sprawdzKod(String(b.kod ?? ""), suma);
+  // Telefon z formularza (jeśli już wpisany) — wcześniej powie, że kod był użyty na ten numer.
+  const tel = typeof b.telefon === "string" && b.telefon.trim() ? b.telefon : undefined;
+  const r = await sprawdzKod(String(b.kod ?? ""), suma, undefined, tel);
   if (!r.ok) return Response.json({ ok: false, blad: r.blad });
   return Response.json({
     ok: true,

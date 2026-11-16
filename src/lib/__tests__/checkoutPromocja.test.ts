@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Płatność z kodem promocji ZIMA5 (−5% od produktów, bez minimum, od 12.11, bez daty końca, limit 100 zamówień):
+// Płatność z kodem promocji ZIMA5 (−5% od produktów, bez minimum, do 20.02.2027, 100 osób, raz na numer telefonu):
 // kwota zamówienia w bazie = kwota zarejestrowana w Przelewy24 = to, co klient widzi na ekranie.
 const zapisane: Record<string, unknown>[] = [];
+let uzycia: { klient: { telefon?: string } }[] = [];
 const p24: { amount: number; sessionId: string }[] = [];
 
 vi.mock("@/lib/produktyDb", () => ({
@@ -23,7 +24,7 @@ vi.mock("@/lib/supabase", () => ({
   sbService: () => ({
     from: (t: string) => ({
       // kody_rabatowe: brak wpisu → kod promocji z lib/promocja
-      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }), not: async () => ({ count: 0, error: null }) }) }),
+      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }), not: () => ({ limit: async () => ({ data: uzycia, error: null }) }) }) }),
       insert: (w: Record<string, unknown>) => {
         if (t === "zamowienia") zapisane.push(w);
         return { select: () => ({ single: async () => ({ data: { id: "11111111-1111-4111-8111-111111111111" }, error: null }) }) };
@@ -34,7 +35,7 @@ vi.mock("@/lib/supabase", () => ({
 }));
 
 let nr = 0;
-async function zamow(ilosc: number, kod?: string) {
+async function zamow(ilosc: number, kod?: string, telefon: string | undefined = "500 600 700") {
   const { POST } = await import("@/app/api/platnosc/checkout/route");
   const req = new Request("http://localhost/api/platnosc/checkout", {
     method: "POST",
@@ -43,7 +44,7 @@ async function zamow(ilosc: number, kod?: string) {
       pozycje: [{ id: "k1", rozmiar: "74", ilosc }],
       metodaId: "pocztex",
       kod,
-      klient: { imie: "Anna Test", email: "anna@example.com", punkt: "PP123", punktOpis: "Lublin", miasto: "Lublin" },
+      klient: { imie: "Anna Test", email: "anna@example.com", telefon, punkt: "PP123", punktOpis: "Lublin", miasto: "Lublin" },
     }),
   });
   const res = await POST(req);
@@ -56,6 +57,7 @@ describe("checkout z kodem ZIMA5", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-11-13T12:00:00+01:00"));
     zapisane.length = 0;
+    uzycia = [];
     p24.length = 0;
   });
   afterEach(() => {
@@ -105,5 +107,23 @@ describe("checkout z kodem ZIMA5", () => {
     await zamow(2);
     expect((zapisane[0] as { razem: number }).razem).toBe(87.24);
     expect(p24[0].amount).toBe(8724);
+  });
+
+  it("raz na numer telefonu: ten sam numer (inny zapis) — odmowa; bez numeru — prośba o numer", async () => {
+    uzycia = [{ klient: { telefon: "+48 500-600-700" } }];
+    const r = await zamow(1, "ZIMA5", "500600700");
+    expect(r.status).toBe(400);
+    expect(r.dane.blad).toMatch(/już wykorzystany dla tego numeru/);
+    const inny = await zamow(1, "ZIMA5", "501 222 333");
+    expect(inny.dane.ok).toBe(true);
+    const bez = await zamow(1, "ZIMA5", "");
+    expect(bez.status).toBe(400);
+    expect(bez.dane.blad).toMatch(/podaj numer telefonu/);
+  });
+
+  it("BOBAS5 działa tak samo", async () => {
+    const r = await zamow(1, "bobas5");
+    expect(r.dane.ok).toBe(true);
+    expect((zapisane[0] as { kod_rabatowy: string }).kod_rabatowy).toBe("BOBAS5");
   });
 });

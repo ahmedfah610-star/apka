@@ -1,5 +1,5 @@
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
-import { PROMOCJA, stanPromocji } from "@/lib/promocja";
+import { PROMOCJE, numerTelefonu, stanPromocji } from "@/lib/promocja";
 import { KOD_POWITALNY, kodPowitalnyUzyty } from "@/lib/kodPowitalny";
 
 // Kody rabatowe — warstwa danych. Walidacja zawsze po stronie serwera.
@@ -47,8 +47,11 @@ export interface WynikWaznosci {
   rabat?: number; // kwota rabatu w zł dla podanej sumy
 }
 
-/** Sprawdza kod względem sumy koszyka i zwraca kwotę rabatu (zł). `email` — do kodów jednorazowych na adres. */
-export async function sprawdzKod(kodTekst: string, suma: number, email?: string): Promise<WynikWaznosci> {
+/**
+ * Sprawdza kod względem sumy koszyka i zwraca kwotę rabatu (zł). `email` — do kodów jednorazowych na adres.
+ * `telefon` — do kodów „raz na numer”: undefined = podgląd (sprawdzi przy zamówieniu), "" = zamówienie bez numeru.
+ */
+export async function sprawdzKod(kodTekst: string, suma: number, email?: string, telefon?: string): Promise<WynikWaznosci> {
   if (!supabaseWlaczony()) return { ok: false, blad: "Kody są chwilowo niedostępne." };
   const sb = sbService();
   if (!sb) return { ok: false, blad: "Brak konfiguracji." };
@@ -59,21 +62,28 @@ export async function sprawdzKod(kodTekst: string, suma: number, email?: string)
   if (error) return { ok: false, blad: "Błąd sprawdzania kodu." };
   // Kod bieżącej promocji (lib/promocja) — działa bez wpisu w panelu, tylko w oknie promocji.
   // Wpis w panelu o tej samej nazwie ma pierwszeństwo.
-  if (!data && PROMOCJA && kodU === PROMOCJA.kod) {
+  const PROMOCJA = PROMOCJE.find((p) => p.kod === kodU);
+  if (!data && PROMOCJA) {
     const stan = stanPromocji(PROMOCJA);
     if (stan === "przed") return { ok: false, blad: "Promocja jeszcze się nie rozpoczęła." };
     if (stan === "po") return { ok: false, blad: "Promocja już się zakończyła." };
-    // Limit: liczą się zamówienia opłacone (i dalsze statusy) — nieopłacone i anulowane nie zajmują puli.
+    const nr = telefon === undefined ? null : numerTelefonu(telefon);
+    if (PROMOCJA.razNaTelefon && nr === "") return { ok: false, blad: `Aby użyć kodu ${PROMOCJA.kod}, podaj numer telefonu.` };
+    // Limit i „raz na numer”: liczą się zamówienia opłacone (i dalsze statusy) — nieopłacone i anulowane nie zajmują puli.
     let uzyto = 0;
-    if (PROMOCJA.limitUzyc !== null) {
-      const { count, error: eLicz } = await sb
+    if (PROMOCJA.limitUzyc !== null || PROMOCJA.razNaTelefon) {
+      const { data: uzycia, error: eLicz } = await sb
         .from("zamowienia")
-        .select("id", { count: "exact", head: true })
+        .select("klient")
         .eq("kod_rabatowy", PROMOCJA.kod)
-        .not("status", "in", '("oczekuje_na_platnosc","anulowane")');
+        .not("status", "in", '("oczekuje_na_platnosc","anulowane")')
+        .limit(5000);
       if (eLicz) return { ok: false, blad: "Błąd sprawdzania kodu." };
-      uzyto = count ?? 0;
-      if (uzyto >= PROMOCJA.limitUzyc) return { ok: false, blad: "Pula kodu została już wykorzystana." };
+      const lista = (uzycia ?? []) as { klient?: { telefon?: unknown } | null }[];
+      uzyto = lista.length;
+      if (PROMOCJA.limitUzyc !== null && uzyto >= PROMOCJA.limitUzyc) return { ok: false, blad: "Pula kodu została już wykorzystana." };
+      if (PROMOCJA.razNaTelefon && nr && lista.some((z) => numerTelefonu(z.klient?.telefon) === nr))
+        return { ok: false, blad: `Kod ${PROMOCJA.kod} został już wykorzystany dla tego numeru telefonu.` };
     }
     const kodPromo: Kod = {
       kod: PROMOCJA.kod,
