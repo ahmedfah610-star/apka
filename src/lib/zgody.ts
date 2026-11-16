@@ -10,5 +10,5 @@ function gtag(){dataLayer.push(arguments);}
 window.gtag = gtag;
 gtag('consent', 'default', Object.assign(${stanZgod("denied")}, { wait_for_update: 500 }));
 gtag('set', 'ads_data_redaction', true);
-gtag('set', 'url_passthrough', false);
+gtag('set', 'url_passthrough', true); // bez zgody: identyfikator kliknięcia w reklamę idzie w adresie, nie w cookie
 `;

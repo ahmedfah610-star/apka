@@ -62,10 +62,10 @@ export async function GET(req: Request) {
   if (!UUID.test(id)) return Response.json({ ok: false }, { status: 400 });
   const sb = supabaseWlaczony() ? sbService() : null;
   if (!sb) return Response.json({ ok: false }, { status: 503 });
-  const { data } = await sb.from("zamowienia").select("status, razem").eq("id", id).maybeSingle();
+  const { data } = await sb.from("zamowienia").select("status, razem, created_at").eq("id", id).maybeSingle();
   if (!data) return Response.json({ ok: false }, { status: 404 });
   return Response.json(
-    { ok: true, status: data.status, razem: Number(data.razem) },
+    { ok: true, status: data.status, razem: Number(data.razem), utworzono: data.created_at },
     { headers: { "Cache-Control": "no-store" } },
   );
 }

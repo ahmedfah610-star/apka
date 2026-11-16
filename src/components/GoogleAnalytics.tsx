@@ -8,10 +8,11 @@ import { stanZgod as stan } from "@/lib/zgody";
 
 const KLUCZ = "fasolka-zgoda-cookies";
 
-// Google Analytics 4 (+ opcjonalnie Google Ads) z Consent Mode v2 w trybie podstawowym:
-// 1) zawsze najpierw ustawiamy zgody na „odmowa" (wymóg Google w UE),
-// 2) skrypt Google wczytujemy WYŁĄCZNIE po zgodzie („Akceptuję wszystkie") i od razu
-//    zgłaszamy zgodę („granted"); cofnięcie zgody wysyła „denied" i wyłącza pomiar.
+// Google Analytics 4 + Google Ads z Consent Mode v2 w trybie zaawansowanym:
+// 1) zawsze najpierw ustawiamy zgody na „odmowa" (wymóg Google w UE, layout → ZGODY_DOMYSLNE),
+// 2) tag Google wczytujemy zawsze (poza panelem). Bez zgody nie zapisuje żadnych cookies i wysyła
+//    tylko anonimowe sygnały bez identyfikatorów — Google na ich podstawie szacuje brakujące konwersje,
+// 3) po „Akceptuję wszystkie” zgłaszamy „granted” (pełny pomiar); cofnięcie zgody wraca do „denied”.
 // Identyfikator GA4 z NEXT_PUBLIC_GA_ID (domyślny poniżej), Google Ads z NEXT_PUBLIC_GOOGLE_ADS_ID.
 export function GoogleAnalytics() {
   const id = process.env.NEXT_PUBLIC_GA_ID || "G-RG4NHT446C";
@@ -36,7 +37,7 @@ export function GoogleAnalytics() {
       // Zmiana decyzji w trakcie wizyty → aktualizacja stanu zgód (np. cofnięcie zgody).
       const g = (window as unknown as { gtag?: (...a: unknown[]) => void }).gtag;
       g?.("consent", "update", JSON.parse(stan(teraz ? "granted" : "denied")));
-      (window as unknown as Record<string, boolean>)[`ga-disable-${id}`] = !teraz || panel;
+      (window as unknown as Record<string, boolean>)[`ga-disable-${id}`] = panel;
     };
     sprawdz();
     window.addEventListener("zgoda-cookies", sprawdz);
@@ -45,15 +46,15 @@ export function GoogleAnalytics() {
 
   return (
     <>
-      {id && zgoda && !panel ? (
+      {id && !panel ? (
         <>
           <Script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} strategy="afterInteractive" />
           <Script id="ga-init" strategy="afterInteractive">
             {`
-              gtag('consent', 'update', ${stan("granted")});
+              ${zgoda ? `gtag('consent', 'update', ${stan("granted")});` : ""}
               gtag('js', new Date());
               gtag('config', '${id}', { anonymize_ip: true });
-              ${ADS_ID ? `gtag('config', '${ADS_ID}');` : ""}
+              ${ADS_ID ? `gtag('config', '${ADS_ID}', { allow_enhanced_conversions: true });` : ""}
               window.bobasGa = true;
               (window.bobasKolejka || []).forEach(function (a) { gtag.apply(null, a); });
               window.bobasKolejka = [];

@@ -240,7 +240,7 @@ export default function StronaZamowienia() {
     setBlad("");
     setWysylka(true);
     // Zakup zgłosimy do GA4/Google Ads na stronie podziękowania, gdy serwer potwierdzi opłacenie.
-    zapamietajZakup({ pozycje: pozycjePomiaru(), dostawa, rabat, kod: kodPrzyjety?.kod ?? null });
+    zapamietajZakup({ pozycje: pozycjePomiaru(), dostawa, rabat, kod: kodPrzyjety?.kod ?? null, email: dane.email, telefon: dane.telefon });
     let idZamowienia = "";
     try {
       const res = await fetch("/api/platnosc/checkout", {

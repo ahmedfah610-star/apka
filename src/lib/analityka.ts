@@ -1,8 +1,9 @@
 "use client";
 
 // Pomiar ścieżki zakupu (GA4 e-commerce) i konwersji Google Ads.
-// Zdarzenia wysyłamy WYŁĄCZNIE po zgodzie na cookies analityczne/marketingowe
-// (tryb podstawowy Consent Mode v2) — bez zgody każda funkcja tu nic nie robi.
+// Consent Mode v2, tryb zaawansowany: zdarzenia idą zawsze, a o tym, czy Google zapisuje cookies
+// i identyfikatory, decyduje stan zgody (bez zgody — anonimowe sygnały, z których Google szacuje
+// konwersje). Dane klienta do konwersji rozszerzonych (e-mail, telefon) — wyłącznie po zgodzie.
 
 type Gtag = (...args: unknown[]) => void;
 
@@ -26,6 +27,13 @@ const KLUCZ_WYSLANYCH = "bobas-zakupy-wyslane";
 export const ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || "AW-18533663809";
 export const ADS_ETYKIETA_ZAKUPU = process.env.NEXT_PUBLIC_GOOGLE_ADS_ZAKUP || "IqzdCNak2rUdEMGIxYVF";
 
+/** Telefon w formacie E.164 (+48…) — do konwersji rozszerzonych; pusty, gdy to nie 9-cyfrowy polski numer. */
+export function telefonE164(t: unknown): string | undefined {
+  const cyfry = String(t ?? "").replace(/\D/g, "");
+  const nr = cyfry.length === 11 && cyfry.startsWith("48") ? cyfry.slice(2) : cyfry.length === 13 && cyfry.startsWith("0048") ? cyfry.slice(4) : cyfry;
+  return nr.length === 9 ? `+48${nr}` : undefined;
+}
+
 export function zgodaNaPomiar(): boolean {
   try {
     const raw = localStorage.getItem(KLUCZ_ZGODY);
@@ -40,7 +48,8 @@ type OknoGtag = { gtag?: Gtag; bobasGa?: boolean; bobasKolejka?: unknown[][] };
 // Zdarzenia sprzed konfiguracji GA (skrypt wczytuje się „afterInteractive") czekają w kolejce —
 // inicjalizacja w GoogleAnalytics.tsx wysyła je zaraz po `gtag('config', …)`.
 function gtag(): Gtag | null {
-  if (typeof window === "undefined" || !zgodaNaPomiar()) return null;
+  if (typeof window === "undefined") return null;
+  if ((window.location?.pathname ?? "").startsWith("/admin")) return null;
   const w = window as unknown as OknoGtag;
   if (typeof w.gtag !== "function") return null;
   if (w.bobasGa) return w.gtag;
@@ -78,9 +87,19 @@ export function pomiarKoszyka(nazwaZdarzenia: "view_cart" | "begin_checkout", po
 }
 
 /** Przed przejściem do płatności: zapamiętaj zawartość zamówienia (zakup zgłosimy po potwierdzeniu płatności). */
-export function zapamietajZakup(d: { pozycje: PozycjaPomiaru[]; dostawa: number; rabat: number; kod?: string | null }): void {
+export function zapamietajZakup(d: {
+  pozycje: PozycjaPomiaru[];
+  dostawa: number;
+  rabat: number;
+  kod?: string | null;
+  email?: string;
+  telefon?: string;
+}): void {
   try {
-    localStorage.setItem(KLUCZ_ZAKUPU, JSON.stringify({ ...d, czas: Date.now() }));
+    // E-mail i telefon (do konwersji rozszerzonych) zapisujemy tylko przy zgodzie — i kasujemy po zgłoszeniu zakupu.
+    const { email, telefon, ...reszta } = d;
+    const kontakt = zgodaNaPomiar() ? { email: email?.trim().toLowerCase() || undefined, telefon: telefonE164(telefon) } : {};
+    localStorage.setItem(KLUCZ_ZAKUPU, JSON.stringify({ ...reszta, ...kontakt, czas: Date.now() }));
   } catch {
     /* ignoruj */
   }
@@ -111,7 +130,7 @@ export function zglosZakup(idZamowienia: string, razem: number): boolean {
   }
   if (wyslane.includes(idZamowienia)) return true;
 
-  let d: { pozycje?: PozycjaPomiaru[]; dostawa?: number; rabat?: number; kod?: string | null; czas?: number } = {};
+  let d: { pozycje?: PozycjaPomiaru[]; dostawa?: number; rabat?: number; kod?: string | null; czas?: number; email?: string; telefon?: string } = {};
   try {
     d = JSON.parse(localStorage.getItem(KLUCZ_ZAKUPU) || "{}");
   } catch {
@@ -130,6 +149,11 @@ export function zglosZakup(idZamowienia: string, razem: number): boolean {
     discount: d.rabat ? grosze(d.rabat) : undefined,
     items: elementy(pozycje),
   });
+  // Konwersje rozszerzone: Google sam haszuje dane (SHA-256) przed wysłaniem; tylko po zgodzie.
+  const swiezy = !!d.czas && Date.now() - d.czas < 2 * 86400000;
+  if (swiezy && zgodaNaPomiar() && (d.email || d.telefon)) {
+    g("set", "user_data", { ...(d.email ? { email: d.email } : {}), ...(d.telefon ? { phone_number: d.telefon } : {}) });
+  }
   if (ADS_ID && ADS_ETYKIETA_ZAKUPU) {
     g("event", "conversion", { send_to: `${ADS_ID}/${ADS_ETYKIETA_ZAKUPU}`, value: kwota, currency: "PLN", transaction_id: idZamowienia });
   }

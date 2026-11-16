@@ -77,6 +77,11 @@ export default function Cookies() {
           utrudniających rezygnację. Cookies wymagające zgody nie są instalowane, dopóki jej nie wyrazisz.
         </p>
         <p>
+          Bez Twojej zgody narzędzia Google (Analytics i Ads) działają w trybie bez plików cookies: niczego nie zapisują na
+          Twoim urządzeniu i przesyłają jedynie ogólne, anonimowe sygnały (np. że wyświetlono stronę lub złożono zamówienie)
+          — bez identyfikatorów, które pozwalałyby Cię rozpoznać. Po wyrażeniu zgody pomiar działa w pełnym zakresie.
+        </p>
+        <p>
           Zgodę możesz w każdej chwili zmienić lub wycofać, usuwając dane witryny w przeglądarce albo kontaktując się z nami.
           Wycofanie zgody nie wpływa na zgodność z prawem przetwarzania dokonanego przed jej wycofaniem.
         </p>
