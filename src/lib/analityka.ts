@@ -115,11 +115,23 @@ export function oczekujeZakup(): boolean {
   }
 }
 
+/** Kwota zamówienia z koszyka zapamiętanego przed płatnością (gdy serwer jeszcze nie odpowiedział). */
+export function kwotaZapamietanegoZakupu(): number | null {
+  try {
+    const d = JSON.parse(localStorage.getItem(KLUCZ_ZAKUPU) || "{}") as { pozycje?: PozycjaPomiaru[]; dostawa?: number; rabat?: number; czas?: number };
+    if (!d.czas || Date.now() - d.czas > 2 * 86400000 || !d.pozycje?.length) return null;
+    return grosze(Math.max(0, wartosc(d.pozycje) - (d.rabat ?? 0)) + (d.dostawa ?? 0));
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Zgłasza zakup (GA4 „purchase" + konwersja Google Ads) — raz na zamówienie.
- * Wołane na stronie podziękowania dopiero, gdy serwer potwierdzi opłacenie.
+ * Wołane na stronie podziękowania: po potwierdzeniu płatności albo gdy klient opuszcza stronę
+ * zaraz po powrocie z Przelewy24, zanim potwierdzenie zdążyło dojść (`beacon` — wysyłka przy zamykaniu).
  */
-export function zglosZakup(idZamowienia: string, razem: number): boolean {
+export function zglosZakup(idZamowienia: string, razem: number, opcje: { beacon?: boolean } = {}): boolean {
   const g = gtag();
   if (!g) return false;
   let wyslane: string[] = [];
@@ -140,7 +152,9 @@ export function zglosZakup(idZamowienia: string, razem: number): boolean {
   const pozycje = d.czas && Date.now() - d.czas < 2 * 86400000 ? d.pozycje ?? [] : [];
   const kwota = grosze(razem);
 
+  const transport = opcje.beacon ? { transport_type: "beacon" } : {};
   g("event", "purchase", {
+    ...transport,
     transaction_id: idZamowienia,
     currency: "PLN",
     value: kwota,
@@ -155,7 +169,7 @@ export function zglosZakup(idZamowienia: string, razem: number): boolean {
     g("set", "user_data", { ...(d.email ? { email: d.email } : {}), ...(d.telefon ? { phone_number: d.telefon } : {}) });
   }
   if (ADS_ID && ADS_ETYKIETA_ZAKUPU) {
-    g("event", "conversion", { send_to: `${ADS_ID}/${ADS_ETYKIETA_ZAKUPU}`, value: kwota, currency: "PLN", transaction_id: idZamowienia });
+    g("event", "conversion", { ...transport, send_to: `${ADS_ID}/${ADS_ETYKIETA_ZAKUPU}`, value: kwota, currency: "PLN", transaction_id: idZamowienia });
   }
   try {
     localStorage.setItem(KLUCZ_WYSLANYCH, JSON.stringify([...wyslane, idZamowienia].slice(-50)));
