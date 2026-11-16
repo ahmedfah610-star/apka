@@ -318,9 +318,9 @@ export default function StronaZamowienia() {
               <span className={numer}>1</span> Dane kontaktowe
             </h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <input className={`${input} sm:col-span-2`} placeholder="Imię i nazwisko" value={dane.imie} onChange={(e) => setDane({ ...dane, imie: e.target.value })} />
-              <input className={input} placeholder="E-mail" type="email" value={dane.email} onChange={(e) => setDane({ ...dane, email: e.target.value })} />
-              <input className={input} placeholder="Telefon" value={dane.telefon} onChange={(e) => setDane({ ...dane, telefon: e.target.value })} />
+              <input className={`${input} sm:col-span-2`} placeholder="Imię i nazwisko" name="name" autoComplete="name" value={dane.imie} onChange={(e) => setDane({ ...dane, imie: e.target.value })} />
+              <input className={input} placeholder="E-mail" type="email" name="email" autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false} value={dane.email} onChange={(e) => setDane({ ...dane, email: e.target.value })} />
+              <input className={input} placeholder="Telefon" type="tel" name="tel" autoComplete="tel" inputMode="tel" value={dane.telefon} onChange={(e) => setDane({ ...dane, telefon: e.target.value })} />
             </div>
           </section>
 
@@ -385,9 +385,9 @@ export default function StronaZamowienia() {
               <div className="mt-5 border-t border-linia pt-5">
                 <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-ink-2">Adres dostawy</h3>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <input className={`${input} sm:col-span-2`} placeholder="Ulica i numer" value={dane.adres} onChange={(e) => setDane({ ...dane, adres: e.target.value })} />
-                  <input className={input} placeholder="Kod pocztowy" value={dane.kod} onChange={(e) => setDane({ ...dane, kod: e.target.value })} />
-                  <input className={input} placeholder="Miejscowość" value={dane.miasto} onChange={(e) => setDane({ ...dane, miasto: e.target.value })} />
+                  <input className={`${input} sm:col-span-2`} placeholder="Ulica i numer" name="street-address" autoComplete="street-address" value={dane.adres} onChange={(e) => setDane({ ...dane, adres: e.target.value })} />
+                  <input className={input} placeholder="Kod pocztowy" name="postal-code" autoComplete="postal-code" inputMode="numeric" value={dane.kod} onChange={(e) => setDane({ ...dane, kod: e.target.value })} />
+                  <input className={input} placeholder="Miejscowość" name="address-level2" autoComplete="address-level2" value={dane.miasto} onChange={(e) => setDane({ ...dane, miasto: e.target.value })} />
                 </div>
               </div>
             ) : null}
@@ -547,7 +547,7 @@ export default function StronaZamowienia() {
 
           <button
             type="submit"
-            disabled={wysylka || !akceptacja || ZAMOWIENIA_WYLACZONE}
+            disabled={wysylka || ZAMOWIENIA_WYLACZONE}
             className="block w-full rounded-lg bg-ink px-8 py-4 text-center text-[14.5px] font-bold text-white transition-colors hover:bg-akcent disabled:cursor-not-allowed disabled:opacity-60"
           >
             {ZAMOWIENIA_WYLACZONE ? "Zamówienia wyłączone" : wysylka ? "Przetwarzanie…" : platnosciOnline ? "Zamawiam i płacę" : "Zamawiam"}
