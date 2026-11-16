@@ -6,7 +6,7 @@ import { opisProduktu, KATEGORIE_LABEL, type Produkt } from "@/data/produkty";
 import { BAZA_URL, NAZWA_SKLEPU, OPIS_SKLEPU } from "@/lib/seo";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 import type { UstawieniaDostawy } from "@/lib/dostawa";
-import { wykluczeniaReklam } from "@/data/wykluczoneZReklam";
+import { duzyRozmiar, wykluczeniaReklam } from "@/data/wykluczoneZReklam";
 
 // Feed produktowy w formacie Google Merchant (RSS 2.0 + namespace g:).
 // Ten sam plik działa w Meta (Facebook/Instagram) katalog.
@@ -57,6 +57,16 @@ function wysylka(p: Produkt, d: UstawieniaDostawy): string {
 `;
 }
 
+/** Tytuł w pliku dla Google: męskie swetry w rozmiarach 3XL+ dostają dopisek „duże rozmiary” (ludzie szukają ich wprost). */
+function tytulReklamy(p: Produkt, rozmiar?: string): string {
+  const t = tytulDoFeedu(p);
+  if (p.kategoria === "dorosli" && /sweter|golf/i.test(p.nazwa) && duzyRozmiar(rozmiar)) {
+    const z = `${t} – duże rozmiary ${rozmiar!.toUpperCase()}`;
+    return z.length <= 150 ? z : t;
+  }
+  return t;
+}
+
 function pozycja(
   p: Produkt,
   dostawa: UstawieniaDostawy,
@@ -69,7 +79,7 @@ function pozycja(
   const dodatkowe = zdj.slice(1, 11).map((u) => `    <g:additional_image_link>${txt(u)}</g:additional_image_link>`).join("\n");
   return `  <item>
     <g:id>${txt(wariant.id)}</g:id>
-    <g:title>${cdata(tytulDoFeedu(p))}</g:title>
+    <g:title>${cdata(tytulReklamy(p, wariant.rozmiar))}</g:title>
     <g:description>${cdata(wariant.opis ? wariant.opis.slice(0, 4900) : opisFeed(p))}</g:description>
     <g:link>${txt(link)}</g:link>
     <g:image_link>${txt(zdj[0]!)}</g:image_link>
@@ -85,7 +95,7 @@ ${dodatkowe ? dodatkowe + "\n" : ""}    <g:availability>${wariant.dostepny ? "in
     <g:custom_label_2>${etykiety.stan}</g:custom_label_2>
     <g:custom_label_3>${etykiety.dzial}</g:custom_label_3>
     <g:custom_label_4>${top ? "top-zdjecie" : "pozostale"}</g:custom_label_4>
-${wykluczeniaReklam(p.id).map((d) => `    <g:excluded_destination>${d}</g:excluded_destination>\n`).join("")}    <g:gender>${plec(p)}</g:gender>
+${wykluczeniaReklam(p).map((d) => `    <g:excluded_destination>${d}</g:excluded_destination>\n`).join("")}    <g:gender>${plec(p)}</g:gender>
     <g:age_group>${grupaWiekowa(p)}</g:age_group>
 ${p.kolor ? `    <g:color>${cdata(p.kolor.slice(0, 100))}</g:color>\n` : ""}${wysylka(p, dostawa)}${
     wariant.rozmiar
