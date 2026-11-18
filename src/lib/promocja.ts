@@ -58,6 +58,17 @@ export function promocjaTrwa(teraz: number = Date.now()): Promocja | null {
   return stanPromocji(PROMOCJA, teraz) === "trwa" ? PROMOCJA : null;
 }
 
+/**
+ * Promocja do pokazania przy produktach (karta na liście, strona produktu): widoczna albo — w teście —
+ * kod dodawany automatycznie do koszyka (KOD_AUTOMATYCZNY), o ile trwa.
+ */
+export function promocjaPrzyProduktach(teraz: number = Date.now()): (Promocja & { automatyczny: boolean }) | null {
+  const w = promocjaWidoczna(teraz);
+  if (w) return { ...w, automatyczny: false };
+  const a = KOD_AUTOMATYCZNY ? PROMOCJE.find((p) => p.kod === KOD_AUTOMATYCZNY) : null;
+  return a && stanPromocji(a, teraz) === "trwa" ? { ...a, automatyczny: true } : null;
+}
+
 /** Promocja do pokazania w sklepie (pasek, baner, karty, koszyk) — trwa i nie jest ukryta. */
 export function promocjaWidoczna(teraz: number = Date.now()): Promocja | null {
   const p = promocjaTrwa(teraz);
