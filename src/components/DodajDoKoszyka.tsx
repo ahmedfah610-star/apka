@@ -11,6 +11,8 @@ import type { Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { pomiarProduktu } from "@/lib/analityka";
 import { licz } from "@/lib/licznikKlient";
+import { kodAutomatyczny } from "@/lib/kodAutomatyczny";
+import { PROMOCJE } from "@/lib/promocja";
 
 export const pozycjaPomiaru = (p: Produkt, ilosc = 1) => ({
   id: p.id,
@@ -169,6 +171,7 @@ export function DodajDoKoszyka({ produkt, onZmianaRozmiaru }: { produkt: Produkt
           <Link href="/koszyk" className="text-ink underline underline-offset-2 hover:text-akcent">
             Przejdź do koszyka →
           </Link>
+          <KodDodany />
         </p>
       ) : (
         <div className="mb-8" />
@@ -204,5 +207,18 @@ export function DodajDoKoszyka({ produkt, onZmianaRozmiaru }: { produkt: Produkt
         </div>
       </div>
     </div>
+  );
+}
+
+/** Po dodaniu do koszyka: informacja o automatycznie dodanym kodzie (test — lib/promocja KOD_AUTOMATYCZNY). */
+function KodDodany() {
+  const [kod, setKod] = useState<string | null>(null);
+  useEffect(() => setKod(kodAutomatyczny()), []);
+  const p = kod ? PROMOCJE.find((x) => x.kod === kod) : null;
+  if (!p) return null;
+  return (
+    <span className="mt-1.5 block font-semibold text-[oklch(45%_0.13_150)]">
+      🎁 Dodaliśmy Ci kod {p.kod} — −{p.procent}% na zamówienie.
+    </span>
   );
 }

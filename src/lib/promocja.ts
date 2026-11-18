@@ -33,6 +33,9 @@ export const PROMOCJE: Promocja[] = [
   { kod: "BOBAS5", ...WSPOLNE },
 ];
 
+/** Test: kod dodawany automatycznie po włożeniu czegoś do koszyka (null = wyłączone). */
+export const KOD_AUTOMATYCZNY: string | null = "ZIMA5";
+
 /** Promocja reklamowana w sklepie (pasek, baner, karty) — pierwsza widoczna; null = żadnej nie pokazujemy. */
 export const PROMOCJA: Promocja | null = PROMOCJE.find((p) => p.widoczna) ?? null;
 

@@ -26,6 +26,7 @@ import { pozycjaPomiaru } from "@/components/DodajDoKoszyka";
 import { FormularzFaktury, PUSTA_FAKTURA, fakturaDoWyslania, type StanFaktury } from "@/components/FormularzFaktury";
 import { sprawdzFakture, type DaneFaktury } from "@/lib/faktura";
 import { PROMOCJE, numerTelefonu } from "@/lib/promocja";
+import { kodAutomatyczny, odrzucKodAutomatyczny } from "@/lib/kodAutomatyczny";
 
 // Płatności obsługuje w całości Przelewy24 — to na jego bezpiecznej stronie
 // klient wybiera BLIK / przelew / kartę. Nie dublujemy tu tego wyboru.
@@ -172,6 +173,25 @@ export default function StronaZamowienia() {
       .catch(() => {});
   }, [suma, kodPrzyjety]);
 
+  // Test: kod dodany automatycznie po włożeniu do koszyka — naliczamy go bez wpisywania.
+  // Gdy serwer go nie przyjmie (pula, termin), po cichu — klient go nie wpisywał.
+  const kodAutoProba = useRef(false);
+  useEffect(() => {
+    if (kodAutoProba.current || kodPrzyjety || !katalogGotowy || suma <= 0) return;
+    const kod = kodAutomatyczny();
+    if (!kod) return;
+    kodAutoProba.current = true;
+    fetch("/api/kod", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kod, suma }) })
+      .then((r) => r.json())
+      .then((d: { ok?: boolean; kod?: string; rabat?: number }) => {
+        if (d.ok && d.kod && typeof d.rabat === "number") {
+          setKodPrzyjety({ kod: d.kod, rabat: d.rabat });
+          setKodRabatu(d.kod);
+        }
+      })
+      .catch(() => {});
+  }, [katalogGotowy, suma, kodPrzyjety]);
+
   if (pozycjeZDanymi.length === 0) {
     return (
       <div className="overflow-x-clip">
@@ -217,6 +237,7 @@ export default function StronaZamowienia() {
   }
 
   function usunKod() {
+    if (kodPrzyjety) odrzucKodAutomatyczny(kodPrzyjety.kod);
     setKodPrzyjety(null);
     setKodRabatu("");
     setKodBlad("");
@@ -236,7 +257,7 @@ export default function StronaZamowienia() {
     if (!akceptacja) return setBlad("Zaakceptuj Regulamin i Politykę prywatności.");
     // Kody „raz na numer” (ZIMA5, BOBAS5) wymagają telefonu — mówimy przed wysłaniem, bez zdejmowania kodu.
     if (kodPrzyjety && PROMOCJE.some((p) => p.razNaTelefon && p.kod === kodPrzyjety.kod) && !numerTelefonu(dane.telefon))
-      return setBlad(`Aby użyć kodu ${kodPrzyjety.kod}, podaj numer telefonu (9 cyfr).`);
+      return setBlad(`Podaj numer telefonu (9 cyfr), żeby dostać rabat z kodem ${kodPrzyjety.kod} — albo usuń kod w podsumowaniu.`);
     setBlad("");
     setWysylka(true);
     // Zakup zgłosimy do GA4/Google Ads na stronie podziękowania, gdy serwer potwierdzi opłacenie.
@@ -279,6 +300,7 @@ export default function StronaZamowienia() {
         // Kod przestał działać (np. promocja skończyła się w trakcie) — zdejmujemy rabat z ekranu,
         // żeby klient zobaczył prawdziwą kwotę, zanim zapłaci.
         if (kodPrzyjety && /Usuń kod/.test(dane2.blad ?? "")) {
+          odrzucKodAutomatyczny(kodPrzyjety.kod);
           setKodPrzyjety(null);
           setKodBlad(dane2.blad ?? "");
           return setBlad(`${(dane2.blad ?? "").replace(/\s*Usuń kod lub wpisz inny\.$/, "")} Rabat został zdjęty — sprawdź nową kwotę i kliknij jeszcze raz.`);
@@ -320,7 +342,7 @@ export default function StronaZamowienia() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <input className={`${input} sm:col-span-2`} placeholder="Imię i nazwisko" name="name" autoComplete="name" value={dane.imie} onChange={(e) => setDane({ ...dane, imie: e.target.value })} />
               <input className={input} placeholder="E-mail" type="email" name="email" autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false} value={dane.email} onChange={(e) => setDane({ ...dane, email: e.target.value })} />
-              <input className={input} placeholder="Telefon" type="tel" name="tel" autoComplete="tel" inputMode="tel" value={dane.telefon} onChange={(e) => setDane({ ...dane, telefon: e.target.value })} />
+              <input className={input} placeholder={kodPrzyjety && PROMOCJE.some((p) => p.razNaTelefon && p.kod === kodPrzyjety.kod) ? "Telefon (potrzebny do rabatu)" : "Telefon"} type="tel" name="tel" autoComplete="tel" inputMode="tel" value={dane.telefon} onChange={(e) => setDane({ ...dane, telefon: e.target.value })} />
             </div>
           </section>
 

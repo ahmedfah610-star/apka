@@ -11,7 +11,8 @@ import { PRODUKTY, znajdzProdukt, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { useDostawa } from "@/lib/dostawaKlient";
 import { najtanszaDostawa } from "@/lib/dostawa";
-import { promocjaWidoczna } from "@/lib/promocja";
+import { PROMOCJE, promocjaWidoczna } from "@/lib/promocja";
+import { kodAutomatyczny } from "@/lib/kodAutomatyczny";
 import { EdycjaDostaw } from "@/components/EdycjaDostaw";
 import { ZAMOWIENIA_WYLACZONE } from "@/lib/sklep";
 import { PrzerwaTechniczna } from "@/components/PrzerwaTechniczna";
@@ -27,6 +28,13 @@ const ZAUFANIE = [
 
 export default function StronaKoszyka() {
   const { pozycje, usun, ustawIlosc, usunieteNiedostepne } = useKoszyk();
+  // Test: kod dodany automatycznie po włożeniu do koszyka — pokazujemy rabat już tutaj (serwer liczy go sam przy zamówieniu).
+  const [kodAuto, setKodAuto] = useState<{ kod: string; procent: number } | null>(null);
+  useEffect(() => {
+    const k = kodAutomatyczny();
+    const p = k ? PROMOCJE.find((x) => x.kod === k) : null;
+    setKodAuto(p ? { kod: p.kod, procent: p.procent } : null);
+  }, [pozycje.length]);
   const [katalog, setKatalog] = useState<Produkt[]>(PRODUKTY);
   const [katalogGotowy, setKatalogGotowy] = useState(false);
 
@@ -239,6 +247,14 @@ export default function StronaKoszyka() {
                 <span className="text-ink-2">Wartość produktów</span>
                 <span className="font-semibold">{formatCena(suma)} zł</span>
               </div>
+              {kodAuto ? (
+                <div className="mt-2.5 flex items-center justify-between text-[14.5px] text-[oklch(45%_0.13_150)]">
+                  <span className="flex items-center gap-2">
+                    Rabat <span className="rounded bg-[oklch(94%_0.05_150)] px-1.5 py-0.5 font-mono text-[12px] font-semibold">{kodAuto.kod}</span>
+                  </span>
+                  <span className="font-semibold">−{formatCena(Math.round(suma * kodAuto.procent) / 100)} zł</span>
+                </div>
+              ) : null}
               <div className="mt-2.5 flex items-center justify-between text-[14.5px]">
                 <span className="text-ink-2">Dostawa</span>
                 <span className="text-ink-2">{doDarmowej > 0 ? `od ${formatCena(dostawaOd)} zł` : "gratis"}</span>
@@ -247,7 +263,7 @@ export default function StronaKoszyka() {
 
               <div className="mt-4 flex items-center justify-between border-t border-linia pt-4">
                 <span className="text-[15px] font-semibold">Razem</span>
-                <span className="text-[22px] font-bold">{formatCena(suma)} zł</span>
+                <span className="text-[22px] font-bold">{formatCena(kodAuto ? suma - Math.round(suma * kodAuto.procent) / 100 : suma)} zł</span>
               </div>
 
               {ZAMOWIENIA_WYLACZONE ? (

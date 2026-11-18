@@ -5,6 +5,7 @@ import type { Produkt } from "@/data/produkty";
 import { pobierzKatalog } from "@/lib/katalogKlient";
 import { useAuth } from "@/components/AuthContext";
 import { sbBrowser } from "@/lib/supabaseBrowser";
+import { aktywujKodAutomatyczny } from "@/lib/kodAutomatyczny";
 
 export interface PozycjaKoszyka {
   id: string;
@@ -117,6 +118,7 @@ export function KoszykProvider({ children }: { children: React.ReactNode }) {
   }, [pozycje, user, gotowe]);
 
   const dodaj = useCallback((id: string, rozmiar?: string, ilosc = 1) => {
+    aktywujKodAutomatyczny();
     setPozycje((prev) => {
       const istnieje = prev.find((p) => tenSam(p, id, rozmiar));
       if (istnieje) {
