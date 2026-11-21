@@ -42,11 +42,11 @@ export const metadata: Metadata = {
   ],
   applicationName: NAZWA_SKLEPU,
   authors: [{ name: NAZWA_SKLEPU }],
-  alternates: { canonical: "/" },
+  // Bez canonical i og:url w layoucie — dziedziczyły je strony bez własnych (FAQ, Kontakt, Regulamin…),
+  // które przez to mówiły Google, że są kopią strony głównej. Każda strona ustawia własny canonical.
   openGraph: {
     type: "website",
     locale: "pl_PL",
-    url: BAZA_URL,
     siteName: NAZWA_SKLEPU,
     title: "bobas-shopping — ubrania dziecięce 0-12 lat",
     description: OPIS_SKLEPU,

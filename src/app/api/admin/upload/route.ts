@@ -32,6 +32,9 @@ export async function POST(req: Request) {
   const { error } = await sb.storage.from(BUCKET).upload(sciezka, bufor, {
     contentType: plik.type,
     upsert: false,
+    // Nazwa pliku jest unikalna (znacznik czasu), więc plik się nie zmienia — przeglądarki i CDN
+    // mogą go trzymać rok, zamiast pobierać przy każdym wyświetleniu z limitu transferu Supabase.
+    cacheControl: "31536000",
   });
   if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
 

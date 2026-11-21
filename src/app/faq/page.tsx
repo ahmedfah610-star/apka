@@ -4,6 +4,7 @@ import { zProgiem } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 
 export const metadata = {
+  alternates: { canonical: "/faq" },
   title: "FAQ — najczęstsze pytania",
   description: "Jak dobrać rozmiar, ile trwa wysyłka, jak zrobić zwrot? Krótkie odpowiedzi na najczęstsze pytania o zakupy w bobas-shopping — sprawdź, zanim zamówisz.",
 };

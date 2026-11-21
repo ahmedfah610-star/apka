@@ -6,6 +6,7 @@ import { zl } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 
 export const metadata = {
+  alternates: { canonical: "/dostawa-i-zwroty" },
   title: "Dostawa i zwroty",
   description: "Wysyłka w 1–2 dni do paczkomatu, punktu odbioru lub kurierem, darmowa dostawa od 150 zł i 14 dni na zwrot. Kupuj spokojnie — zobacz, jakie to proste!",
 };

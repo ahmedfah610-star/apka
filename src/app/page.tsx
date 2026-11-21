@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { urlProduktu } from "@/lib/adresProduktu";
 import { zdjecie } from "@/lib/zdjecia";
 import Link from "next/link";
@@ -20,6 +21,9 @@ import { cieplePierwsze, czyCieply, sezonZimowy, SLUG_ZIMA } from "@/lib/sezon";
 
 // ISR: strona buduje się i odświeża co 5 minut zamiast przy każdym żądaniu.
 export const revalidate = 900;
+
+// Canonical strony głównej (layout go już nie ustawia — inaczej dziedziczyły go wszystkie podstrony).
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 // „Kupuj według rodzaju" — strony kolekcji (te same filtry co na stronie kolekcji).
 const RODZAJE: { slug: string; label: string }[] = [

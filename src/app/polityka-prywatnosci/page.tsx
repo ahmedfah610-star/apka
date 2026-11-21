@@ -1,6 +1,7 @@
 import { StronaInfo, Sekcja, Lista, DaneSprzedawcy } from "@/components/StronaInfo";
 
 export const metadata = {
+  alternates: { canonical: "/polityka-prywatnosci" },
   title: "Polityka prywatności",
   description: "Jak bobas-shopping chroni Twoje dane: co zbieramy przy zamówieniu, komu je przekazujemy i jakie masz prawa. Prosto i przejrzyście.",
 };

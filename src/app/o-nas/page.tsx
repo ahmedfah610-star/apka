@@ -3,6 +3,7 @@ import { pobierzDostawe } from "@/lib/dostawaDb";
 import { kwotaTekst, najtanszaDostawa, zl } from "@/lib/dostawa";
 
 export const metadata = {
+  alternates: { canonical: "/o-nas" },
   title: "O nas",
   description: "Polski sklep z ubrankami dla dzieci 0–12 lat i odzieżą męską. Zdjęcia prawdziwego towaru, wymiary w cm i szybka wysyłka — poznaj bobas-shopping!",
 };

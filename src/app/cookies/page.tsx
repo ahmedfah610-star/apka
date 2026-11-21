@@ -1,6 +1,7 @@
 import { StronaInfo, Sekcja, Lista } from "@/components/StronaInfo";
 
 export const metadata = {
+  alternates: { canonical: "/cookies" },
   title: "Polityka cookies",
   description: "Jakich plików cookies używa bobas-shopping i po co — niezbędne do koszyka, a analityczne i marketingowe tylko za Twoją zgodą.",
 };

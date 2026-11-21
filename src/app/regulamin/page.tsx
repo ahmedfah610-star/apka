@@ -1,6 +1,7 @@
 import { StronaInfo, Sekcja, Lista, DaneSprzedawcy } from "@/components/StronaInfo";
 
 export const metadata = {
+  alternates: { canonical: "/regulamin" },
   title: "Regulamin",
   description: "Regulamin sklepu bobas-shopping: zamówienia, płatności, dostawa, 14 dni na zwrot i reklamacje — jasne zasady zakupów, bez drobnego druku.",
 };

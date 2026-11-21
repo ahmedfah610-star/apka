@@ -31,6 +31,8 @@ const nextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "*.allegroimg.com" },
       { protocol: "https", hostname: "allegroimg.com" },
+      // Zdjęcia wgrane w panelu (bucket „produkty”) — przez optymalizator, patrz src/lib/zdjecia.ts.
+      { protocol: "https", hostname: "wvqxnoqqkoptwyljywju.supabase.co", pathname: "/storage/v1/object/public/produkty/**" },
     ],
   },
   // Stary adres artykułu (zastąpiony poradnikiem o składzie bawełny) — przekierowanie, żeby linki i Google trafiały dalej.
