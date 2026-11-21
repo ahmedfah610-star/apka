@@ -71,6 +71,24 @@ function okladka(lista: Produkt[], zajete: Set<string>): Produkt | undefined {
   return p;
 }
 
+// Kafelek „Wszystko do 20 zł": ręcznie wybrane, wyraźne zdjęcia (pojedynczy produkt na białym tle).
+// Pierwsze, którego produkt jest na stanie i ma to zdjęcie w galerii; inaczej automat jak wcześniej.
+const ZDJECIA_DO_20: [string, string][] = [
+  ["al-m-11a83f2", "https://a.allegroimg.com/original/114358/1c6e511c44b1ade69e0819d6cf07"], // wełniane buciki
+  ["al-m-ocvc6q", "https://a.allegroimg.com/original/11fb2d/72b1640440ffb58060991a70a147"], // różowa czapka z pomponem
+  ["al-m-v43uyu", "https://a.allegroimg.com/original/11dcb7/9f12b4ac4f328f4ffd1d20b232eb"], // biała czapka z pomponem
+];
+function fotoKafelkaDo20(tanie: Produkt[], zajete: Set<string>): string | undefined {
+  for (const [id, foto] of ZDJECIA_DO_20) {
+    const p = tanie.find((x) => x.id === id);
+    if (p && (p.zdjecia ?? [p.zdjecie]).includes(foto)) {
+      [p.id, p.zdjecie ?? "", foto].forEach((k) => zajete.add(k));
+      return foto;
+    }
+  }
+  return okladka(tanie.filter((p) => p.kategoria !== "dorosli"), zajete)?.zdjecie ?? undefined;
+}
+
 // Okładka kafelka „Kupuj według rodzaju": ładny przedstawiciel kategorii, nie najtańszy produkt.
 // 1) zdjęcie wybrane do reklam (data/zdjeciaReklamowe), 2) świeży produkt z ceną co najmniej
 // środkową w kategorii, porządną galerią i zapasem, 3) awaryjnie najnowszy z galerią.
@@ -132,7 +150,7 @@ export default async function StronaGlowna() {
   if (zdjecieHitu) zajete.add(zdjecieHitu);
   if (hit) [hit.produkt.id, hit.produkt.zdjecie ?? "", hit.produkt.nazwa.toLowerCase()].forEach((k) => zajete.add(k));
   const tanie = naStanie.filter((p) => p.cena >= DO_20.min && p.cena < DO_20.max);
-  const tanieFoto = okladka(tanie.filter((p) => p.kategoria !== "dorosli"), zajete);
+  const tanieFoto = fotoKafelkaDo20(tanie, zajete);
   const meskie = naStanie.filter((p) => p.kategoria === "dorosli");
   const meskieFoto = okladka(meskie, zajete);
 
@@ -209,7 +227,7 @@ export default async function StronaGlowna() {
             </p>
             {tanieFoto ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={zdjecie(tanieFoto.zdjecie, "s360")} alt="" className="absolute bottom-2 right-2 h-[88px] w-[96px] object-contain mix-blend-multiply md:bottom-3 md:right-4 md:h-[140px] md:w-[130px]" />
+              <img src={zdjecie(tanieFoto, "s512")} alt="" className="absolute bottom-2 right-2 h-[88px] w-[96px] object-contain mix-blend-multiply md:bottom-3 md:right-4 md:h-[140px] md:w-[130px]" />
             ) : null}
           </Link>
 
