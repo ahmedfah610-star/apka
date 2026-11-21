@@ -27,15 +27,9 @@ export interface UstawieniaDostawy {
   darmowaOd: number;
 }
 
+// „InPost Paczkomat (ekonomiczny)” (id „inpost-paczkomat-eko”) usunięty na stałe (21.11.2026) — wrócił
+// do zamówienia jako aktywny po zapisie cen w panelu. Jego wpis w bazie jest teraz pomijany.
 export const METODY_DOSTAWY: MetodaDostawy[] = [
-  {
-    id: "inpost-paczkomat-eko",
-    nazwa: "InPost Paczkomat (ekonomiczny)",
-    opis: "Odbiór z paczkomatu — tańsza opcja",
-    cena: 10.5,
-    paczkomat: true,
-    info: "Wysyłka ekonomiczna do paczkomatu: taniej, przeznaczona dla mniejszych paczek (gabaryt A). Dostawa może potrwać nieco dłużej niż standardowa.",
-  },
   {
     id: "inpost-paczkomat",
     nazwa: "InPost Paczkomat 24/7",
@@ -107,12 +101,11 @@ export function polaczUstawienia(zapis: unknown): UstawieniaDostawy {
   const z = (zapis && typeof zapis === "object" ? zapis : {}) as { metody?: Partial<MetodaDostawy>[]; darmowaOd?: unknown };
   const poId = new Map((Array.isArray(z.metody) ? z.metody : []).map((m) => [m?.id, m]));
   // Dawniej „Pocztex Kurier" był ustawiany na miejscu paczkomatu ekonomicznego InPost (przez co
-  // pokazywał mapę paczkomatów). Takie ustawienie przenosimy na prawdziwą metodę kurierską Pocztex,
-  // a paczkomat ekonomiczny wraca do swoich domyślnych opisów i zostaje wyłączony.
+  // pokazywał mapę paczkomatów). Takie ustawienie przenosimy na prawdziwą metodę kurierską Pocztex
+  // (sam paczkomat ekonomiczny już nie istnieje — patrz METODY_DOSTAWY).
   const eko = poId.get("inpost-paczkomat-eko");
   if (eko && /pocztex|kurier/i.test(String(eko.nazwa ?? "")) && !poId.has("pocztex-kurier")) {
     poId.set("pocztex-kurier", { ...eko, id: "pocztex-kurier", info: "" });
-    poId.set("inpost-paczkomat-eko", { id: "inpost-paczkomat-eko", aktywna: false });
   }
   const tekst = (v: unknown, max: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : undefined);
   const cena = (v: unknown) => {

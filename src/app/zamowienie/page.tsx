@@ -255,9 +255,10 @@ export default function StronaZamowienia() {
       if (!fv.ok) return setBlad(fv.blad);
     }
     if (!akceptacja) return setBlad("Zaakceptuj Regulamin i Politykę prywatności.");
-    // Kody „raz na numer” (ZIMA5, BOBAS5) wymagają telefonu — mówimy przed wysłaniem, bez zdejmowania kodu.
+    // Kody „raz na numer” (ZIMA5, BOBAS5) wymagają telefonu — prosimy o numer przed wysłaniem, bez zdejmowania
+    // kodu i bez tłumaczenia, że chodzi o rabat (klient nie musi znać zasad puli; przewoźnik i tak go potrzebuje).
     if (kodPrzyjety && PROMOCJE.some((p) => p.razNaTelefon && p.kod === kodPrzyjety.kod) && !numerTelefonu(dane.telefon))
-      return setBlad(`Podaj numer telefonu (9 cyfr), żeby dostać rabat z kodem ${kodPrzyjety.kod} — albo usuń kod w podsumowaniu.`);
+      return setBlad("Podaj numer telefonu (9 cyfr) — przewoźnik wyśle Ci SMS o paczce.");
     setBlad("");
     setWysylka(true);
     // Zakup zgłosimy do GA4/Google Ads na stronie podziękowania, gdy serwer potwierdzi opłacenie.
@@ -342,7 +343,7 @@ export default function StronaZamowienia() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <input className={`${input} sm:col-span-2`} placeholder="Imię i nazwisko" name="name" autoComplete="name" value={dane.imie} onChange={(e) => setDane({ ...dane, imie: e.target.value })} />
               <input className={input} placeholder="E-mail" type="email" name="email" autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false} value={dane.email} onChange={(e) => setDane({ ...dane, email: e.target.value })} />
-              <input className={input} placeholder={kodPrzyjety && PROMOCJE.some((p) => p.razNaTelefon && p.kod === kodPrzyjety.kod) ? "Telefon (potrzebny do rabatu)" : "Telefon"} type="tel" name="tel" autoComplete="tel" inputMode="tel" value={dane.telefon} onChange={(e) => setDane({ ...dane, telefon: e.target.value })} />
+              <input className={input} placeholder="Telefon" type="tel" name="tel" autoComplete="tel" inputMode="tel" value={dane.telefon} onChange={(e) => setDane({ ...dane, telefon: e.target.value })} />
             </div>
           </section>
 

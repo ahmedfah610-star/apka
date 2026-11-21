@@ -24,7 +24,18 @@ describe("metody dostawy", () => {
     expect(kurier.punkt).toBeFalsy();
     expect(kurier.cena).toBe(11.69);
     expect(kurier.info).toBeUndefined(); // bez opisu „wysyłki ekonomicznej do paczkomatu"
-    expect(u.metody.find((m) => m.id === "inpost-paczkomat-eko")!.aktywna).toBe(false);
+  });
+
+  it("paczkomatu ekonomicznego nie ma — także gdy w bazie zapisano go jako aktywny", () => {
+    const u = polaczUstawienia({
+      darmowaOd: 150,
+      metody: [
+        { id: "inpost-paczkomat-eko", nazwa: "InPost Paczkomat (ekonomiczny)", cena: 10.36, aktywna: true },
+        { id: "pocztex-kurier", cena: 11.69 },
+      ],
+    });
+    expect(u.metody.some((m) => m.id === "inpost-paczkomat-eko" || /ekonomiczn/i.test(m.nazwa))).toBe(false);
+    expect(METODY_DOSTAWY.some((m) => m.id === "inpost-paczkomat-eko")).toBe(false);
   });
 
   it("od najtańszej, InPost Paczkomat zawsze na drugim miejscu", () => {
@@ -48,7 +59,7 @@ describe("metody dostawy", () => {
   it("punkty odbioru mają swojego operatora mapy", () => {
     const u = polaczUstawienia(ZAPIS);
     expect(u.metody.filter((m) => m.punkt).map((m) => `${m.id}:${m.operator}`).sort()).toEqual(["dpd-punkt:DPD", "orlen-paczka:RUCH", "pocztex-punkt:POCZTA"]);
-    expect(u.metody.filter((m) => m.paczkomat).map((m) => m.id).sort()).toEqual(["inpost-paczkomat", "inpost-paczkomat-eko"]);
+    expect(u.metody.filter((m) => m.paczkomat).map((m) => m.id).sort()).toEqual(["inpost-paczkomat"]);
   });
 });
 
@@ -58,7 +69,7 @@ describe("darmowa dostawa od progu — tylko wybrane metody", () => {
     // także po edycji ceny w panelu (zapis z bazy nie może zdjąć wyjątku)
     const u = polaczUstawienia({ metody: [{ id: "kurier-dhl", cena: 18.5 }], darmowaOd: 150 });
     const koszt = (id: string, suma: number) => kosztDostawy(u.metody.find((m) => m.id === id)!, suma, u.darmowaOd);
-    for (const id of ["pocztex-punkt", "dpd-punkt", "pocztex-kurier", "orlen-paczka", "inpost-paczkomat", "inpost-paczkomat-eko"]) expect(koszt(id, 150)).toBe(0);
+    for (const id of ["pocztex-punkt", "dpd-punkt", "pocztex-kurier", "orlen-paczka", "inpost-paczkomat"]) expect(koszt(id, 150)).toBe(0);
     expect(koszt("inpost-kurier", 150)).toBe(14.99);
     expect(koszt("kurier-dhl", 200)).toBe(18.5);
     expect(koszt("pocztex-kurier", 149.99)).toBeGreaterThan(0);

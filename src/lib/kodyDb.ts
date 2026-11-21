@@ -68,7 +68,8 @@ export async function sprawdzKod(kodTekst: string, suma: number, email?: string,
     if (stan === "przed") return { ok: false, blad: "Promocja jeszcze się nie rozpoczęła." };
     if (stan === "po") return { ok: false, blad: "Promocja już się zakończyła." };
     const nr = telefon === undefined ? null : numerTelefonu(telefon);
-    if (PROMOCJA.razNaTelefon && nr === "") return { ok: false, blad: `Aby użyć kodu ${PROMOCJA.kod}, podaj numer telefonu.` };
+    // Komunikaty bez zdradzania zasady „raz na numer” — klient nie musi jej znać (i nie podpowiadamy, jak ją obejść).
+    if (PROMOCJA.razNaTelefon && nr === "") return { ok: false, blad: "Podaj numer telefonu (9 cyfr)." };
     // Limit i „raz na numer”: liczą się zamówienia opłacone (i dalsze statusy) — nieopłacone i anulowane nie zajmują puli.
     let uzyto = 0;
     if (PROMOCJA.limitUzyc !== null || PROMOCJA.razNaTelefon) {
@@ -84,7 +85,7 @@ export async function sprawdzKod(kodTekst: string, suma: number, email?: string,
       uzyto = lista.length;
       if (PROMOCJA.limitUzyc !== null && uzyto >= PROMOCJA.limitUzyc) return { ok: false, blad: "Pula kodu została już wykorzystana." };
       if (PROMOCJA.razNaTelefon && nr && lista.some((z) => numerTelefonu(z.tel) === nr))
-        return { ok: false, blad: `Kod ${PROMOCJA.kod} został już wykorzystany dla tego numeru telefonu.` };
+        return { ok: false, blad: `Kod ${PROMOCJA.kod} został już wykorzystany.` };
     }
     const kodPromo: Kod = {
       kod: PROMOCJA.kod,

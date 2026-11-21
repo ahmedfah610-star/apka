@@ -61,10 +61,10 @@ describe("kody ZIMA5 i BOBAS5", () => {
     uzycia = [{ tel: "+48 500-600-700" }, { tel: null }];
     const w = await sprawdz("BOBAS5", 100, "0048500600700");
     expect(w.ok).toBe(false);
-    expect(w.blad).toMatch(/już wykorzystany dla tego numeru/);
+    expect(w.blad).toMatch(/został już wykorzystany\./);
     expect((await sprawdz("BOBAS5", 100, "501 222 333")).ok).toBe(true);
     expect((await sprawdz("BOBAS5", 100)).ok).toBe(true); // podgląd w koszyku — numer sprawdzi zamówienie
-    expect((await sprawdz("BOBAS5", 100, "")).blad).toMatch(/podaj numer telefonu/);
+    expect((await sprawdz("BOBAS5", 100, "")).blad).toBe("Podaj numer telefonu (9 cyfr).");
   });
 
   it("numer telefonu: ostatnie 9 cyfr", async () => {

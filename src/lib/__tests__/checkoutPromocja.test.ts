@@ -113,12 +113,13 @@ describe("checkout z kodem ZIMA5", () => {
     uzycia = [{ tel: "+48 500-600-700" }];
     const r = await zamow(1, "ZIMA5", "500600700");
     expect(r.status).toBe(400);
-    expect(r.dane.blad).toMatch(/już wykorzystany dla tego numeru/);
+    expect(r.dane.blad).toMatch(/został już wykorzystany\./);
     const inny = await zamow(1, "ZIMA5", "501 222 333");
     expect(inny.dane.ok).toBe(true);
     const bez = await zamow(1, "ZIMA5", "");
     expect(bez.status).toBe(400);
-    expect(bez.dane.blad).toMatch(/podaj numer telefonu/);
+    expect(bez.dane.blad).toMatch(/podaj numer telefonu/i);
+    expect(bez.dane.blad).not.toMatch(/rabat|ZIMA5|raz na/i); // klient nie musi znać zasady puli
   });
 
   it("BOBAS5 działa tak samo", async () => {
