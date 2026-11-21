@@ -137,7 +137,9 @@ export function PasekKategorii() {
 
   return (
     <nav className="relative border-linia bg-white md:border-t" aria-label="Kategorie">
-      <div ref={pasek} className="mx-auto flex max-w-content gap-5 overflow-x-auto px-4 sm:px-6 md:gap-7 md:px-10 [&::-webkit-scrollbar]:hidden">
+      {/* overflow-y-hidden: podkreślenie zakładek (-mb-px) wystaje o 1 px — bez tego na telefonie
+          pasek dawał się przesuwać palcem w pionie. */}
+      <div ref={pasek} className="mx-auto flex max-w-content gap-5 overflow-x-auto overflow-y-hidden overscroll-x-contain px-4 sm:px-6 md:gap-7 md:px-10 [&::-webkit-scrollbar]:hidden">
         {(sezonZimowy() ? [ZAKLADKI[0], ZIMA, ...ZAKLADKI.slice(1)] : ZAKLADKI).map((z) => {
           const on = z.href === "/produkty" ? aktualny === "/produkty" : aktualny.startsWith(z.href);
           const link = (
