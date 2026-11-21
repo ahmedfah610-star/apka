@@ -4,6 +4,7 @@
 // Bez nowej tabeli: znacznik wysyłki to wpis w `ustawienia` („kod-powitalny:<id konta>").
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { escLike } from "@/lib/escLike";
 import type { Produkt } from "@/data/produkty";
 import { rozmiaryNaStanie } from "@/lib/hitTygodnia";
 import { czyCieply, sezonZimowy } from "@/lib/sezon";
@@ -37,7 +38,6 @@ export function zgodaZKonta(meta: Record<string, unknown> | null | undefined): b
 /** Ręczna wysyłka z panelu: tylko ze zgodą albo dla kont sprzed checkboxa (nie miały jak jej dać). */
 export const moznaWyslacRecznie = (zgoda: boolean | null) => zgoda !== false;
 
-const escLike = (s: string) => s.replace(/[\\%_]/g, (m) => `\\${m}`);
 
 /** Czy ten e-mail użył już kodu powitalnego w opłaconym zamówieniu. */
 export async function kodPowitalnyUzyty(sb: SupabaseClient, email: string): Promise<boolean> {

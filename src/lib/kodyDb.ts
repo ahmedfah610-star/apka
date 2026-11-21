@@ -72,17 +72,18 @@ export async function sprawdzKod(kodTekst: string, suma: number, email?: string,
     // Limit i „raz na numer”: liczą się zamówienia opłacone (i dalsze statusy) — nieopłacone i anulowane nie zajmują puli.
     let uzyto = 0;
     if (PROMOCJA.limitUzyc !== null || PROMOCJA.razNaTelefon) {
+      // Tylko numer telefonu (nie całe dane klienta) — mniej danych z bazy przy każdym sprawdzeniu kodu.
       const { data: uzycia, error: eLicz } = await sb
         .from("zamowienia")
-        .select("klient")
+        .select("tel:klient->>telefon")
         .eq("kod_rabatowy", PROMOCJA.kod)
         .not("status", "in", '("oczekuje_na_platnosc","anulowane")')
         .limit(5000);
       if (eLicz) return { ok: false, blad: "Błąd sprawdzania kodu." };
-      const lista = (uzycia ?? []) as { klient?: { telefon?: unknown } | null }[];
+      const lista = (uzycia ?? []) as { tel?: unknown }[];
       uzyto = lista.length;
       if (PROMOCJA.limitUzyc !== null && uzyto >= PROMOCJA.limitUzyc) return { ok: false, blad: "Pula kodu została już wykorzystana." };
-      if (PROMOCJA.razNaTelefon && nr && lista.some((z) => numerTelefonu(z.klient?.telefon) === nr))
+      if (PROMOCJA.razNaTelefon && nr && lista.some((z) => numerTelefonu(z.tel) === nr))
         return { ok: false, blad: `Kod ${PROMOCJA.kod} został już wykorzystany dla tego numeru telefonu.` };
     }
     const kodPromo: Kod = {

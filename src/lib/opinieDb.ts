@@ -1,4 +1,5 @@
 import { sbAnon, sbService, supabaseWlaczony } from "@/lib/supabase";
+import { escLike } from "@/lib/escLike";
 
 // Warstwa danych opinii o produktach. Opinie mogą wystawić tylko klienci,
 // którzy kupili dany produkt (weryfikacja po e-mailu z zamówienia).
@@ -62,8 +63,8 @@ export async function czyKupil(email: string, produktId: string): Promise<boolea
   if (!sb) return false;
   const { data, error } = await sb
     .from("zamowienia")
-    .select("pozycje, status")
-    .ilike("klient->>email", email)
+    .select("pozycje")
+    .ilike("klient->>email", escLike(email))
     .in("status", STATUSY_ZAKUPU)
     .limit(200);
   if (error || !data) return false;
@@ -94,7 +95,8 @@ export async function dodajOpinie(o: {
   if (error) {
     // 23505 = naruszenie unikalności (jedna opinia na produkt na klienta).
     if ((error as any).code === "23505") return { ok: false, blad: "Masz już opinię o tym produkcie.", kod: "duplikat" };
-    return { ok: false, blad: error.message };
+    console.error(`[opinie] zapis nieudany: ${error.message}`);
+    return { ok: false, blad: "Nie udało się zapisać opinii. Spróbuj za chwilę." };
   }
   return { ok: true };
 }

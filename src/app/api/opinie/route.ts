@@ -1,9 +1,8 @@
 import { pobierzOpinie, dodajOpinie, czyKupil } from "@/lib/opinieDb";
 import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
+import { EMAIL_BEZPIECZNY } from "@/lib/escLike";
 
 export const dynamic = "force-dynamic";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function GET(req: Request) {
   const produkt = new URL(req.url).searchParams.get("produkt");
@@ -25,9 +24,10 @@ export async function POST(req: Request) {
   const ocena = Math.round(Number(b.ocena));
   const tresc = String(b.tresc ?? "").trim().slice(0, 1000);
 
-  if (!produktId) return Response.json({ ok: false, blad: "Brak produktu." }, { status: 400 });
+  if (!produktId || produktId.length > 80) return Response.json({ ok: false, blad: "Brak produktu." }, { status: 400 });
   if (!imie) return Response.json({ ok: false, blad: "Podaj imię." }, { status: 400 });
-  if (!EMAIL_RE.test(email)) return Response.json({ ok: false, blad: "Podaj poprawny e-mail." }, { status: 400 });
+  // Bez %, * i \ — inaczej sprawdzenie zakupu pasowałoby do cudzych zamówień.
+  if (email.length > 160 || !EMAIL_BEZPIECZNY.test(email)) return Response.json({ ok: false, blad: "Podaj poprawny e-mail." }, { status: 400 });
   if (!(ocena >= 1 && ocena <= 5)) return Response.json({ ok: false, blad: "Wybierz ocenę (1–5 gwiazdek)." }, { status: 400 });
 
   // Weryfikacja zakupu — tylko klient, który kupił produkt, może go ocenić.

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { wyslijPrzypomnieniePlatnosci, mailWlaczony, type DanePrzypomnienia } from "@/lib/mail";
 import { produktyPoIdSwieze } from "@/lib/produktyDb";
+import { escLike } from "@/lib/escLike";
 
 // Automatyczne przypomnienie o niedokończonej płatności (z codziennych cronów, 2× dziennie):
 // zamówienie „oczekuje na płatność" sprzed co najmniej 1 h i najwyżej 3 dni, z e-mailem,
@@ -68,7 +69,7 @@ export async function automatycznePrzypomnienia(
         .from("zamowienia")
         .select("id")
         .in("status", KUPIONE)
-        .ilike("klient->>email", email.replace(/[\\%_]/g, (m) => `\\${m}`))
+        .ilike("klient->>email", escLike(email))
         .gte("created_at", z.created_at)
         .limit(1);
       if ((pozniejsze?.length ?? 0) > 0 || !dostepne(z, katalog)) {

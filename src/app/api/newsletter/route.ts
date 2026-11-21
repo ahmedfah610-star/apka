@@ -1,17 +1,16 @@
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { wyslijMailPowitalny } from "@/lib/mail";
 import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
+import { EMAIL_BEZPIECZNY as EMAIL } from "@/lib/escLike";
 
 export const dynamic = "force-dynamic";
-
-const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export async function POST(req: Request) {
   if (!wLimicie(`newsletter:${ipZadania(req)}`, 5, 60 * 1000)) return limitOdpowiedz();
 
   const { email } = (await req.json().catch(() => ({}))) as { email?: string };
   const adres = (email ?? "").trim().toLowerCase();
-  if (!EMAIL.test(adres)) return Response.json({ ok: false, blad: "Podaj poprawny e-mail." }, { status: 400 });
+  if (adres.length > 160 || !EMAIL.test(adres)) return Response.json({ ok: false, blad: "Podaj poprawny e-mail." }, { status: 400 });
 
   if (supabaseWlaczony()) {
     const sb = sbService();

@@ -1,9 +1,8 @@
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
+import { EMAIL_BEZPIECZNY as EMAIL } from "@/lib/escLike";
 
 export const dynamic = "force-dynamic";
-
-const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 // Zgłoszenie "powiadom, gdy znów dostępny".
 export async function POST(req: Request) {

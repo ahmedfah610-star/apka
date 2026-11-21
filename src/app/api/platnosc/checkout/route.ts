@@ -73,7 +73,15 @@ export async function POST(req: Request) {
   const zamawiane = new Map<string, number>(); // produkt|rozmiar → łącznie sztuk w koszyku
   for (const w of wejscie) {
     const prod = cennik.get(String(w.id));
-    if (!prod) continue; // nieznany lub ukryty produkt — pomijamy
+    if (!prod) {
+      // Produkt zniknął ze sklepu (ukryty, zakończony na Allegro) — nie pomijamy go po cichu: klient widział go
+      // w koszyku razem z wyższą kwotą, a zapłaciłby za mniej rzeczy, niż myśli. Prosimy o usunięcie.
+      const nazwa = typeof w?.nazwa === "string" ? w.nazwa.replace(/[<>]/g, "").trim().slice(0, 80) : "";
+      return Response.json(
+        { ok: false, blad: `${nazwa ? `Produkt „${nazwa}”` : "Jeden z produktów w koszyku"} nie jest już dostępny. Usuń go z koszyka.` },
+        { status: 409 },
+      );
+    }
     const ilosc = Math.max(1, Math.min(99, Math.floor(Number(w.ilosc) || 1)));
     // Rozmiar musi istnieć, a sztuk musi wystarczyć (stan z bazy, nie z przeglądarki).
     const rozmiar = typeof w.rozmiar === "string" ? w.rozmiar.slice(0, 20) : undefined;
@@ -103,6 +111,11 @@ export async function POST(req: Request) {
     });
   }
   if (pozycje.length === 0) return Response.json({ ok: false, blad: "Produkty są niedostępne." }, { status: 400 });
+  // Błąd zapisu w bazie: szczegóły tylko w logach serwera, klient dostaje zwykły komunikat.
+  const bladZapisu = (e: { message?: string } | null | undefined) => {
+    console.error(`[checkout] zapis zamówienia nieudany: ${e?.message ?? "brak danych"}`);
+    return Response.json({ ok: false, blad: "Nie udało się zapisać zamówienia. Spróbuj ponownie za chwilę." }, { status: 500 });
+  };
 
   // Kwoty liczone po stronie serwera. Dostawa z cennika ustawionego w sklepie
   // (próg darmowej dostawy jak w koszyku); bez metodaId — kwota ograniczona do rozsądnego zakresu.
@@ -159,7 +172,7 @@ export async function POST(req: Request) {
       .insert({ pozycje, suma, dostawa, razem, metoda, klient, status: "oczekuje_na_platnosc", kod_rabatowy: kodRabatowy, rabat })
       .select("id")
       .single();
-    if (error || !data) return Response.json({ ok: false, blad: error?.message || "Zapis nieudany" }, { status: 500 });
+    if (error || !data) return bladZapisu(error);
     const zamowienieId = data.id as string;
 
     // 2) Rejestracja transakcji w Przelewy24 → URL do przekierowania.
@@ -190,7 +203,7 @@ export async function POST(req: Request) {
       .insert({ pozycje, suma, dostawa, razem, metoda, klient, status: "oczekuje_na_platnosc", kod_rabatowy: kodRabatowy, rabat })
       .select("id")
       .single();
-    if (error || !data) return Response.json({ ok: false, blad: error?.message || "Zapis nieudany" }, { status: 500 });
+    if (error || !data) return bladZapisu(error);
     const zamowienieId = data.id as string;
 
     // 2) Sesja Stripe Checkout (BLIK, Przelewy24, karta).
@@ -247,7 +260,7 @@ export async function POST(req: Request) {
         p_metoda: metoda,
         p_klient: klient,
       });
-      if (error) return Response.json({ ok: false, blad: error.message }, { status: 500 });
+      if (error) return bladZapisu(error);
       // Zapamiętaj kod + rabat na zamówieniu i policz użycie (płatność od razu).
       if (kodRabatowy) {
         await sb.from("zamowienia").update({ kod_rabatowy: kodRabatowy, rabat }).eq("id", String(data));

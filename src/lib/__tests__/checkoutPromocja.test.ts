@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // Płatność z kodem promocji ZIMA5 (−5% od produktów, bez minimum, do 20.02.2027, 100 osób, raz na numer telefonu):
 // kwota zamówienia w bazie = kwota zarejestrowana w Przelewy24 = to, co klient widzi na ekranie.
 const zapisane: Record<string, unknown>[] = [];
-let uzycia: { klient: { telefon?: string } }[] = [];
+let uzycia: { tel: string | null }[] = [];
 const p24: { amount: number; sessionId: string }[] = [];
 
 vi.mock("@/lib/produktyDb", () => ({
@@ -110,7 +110,7 @@ describe("checkout z kodem ZIMA5", () => {
   });
 
   it("raz na numer telefonu: ten sam numer (inny zapis) — odmowa; bez numeru — prośba o numer", async () => {
-    uzycia = [{ klient: { telefon: "+48 500-600-700" } }];
+    uzycia = [{ tel: "+48 500-600-700" }];
     const r = await zamow(1, "ZIMA5", "500600700");
     expect(r.status).toBe(400);
     expect(r.dane.blad).toMatch(/już wykorzystany dla tego numeru/);

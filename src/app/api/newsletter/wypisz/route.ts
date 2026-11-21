@@ -1,6 +1,7 @@
 import { sbService } from "@/lib/supabase";
 import { tokenOk } from "@/lib/newsletterToken";
 import { stronaProsta } from "@/lib/stronaProsta";
+import { escLike } from "@/lib/escLike";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,8 @@ export async function GET(req: Request) {
 
   const sb = sbService();
   if (sb) {
-    await sb.from("newsletter").delete().ilike("email", email);
+    // Dosłownie ten adres (bez wieloznaczników) — link wypisu nie może usunąć innych adresów.
+    await sb.from("newsletter").delete().ilike("email", escLike(email));
   }
   return strona("Wypisano z newslettera", "Nie będziesz już otrzymywać naszych wiadomości. Szkoda, że odchodzisz — zawsze możesz zapisać się ponownie na stronie sklepu.");
 }

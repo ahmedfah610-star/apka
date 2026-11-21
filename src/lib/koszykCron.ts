@@ -3,6 +3,7 @@ import { sbService } from "@/lib/supabase";
 import { katalogWidoczny } from "@/lib/produktyDb";
 import { wyslijMailPorzuconyKoszyk, mailWlaczony, type ProduktMail } from "@/lib/mail";
 import { BAZA } from "@/lib/mailSzablon";
+import { escLike } from "@/lib/escLike";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -56,7 +57,7 @@ export async function przypomnijKoszyki(): Promise<{ ok: boolean; powod?: string
     const { data: zam } = await sb
       .from("zamowienia")
       .select("created_at")
-      .ilike("klient->>email", email)
+      .ilike("klient->>email", escLike(email))
       .gte("created_at", new Date(zakt).toISOString())
       .limit(1);
     if (zam && zam.length > 0) {

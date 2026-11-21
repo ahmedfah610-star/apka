@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // ZIMA5 i BOBAS5: −5% od wartości produktów (dostawa bez rabatu), bez minimum, od 12.11.2026 do 20.02.2027 włącznie,
 // ukryte na stronie (działają po wpisaniu), każdy kod: 100 opłaconych zamówień i raz na numer telefonu.
 let wierszZBazy: Record<string, unknown> | null = null;
-let uzycia: { klient: { telefon?: string } | null }[] = [];
+let uzycia: { tel: string | null }[] = []; // zamowienia.select("tel:klient->>telefon")
 vi.mock("@/lib/supabase", () => ({
   supabaseWlaczony: () => true,
   sbService: () => ({
@@ -49,16 +49,16 @@ describe("kody ZIMA5 i BOBAS5", () => {
   });
 
   it("pula 100 osób: 99 użyć → działa, 100 → wykorzystana", async () => {
-    uzycia = Array.from({ length: 99 }, (_, i) => ({ klient: { telefon: String(600000000 + i) } }));
+    uzycia = Array.from({ length: 99 }, (_, i) => ({ tel: String(600000000 + i) }));
     expect((await sprawdz("ZIMA5", 100, "511111111")).ok).toBe(true);
-    uzycia.push({ klient: { telefon: "699999999" } });
+    uzycia.push({ tel: "699999999" });
     const w = await sprawdz("ZIMA5", 100, "511111111");
     expect(w.ok).toBe(false);
     expect(w.blad).toMatch(/wykorzystana/);
   });
 
   it("raz na numer: ten sam numer w innym zapisie → odmowa; podgląd bez numeru → ok; zamówienie bez numeru → prośba", async () => {
-    uzycia = [{ klient: { telefon: "+48 500-600-700" } }, { klient: null }];
+    uzycia = [{ tel: "+48 500-600-700" }, { tel: null }];
     const w = await sprawdz("BOBAS5", 100, "0048500600700");
     expect(w.ok).toBe(false);
     expect(w.blad).toMatch(/już wykorzystany dla tego numeru/);

@@ -1,5 +1,6 @@
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
 import { ipZadania, wLimicie, limitOdpowiedz } from "@/lib/rateLimit";
+import { EMAIL_BEZPIECZNY, escLike } from "@/lib/escLike";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, blad: "Podaj numer zamówienia i e-mail." }, { status: 400 });
   }
   // Pełny adres e-mail, bez znaków-wieloznaczników (inaczej „%” pasowałby do cudzych zamówień).
-  if (!/^[^\s@%*\\]+@[^\s@%*\\]+\.[^\s@%*\\]{2,}$/.test(email) || email.length > 160 || !/^[0-9a-f-]{4,36}$/.test(numer)) {
+  if (!EMAIL_BEZPIECZNY.test(email) || email.length > 160 || !/^[0-9a-f-]{4,36}$/.test(numer)) {
     return Response.json({ ok: false, blad: "Nie znaleziono zamówienia dla podanych danych." }, { status: 404 });
   }
   if (!supabaseWlaczony()) return Response.json({ ok: false, blad: "Sprawdzanie statusu jest chwilowo niedostępne." }, { status: 503 });
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
   const { data } = await sb
     .from("zamowienia")
     .select("id, created_at, status, razem, dostawa, metoda, pozycje")
-    .ilike("klient->>email", email.replace(/_/g, "\\_")) // „_” w adresie dosłownie, nie jako dowolny znak
+    .ilike("klient->>email", escLike(email)) // „_” w adresie dosłownie, nie jako dowolny znak
     .order("created_at", { ascending: false })
     .limit(50);
 
