@@ -4,7 +4,7 @@ import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ADS_ID } from "@/lib/analityka";
-import { stanZgod as stan } from "@/lib/zgody";
+import { stanZgod as stan, ZGODY_DOMYSLNE } from "@/lib/zgody";
 
 const KLUCZ = "fasolka-zgoda-cookies";
 
@@ -51,6 +51,7 @@ export function GoogleAnalytics() {
           <Script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} strategy="afterInteractive" />
           <Script id="ga-init" strategy="afterInteractive">
             {`
+              ${ZGODY_DOMYSLNE}
               ${zgoda ? `gtag('consent', 'update', ${stan("granted")});` : ""}
               gtag('js', new Date());
               gtag('config', '${id}', { anonymize_ip: true });
