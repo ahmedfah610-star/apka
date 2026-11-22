@@ -285,6 +285,23 @@ export default function AdminImport() {
                     </button>
                   </div>
                 </details>
+                {/* Po dodaniu uprawnień aplikacji na apps.developer.allegro.pl (np. oceny, profil) trzeba pobrać
+                    nowy klucz — bez tego Allegro odpowiada 403. Produkty i powiązania zostają bez zmian. */}
+                <details className="w-full" open={!!start}>
+                  <summary className="cursor-pointer text-[13px] text-ink-2 hover:text-ink">Połącz ponownie (po zmianie uprawnień aplikacji)</summary>
+                  <div className="mt-3">
+                    <button onClick={polacz} disabled={busy} className="rounded-lg border border-linia-2 px-5 py-2.5 text-[13px] font-semibold text-ink transition-colors hover:border-ink disabled:opacity-60">
+                      {busy && start ? "ŁĄCZENIE…" : "POŁĄCZ PONOWNIE Z ALLEGRO"}
+                    </button>
+                    {start ? (
+                      <div className="mt-3 rounded-lg border border-linia bg-szary/30 p-4 text-[14px]">
+                        <p>1. Otwórz: <a href={start.link} target="_blank" rel="noreferrer" className="font-semibold text-akcent underline">{start.link}</a></p>
+                        <p className="mt-1">2. Wpisz kod: <span className="rounded bg-white px-2 py-0.5 font-mono text-[16px] font-bold tracking-widest">{start.userCode}</span></p>
+                        <p className="mt-1 text-[12.5px] text-ink-2">3. Potwierdź dostęp — reszta zrobi się sama.</p>
+                      </div>
+                    ) : null}
+                  </div>
+                </details>
               </div>
             )}
           </section>

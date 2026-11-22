@@ -20,7 +20,9 @@ export function OpinieAllegroPanel() {
       setWynik(
         d?.ok
           ? `Gotowe: ${d.ocen} ocen na Allegro, ${d.opinii} opinii z treścią — już widać je na stronie.`
-          : `Nie udało się: ${d?.blad ?? "błąd połączenia"}. Jeśli to „403”, połącz Allegro ponownie (Produkty → Allegro).`,
+          : /403/.test(d?.blad ?? "")
+            ? "Aplikacja sklepu w Allegro nie ma uprawnień do profilu i ocen. Dodaj je na apps.developer.allegro.pl (Twoja aplikacja → edytuj → zaznacz uprawnienia do profilu i ocen → zapisz), potem w zakładce „Allegro” rozwiń „Połącz ponownie” i potwierdź kod. Na końcu kliknij tu jeszcze raz."
+            : `Nie udało się: ${d?.blad ?? "błąd połączenia"}.`,
       );
     } finally {
       setTrwa(false);
