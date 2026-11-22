@@ -1,4 +1,5 @@
-import { sbService } from "@/lib/supabase";
+import { createHash, randomBytes } from "node:crypto";
+import { sbServiceBezCache as sbService } from "@/lib/supabase";
 
 // Klient Allegro REST API (oficjalny) + autoryzacja Device Flow.
 // Token (refresh_token) trzymamy w tabeli allegro_auth; access_token odnawiamy sami.
@@ -71,6 +72,22 @@ export async function sprawdzDevice(deviceCode: string): Promise<{ ok: boolean; 
 
 // ── Token: przechowywanie i odświeżanie ─────────────────────────────────
 
+// Diagnostyka w historii panelu: KTO odświeżał (wdrożenie, źródło, proces) i KTÓRYM kluczem
+// (odcisk — 6 znaków skrótu, nie sam klucz). Gdy dwa procesy użyją tego samego klucza, widać to od razu.
+const PROCES = randomBytes(2).toString("hex");
+let zrodlo = "";
+/** Skąd idzie bieżące użycie Allegro (cron, panel…) — tylko do historii połączenia. */
+export function zrodloAllegro(z: string): void {
+  zrodlo = z;
+}
+const odcisk = (t: string | undefined) => (t ? "#" + createHash("sha256").update(t).digest("hex").slice(0, 6) : "#brak");
+function kto(): string {
+  const env = process.env.VERCEL_ENV ?? "lokalnie";
+  const commit = (process.env.VERCEL_GIT_COMMIT_SHA ?? "").slice(0, 7);
+  const adres = (process.env.VERCEL_URL ?? "").replace(/\.vercel\.app$/, "").slice(-24);
+  return [zrodlo || "?", `${env}${commit ? " " + commit : ""}`, adres, `proces ${PROCES}`].filter(Boolean).join(" · ");
+}
+
 async function zapiszToken(access: string, refresh: string, expiresIn: number): Promise<boolean> {
   const sb = sbService();
   if (!sb) return false;
@@ -117,7 +134,7 @@ async function zapiszZdarzenie(co: string): Promise<void> {
   try {
     const { data } = await sb.from("ustawienia").select("wartosc").eq("klucz", KLUCZ_HISTORII).maybeSingle();
     const lista = Array.isArray(data?.wartosc) ? (data!.wartosc as ZdarzenieTokenu[]) : [];
-    const nowa = [{ czas: new Date().toISOString(), co: bezTokenow(co).slice(0, 200) }, ...lista].slice(0, 15);
+    const nowa = [{ czas: new Date().toISOString(), co: `${bezTokenow(co)} [${kto()}]`.slice(0, 300) }, ...lista].slice(0, 30);
     await sb.from("ustawienia").upsert({ klucz: KLUCZ_HISTORII, wartosc: nowa, zaktualizowano: new Date().toISOString() });
   } catch {
     /* historia jest tylko pomocnicza */
@@ -132,24 +149,37 @@ export async function historiaTokenu(): Promise<ZdarzenieTokenu[]> {
 }
 
 async function odswiez(refresh: string): Promise<{ token: string | null; blad?: string }> {
-  try {
-    const res = await fetch(`${OAUTH}/token`, {
-      method: "POST",
-      headers: { Authorization: basic(), "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: refresh }),
-      signal: AbortSignal.timeout(10000),
-    });
+  // Odpowiedź Allegro bywa wolna: czekamy do 25 s. Brak odpowiedzi (sieć, limit czasu) → jedna ponowna próba
+  // tym samym kluczem — Allegro mogło już wydać nową parę, a stary klucz działa jeszcze ok. 60 s.
+  for (let proba = 0; proba < 2; proba++) {
+    let res: Response;
+    try {
+      res = await fetch(`${OAUTH}/token`, {
+        method: "POST",
+        headers: { Authorization: basic(), "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: refresh }),
+        signal: AbortSignal.timeout(25000),
+        cache: "no-store",
+      });
+    } catch (e) {
+      const blad = e instanceof Error ? e.message : "błąd sieci";
+      await zapiszZdarzenie(`Brak odpowiedzi Allegro przy odświeżaniu (${blad})${proba === 0 ? " — ponawiam" : ""}, klucz ${odcisk(refresh)}`);
+      if (proba === 0) continue;
+      return { token: null, blad };
+    }
     const d = (await res.json().catch(() => ({}))) as Record<string, unknown>;
     if (!res.ok || !d.access_token) {
       return { token: null, blad: bezTokenow(`Allegro ${res.status}: ${String(d.error_description || d.error || "odmowa odświeżenia")}`).slice(0, 300) };
     }
     // Refresh token Allegro jest jednorazowy (stary działa jeszcze 60 s) — nowy MUSI się zapisać.
-    const zapisany = await zapiszToken(String(d.access_token), String(d.refresh_token || refresh), Number(d.expires_in) || 3600);
-    await zapiszZdarzenie(zapisany ? "Odświeżono klucz" : "Odświeżono klucz, ale NIE udało się go zapisać w bazie");
+    const nowyRefresh = String(d.refresh_token || refresh);
+    const zapisany = await zapiszToken(String(d.access_token), nowyRefresh, Number(d.expires_in) || 3600);
+    await zapiszZdarzenie(
+      `${zapisany ? "Odświeżono klucz" : "Odświeżono klucz, ale NIE udało się go zapisać w bazie"} (${odcisk(refresh)} → ${odcisk(nowyRefresh)})`,
+    );
     return { token: String(d.access_token) };
-  } catch (e) {
-    return { token: null, blad: e instanceof Error ? e.message : "błąd sieci" };
   }
+  return { token: null, blad: "brak odpowiedzi Allegro" };
 }
 
 async function wierszTokenu() {
@@ -180,7 +210,7 @@ const waznyAccess = (w: { access_token?: string; expires_at?: string } | null) =
 };
 
 const czekaj = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const BLOKADA_MS = 25000; // dłużej żadne odświeżenie nie trwa (timeout zapytania 10 s)
+const BLOKADA_MS = 70000; // dłużej żadne odświeżenie nie trwa (2 × 25 s na odpowiedź Allegro + zapis)
 
 /** Blokada w bazie: tylko jeden proces naraz (cron, panel, kilka wątków synchronizacji) odświeża klucz. */
 async function zalozBlokade(): Promise<boolean> {
@@ -193,6 +223,7 @@ async function zalozBlokade(): Promise<boolean> {
   const { data } = await sb.from("ustawienia").select("wartosc").eq("klucz", KLUCZ_BLOKADY).maybeSingle();
   const czas = (data?.wartosc as { czas?: string } | undefined)?.czas;
   if (!data || (czas && Date.now() - new Date(czas).getTime() > BLOKADA_MS)) {
+    if (data) await zapiszZdarzenie("Przejmuję starą blokadę odświeżania (poprzedni proces przerwany?)");
     await sb.from("ustawienia").delete().eq("klucz", KLUCZ_BLOKADY);
     const { error: e2 } = await sb.from("ustawienia").insert({ klucz: KLUCZ_BLOKADY, wartosc: { czas: teraz }, zaktualizowano: teraz });
     return !e2;
@@ -212,14 +243,18 @@ const uzywalny = (w: Awaited<ReturnType<typeof wierszTokenu>>, odrzucony?: strin
 async function odswiezZBlokada(odrzucony?: string): Promise<string | null> {
   let mam = await zalozBlokade();
   if (!mam) {
-    // Ktoś inny właśnie odświeża — czekamy na jego nowy klucz zamiast zużywać ten sam refresh token.
-    for (let i = 0; i < 24 && !mam; i++) {
+    // Ktoś inny właśnie odświeża — czekamy (do ok. 40 s) na jego nowy klucz zamiast zużywać ten sam refresh token.
+    await zapiszZdarzenie("Inny proces odświeża klucz — czekam na jego wynik");
+    for (let i = 0; i < 80 && !mam; i++) {
       await czekaj(500);
       const w = await wierszTokenu();
       if (uzywalny(w, odrzucony)) return w!.access_token!;
       if (i % 4 === 3) mam = await zalozBlokade();
     }
-    if (!mam) return null;
+    if (!mam) {
+      await zapiszZdarzenie("Nie doczekałem się nowego klucza od innego procesu — pomijam (bez zużywania klucza)");
+      return null;
+    }
   }
   try {
     // Odczyt pod blokadą — mogło się już odświeżyć, zanim ją dostaliśmy.
@@ -231,10 +266,17 @@ async function odswiezZBlokada(odrzucony?: string): Promise<string | null> {
       await zapiszBladTokenu(null);
       return r.token;
     }
-    const w2 = await wierszTokenu();
-    if (uzywalny(w2, odrzucony)) return w2!.access_token!;
+    // Odmowa — może inny proces (np. bez blokady) właśnie zapisał nową parę: sprawdź jeszcze dwa razy.
+    for (let i = 0; i < 2; i++) {
+      await czekaj(1500);
+      const w2 = await wierszTokenu();
+      if (uzywalny(w2, odrzucony)) return w2!.access_token!;
+    }
+    const w3 = await wierszTokenu();
     console.error(`[allegro] nie udało się odświeżyć tokenu: ${r.blad}`);
-    await zapiszZdarzenie(`Odmowa odświeżenia — ${r.blad ?? "nieznany błąd"}`);
+    await zapiszZdarzenie(
+      `Odmowa odświeżenia — ${r.blad ?? "nieznany błąd"} (użyty klucz ${odcisk(w.refresh_token)}, w bazie teraz ${odcisk(w3?.refresh_token)})`,
+    );
     await zapiszBladTokenu(r.blad ?? "nieznany błąd");
     return null;
   } finally {
@@ -286,6 +328,7 @@ export async function allegroGet<T = unknown>(sciezka: string): Promise<T> {
     fetch(`${API}${sciezka}`, {
       headers: { Authorization: `Bearer ${t}`, Accept: ACCEPT },
       signal: AbortSignal.timeout(10000), // zawieszone zapytanie nie może zjeść limitu funkcji
+      cache: "no-store",
     });
   let res = await zapytaj(token);
   if (res.status === 401) {

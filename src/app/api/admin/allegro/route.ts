@@ -1,4 +1,5 @@
 import { czyAdmin } from "@/lib/adminAuth";
+import { zrodloAllegro } from "@/lib/allegro";
 import { allegroSkonfigurowany, stanPolaczenia, rozpocznijDevice, sprawdzDevice, allegroGet } from "@/lib/allegro";
 import { bazaNazwy, czyDamski, importujStrone, przeklasyfikuj, scalProdukty } from "@/lib/allegroImport";
 import { ladnaNazwa } from "@/lib/nazwa";
@@ -15,6 +16,7 @@ export const maxDuration = 60; // limit planu Hobby
 
 // Status połączenia z Allegro. ?probka=1 → kształt jednej zapisanej oferty (diagnostyka).
 export async function GET(req: Request) {
+  zrodloAllegro("panel");
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
   const url = new URL(req.url);
   if (url.searchParams.get("synchronizacja")) {
@@ -179,6 +181,7 @@ export async function GET(req: Request) {
 
 // Akcje: start (device flow), poll (sprawdź autoryzację), import (pobierz oferty).
 export async function POST(req: Request) {
+  zrodloAllegro("panel");
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
   const b = (await req.json().catch(() => ({}))) as { akcja?: string; deviceCode?: string; tylkoAktywne?: boolean; offset?: number; usunNieaktualne?: boolean; ids?: string[]; dokladajRozmiary?: boolean; noweProdukty?: string[] };
 

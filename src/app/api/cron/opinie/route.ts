@@ -1,4 +1,5 @@
 import { sbService } from "@/lib/supabase";
+import { zrodloAllegro } from "@/lib/allegro";
 import { wyslijMailProsbaOOpinie, mailWlaczony } from "@/lib/mail";
 import { przypomnijKoszyki } from "@/lib/koszykCron";
 import { kodyPowitalneCron } from "@/lib/kodPowitalnyWysylka";
@@ -18,6 +19,7 @@ export async function GET(req: Request) {
   if (req.headers.get("authorization") !== `Bearer ${sekret}`) {
     return Response.json({ ok: false, powod: "brak_dostepu" }, { status: 401 });
   }
+  zrodloAllegro("cron opinie");
   const sb = sbService();
   if (!sb) return Response.json({ ok: false, powod: "brak_bazy" }, { status: 503 });
 

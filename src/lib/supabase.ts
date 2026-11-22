@@ -31,3 +31,16 @@ export function sbService(): SupabaseClient | null {
   if (!URL || !SERVICE) return null;
   return createClient(URL, SERVICE, { auth: { persistSession: false } });
 }
+
+/**
+ * Klient serwerowy bez pamięci podręcznej Next.js (każdy odczyt prosto z bazy). Tylko do klucza Allegro
+ * i blokad — tam stara kopia odczytu oznacza użycie zużytego, jednorazowego klucza i zerwanie połączenia.
+ * Nie używać przy renderowaniu stron (fetch „no-store” zrobiłby z nich strony dynamiczne).
+ */
+export function sbServiceBezCache(): SupabaseClient | null {
+  if (!URL || !SERVICE) return null;
+  return createClient(URL, SERVICE, {
+    auth: { persistSession: false },
+    global: { fetch: (wejscie: RequestInfo | URL, init?: RequestInit) => fetch(wejscie, { ...init, cache: "no-store" }) },
+  });
+}

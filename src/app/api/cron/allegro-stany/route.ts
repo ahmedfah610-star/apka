@@ -1,4 +1,5 @@
 import { synchronizujStany } from "@/lib/allegroStany";
+import { zrodloAllegro } from "@/lib/allegro";
 import { automatycznePrzypomnienia } from "@/lib/przypomnieniaPlatnosci";
 import { sbService } from "@/lib/supabase";
 import { odswiezOpinieAllegro } from "@/lib/opinieAllegro";
@@ -14,6 +15,7 @@ export async function GET(req: Request) {
   if (req.headers.get("authorization") !== `Bearer ${sekret}`) {
     return Response.json({ ok: false, powod: "brak_dostepu" }, { status: 401 });
   }
+  zrodloAllegro("cron stany 21:00");
   const r = await synchronizujStany({ zrodlo: "codzienna" });
   // Przy okazji (wieczorem): przypomnienia o niedokończonej płatności — rano idą z crona „opinie".
   const sb = sbService();

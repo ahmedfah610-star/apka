@@ -8,8 +8,8 @@ const ustawienia = new Map<string, unknown>();
 let odczyty = 0;
 let poPierwszymOdczycie: Wiersz | undefined;
 
-vi.mock("@/lib/supabase", () => ({
-  sbService: () => ({
+vi.mock("@/lib/supabase", () => {
+  const sb = () => ({
     from: (t: string) => ({
       select: () => ({
         eq: (_k: string, v: string) => ({
@@ -35,8 +35,9 @@ vi.mock("@/lib/supabase", () => ({
       },
       delete: () => ({ eq: async (_k: string, v: string) => { ustawienia.delete(v); return { error: null }; } }),
     }),
-  }),
-}));
+  });
+  return { sbService: sb, sbServiceBezCache: sb };
+});
 
 const przeszlosc = new Date(Date.now() - 1000).toISOString();
 
@@ -170,11 +171,36 @@ describe("token Allegro", () => {
 
   it("blokada po przerwanej funkcji (stara) jest przejmowana", async () => {
     auth = { access_token: "a1", refresh_token: "r1", expires_at: przeszlosc };
-    ustawienia.set("allegro:odswiezanie", { czas: new Date(Date.now() - 60000).toISOString() });
+    ustawienia.set("allegro:odswiezanie", { czas: new Date(Date.now() - 120000).toISOString() });
     vi.stubGlobal("fetch", async () => new Response(JSON.stringify({ access_token: "a2", refresh_token: "r2", expires_in: 43199 }), { status: 200 }));
     const { aktualnyToken } = await import("@/lib/allegro");
     expect(await aktualnyToken()).toBe("a2");
     expect(ustawienia.has("allegro:odswiezanie")).toBe(false);
+  });
+
+  it("brak odpowiedzi Allegro przy odświeżaniu → jedna ponowna próba tym samym kluczem, połączenie zostaje", async () => {
+    auth = { access_token: "a1", refresh_token: "r1", expires_at: przeszlosc };
+    let proby = 0;
+    vi.stubGlobal("fetch", async () => {
+      proby++;
+      if (proby === 1) throw new Error("The operation was aborted due to timeout");
+      return new Response(JSON.stringify({ access_token: "a2", refresh_token: "r2", expires_in: 43199 }), { status: 200 });
+    });
+    const { aktualnyToken } = await import("@/lib/allegro");
+    expect(await aktualnyToken()).toBe("a2");
+    expect(proby).toBe(2);
+    expect(auth?.refresh_token).toBe("r2");
+  });
+
+  it("historia pokazuje odcisk klucza (nie sam klucz) i kto odświeżał", async () => {
+    auth = { access_token: "a1", refresh_token: "r1", expires_at: przeszlosc };
+    vi.stubGlobal("fetch", async () => new Response(JSON.stringify({ access_token: "a2", refresh_token: "r2", expires_in: 43199 }), { status: 200 }));
+    const { aktualnyToken, zrodloAllegro, historiaTokenu } = await import("@/lib/allegro");
+    zrodloAllegro("cron stany 21:00");
+    await aktualnyToken();
+    const wpis = (await historiaTokenu())[0].co;
+    expect(wpis).toMatch(/^Odświeżono klucz \(#[0-9a-f]{6} → #[0-9a-f]{6}\) \[cron stany 21:00 · /);
+    expect(wpis).not.toMatch(/\br1\b|\br2\b/);
   });
 
   it("tokeny wklejone przez Allegro do błędów nie trafiają do panelu", async () => {
