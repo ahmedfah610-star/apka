@@ -9,6 +9,8 @@ import { pomiarProduktu } from "@/lib/analityka";
 import { licz } from "@/lib/licznikKlient";
 import { Galeria } from "@/components/Galeria";
 import { TerminDostawy } from "@/components/TerminDostawy";
+import { PasekOpiniiAllegro } from "@/components/OpinieAllegro";
+import type { PodsumowanieAllegro } from "@/lib/opinieAllegro";
 import { KATEGORIE_LABEL, type Produkt } from "@/data/produkty";
 import { formatCena } from "@/lib/filtrowanie";
 import { PromocjaProduktu } from "@/components/InfoPromocji";
@@ -29,7 +31,7 @@ const CECHY: Record<string, string[]> = {
  * strony). Klik w kolor natychmiast zmienia zdjęcia/cenę/stan/rozmiary wybranego
  * wariantu i aktualizuje adres — koniec z „miga poprzedni kolor" na wolnym łączu.
  */
-export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startId: string }) {
+export function PanelZakupu({ warianty, startId, opinieAllegro = null }: { warianty: Produkt[]; startId: string; opinieAllegro?: PodsumowanieAllegro | null }) {
   const [aktywnyId, setAktywnyId] = useState(startId);
   const [wybranyRozmiar, setWybranyRozmiar] = useState<string | undefined>(undefined);
   const p = warianty.find((x) => x.id === aktywnyId) ?? warianty[0];
@@ -82,6 +84,7 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
         ) : (
           <p className="mb-2 text-[26px] font-extrabold text-ink">{formatCena(p.cena)} zł</p>
         )}
+        {opinieAllegro ? <PasekOpiniiAllegro p={opinieAllegro} href="#opinie-allegro" className="mb-3" /> : null}
         {p.stan === 0 ? null : <PromocjaProduktu />}
         {et ? (
           <p className={`mb-3 flex items-center gap-1.5 text-[13.5px] font-semibold ${kolorStanu}`}>

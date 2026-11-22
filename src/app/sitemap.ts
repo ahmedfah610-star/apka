@@ -43,6 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BAZA_URL}/o-nas`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${BAZA_URL}/kontakt`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${BAZA_URL}/faq`, changeFrequency: "monthly", priority: 0.4 },
+    { url: `${BAZA_URL}/opinie`, changeFrequency: "weekly", priority: 0.5 },
     { url: `${BAZA_URL}/dostawa-i-zwroty`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${BAZA_URL}/regulamin`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${BAZA_URL}/polityka-prywatnosci`, changeFrequency: "yearly", priority: 0.2 },

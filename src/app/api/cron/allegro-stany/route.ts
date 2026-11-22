@@ -1,6 +1,7 @@
 import { synchronizujStany } from "@/lib/allegroStany";
 import { automatycznePrzypomnienia } from "@/lib/przypomnieniaPlatnosci";
 import { sbService } from "@/lib/supabase";
+import { odswiezOpinieAllegro } from "@/lib/opinieAllegro";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -17,5 +18,7 @@ export async function GET(req: Request) {
   // Przy okazji (wieczorem): przypomnienia o niedokończonej płatności — rano idą z crona „opinie".
   const sb = sbService();
   const przypomnienia = sb ? await automatycznePrzypomnienia(sb) : { ok: false };
-  return Response.json({ ...r, przypomnienia }, { status: r.ok ? 200 : 500 });
+  // Opinie o sklepie z Allegro (na stronę) — kilka zapytań, raz dziennie.
+  const opinie = await odswiezOpinieAllegro();
+  return Response.json({ ...r, przypomnienia, opinie }, { status: r.ok ? 200 : 500 });
 }

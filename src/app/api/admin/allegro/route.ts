@@ -5,6 +5,7 @@ import { ladnaNazwa } from "@/lib/nazwa";
 import { odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 import { sbService } from "@/lib/supabase";
 import { ostatniRaport, synchronizujStany } from "@/lib/allegroStany";
+import { odswiezOpinieAllegro } from "@/lib/opinieAllegro";
 import { kandydaciDoPobrania, pobierzPorcje, odswiezLicznikNowych } from "@/lib/allegroNowe";
 
 export const dynamic = "force-dynamic";
@@ -250,6 +251,12 @@ export async function POST(req: Request) {
     } catch (e) {
       return Response.json({ ok: false, blad: e instanceof Error ? e.message : "błąd" }, { status: 500 });
     }
+  }
+
+  if (b.akcja === "opinie") {
+    // Opinie o sklepie z Allegro — na żądanie z panelu (zwykle raz dziennie z crona).
+    const r = await odswiezOpinieAllegro();
+    return Response.json(r, { status: r.ok ? 200 : 500 });
   }
 
   if (b.akcja === "synchronizuj_stany") {

@@ -67,6 +67,7 @@ export function Stopka() {
             <li><Link href="/dostawa-i-zwroty" className="no-underline hover:text-akcent">Dostawa i zwroty</Link></li>
             <li><Link href="/rozmiary" className="no-underline hover:text-akcent">Tabela rozmiarów</Link></li>
             <li><Link href="/faq" className="no-underline hover:text-akcent">FAQ</Link></li>
+            <li><Link href="/opinie" className="no-underline hover:text-akcent">Opinie klientów</Link></li>
             <li><Link href="/blog" className="no-underline hover:text-akcent">Blog</Link></li>
             <li><Link href="/kontakt" className="no-underline hover:text-akcent">Kontakt</Link></li>
           </ul>

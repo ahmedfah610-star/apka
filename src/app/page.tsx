@@ -6,6 +6,8 @@ import { Nawigacja } from "@/components/Nawigacja";
 import { KartaProduktu } from "@/components/KartaProduktu";
 import { Newsletter } from "@/components/Newsletter";
 import { Stopka } from "@/components/Stopka";
+import { PasekZaufaniaAllegro } from "@/components/OpinieAllegro";
+import { opinieAllegro } from "@/lib/opinieAllegro";
 import { type Produkt } from "@/data/produkty";
 import { KOLEKCJE, produktyKolekcji } from "@/data/kolekcje";
 import { katalogWidoczny } from "@/lib/produktyDb";
@@ -139,7 +141,7 @@ function Rzad({ tytul, link, linkTekst, pozycje }: { tytul: string; link: string
 }
 
 export default async function StronaGlowna() {
-  const katalog = await katalogWidoczny(); // kolejność: od najstarszego
+  const [katalog, zAllegro] = await Promise.all([katalogWidoczny(), opinieAllegro().catch(() => null)]); // katalog: od najstarszego
   const naStanie = katalog.filter(dostepny);
   const najnowsze = [...naStanie].reverse();
   const ustawieniaDostawy = await pobierzDostawe();
@@ -273,6 +275,8 @@ export default async function StronaGlowna() {
             ))}
           </div>
         </section>
+
+        {zAllegro ? <PasekZaufaniaAllegro podsumowanie={zAllegro.podsumowanie} opinie={zAllegro.opinie} /> : null}
 
         <Rzad tytul="Nowości" link="/produkty?sort=nowosci" linkTekst="Zobacz wszystkie" pozycje={nowosci} />
         <Rzad tytul="Do 20 zł" link={`/produkty?cena=${DO_20.slug}&sort=cena-rosnaco`} linkTekst="Od najtańszych" pozycje={rzadTanie} />

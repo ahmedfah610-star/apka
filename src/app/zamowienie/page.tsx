@@ -27,6 +27,8 @@ import { FormularzFaktury, PUSTA_FAKTURA, fakturaDoWyslania, type StanFaktury } 
 import { sprawdzFakture, type DaneFaktury } from "@/lib/faktura";
 import { PROMOCJE, numerTelefonu } from "@/lib/promocja";
 import { kodAutomatyczny, odrzucKodAutomatyczny } from "@/lib/kodAutomatyczny";
+import { PasekOpiniiAllegro } from "@/components/OpinieAllegro";
+import type { PodsumowanieAllegro } from "@/lib/opinieAllegro";
 
 // Płatności obsługuje w całości Przelewy24 — to na jego bezpiecznej stronie
 // klient wybiera BLIK / przelew / kartę. Nie dublujemy tu tego wyboru.
@@ -51,6 +53,14 @@ export default function StronaZamowienia() {
   // Faktura (opcjonalnie) — dane sprawdzane też na serwerze przed zapisem zamówienia.
   const [faktura, setFaktura] = useState<StanFaktury>(PUSTA_FAKTURA);
   const [blad, setBlad] = useState("");
+  // „X% kupujących poleca · N ocen na Allegro” przy przycisku płatności (z pamięci podręcznej Vercela).
+  const [opinieAllegro, setOpinieAllegro] = useState<PodsumowanieAllegro | null>(null);
+  useEffect(() => {
+    fetch("/api/opinie-allegro")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d?.podsumowanie && setOpinieAllegro(d.podsumowanie))
+      .catch(() => {});
+  }, []);
   const [wysylka, setWysylka] = useState(false);
   const [platnosciOnline, setPlatnosciOnline] = useState(false);
 
@@ -582,6 +592,7 @@ export default function StronaZamowienia() {
             </svg>
             {platnosciOnline ? "Bezpieczna płatność — BLIK, Przelewy24, karta" : "Bezpieczne zamówienie"}
           </p>
+          {opinieAllegro ? <PasekOpiniiAllegro p={opinieAllegro} href={null} className="mt-3 justify-center" /> : null}
           {!platnosciOnline ? (
             <p className="mt-2 text-center text-[11px] leading-relaxed text-ink-2">
               Płatności online nie są jeszcze aktywne — zamówienie zostanie zapisane, a my skontaktujemy się w sprawie zapłaty.

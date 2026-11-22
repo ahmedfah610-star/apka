@@ -7,13 +7,15 @@ import { OstatnioOgladane } from "@/components/OstatnioOgladane";
 import { Opinie } from "@/components/Opinie";
 import { OpisRozmiarowy } from "@/components/OpisRozmiarowy";
 import { Stopka } from "@/components/Stopka";
+import { OpinieAllegroSekcja } from "@/components/OpinieAllegro";
+import { opinieDoProduktu, type OpinieAllegro } from "@/lib/opinieAllegro";
 import { KATEGORIE_LABEL, opisProduktu, type Produkt } from "@/data/produkty";
 import { kluczWariantu, zwinWarianty } from "@/lib/warianty";
 import { nizszeNaglowki } from "@/lib/opis";
 import { OPIS_KLASA } from "@/lib/opisStyl";
 
 
-export function WidokProduktu({ produkt, wszystkie }: { produkt: Produkt; wszystkie: Produkt[] }) {
+export function WidokProduktu({ produkt, wszystkie, opinieAllegro = null }: { produkt: Produkt; wszystkie: Produkt[]; opinieAllegro?: OpinieAllegro | null }) {
   // Klucz rodziny z katalogu (liczony dla całości) — ten sam, co na liście. Produkt z bazy
   // czytany osobno nie zna swojej rodziny, więc przenosimy ją z wpisu w katalogu.
   const p: Produkt = { ...produkt, rodzina: wszystkie.find((x) => x.id === produkt.id)?.rodzina ?? produkt.rodzina };
@@ -42,7 +44,7 @@ export function WidokProduktu({ produkt, wszystkie }: { produkt: Produkt; wszyst
       </div>
 
       <div className="mx-auto max-w-content pb-8 md:px-12 md:pb-20">
-        <PanelZakupu warianty={rodzina} startId={p.id} />
+        <PanelZakupu warianty={rodzina} startId={p.id} opinieAllegro={opinieAllegro?.podsumowanie ?? null} />
       </div>
 
       {/* Pełny opis — osobna, pełnowymiarowa sekcja (zdjęcia wyśrodkowane i wyrównane). */}
@@ -66,6 +68,20 @@ export function WidokProduktu({ produkt, wszystkie }: { produkt: Produkt; wszyst
       </section>
 
       <Opinie produktId={p.id} />
+
+      {/* Opinie o sklepie z Allegro — najpierw te o tym produkcie (i jego kolorach), potem najnowsze. */}
+      {opinieAllegro ? (
+        <section id="opinie-allegro" className="scroll-mt-24 px-4 pb-10 md:px-12 md:pb-20">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="mb-3 text-[20px] font-extrabold tracking-tight md:mb-5 md:text-[22px]">Opinie o naszym sklepie z Allegro</h2>
+            <OpinieAllegroSekcja
+              podsumowanie={opinieAllegro.podsumowanie}
+              opinie={opinieDoProduktu(opinieAllegro.opinie, rodzina.map((x) => x.id))}
+              idProduktow={rodzina.map((x) => x.id)}
+            />
+          </div>
+        </section>
+      ) : null}
 
       {podobne.length > 0 ? (
         <section className="px-4 pb-12 pt-8 md:px-12 md:pb-20 md:pt-0">
