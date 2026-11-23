@@ -5,7 +5,6 @@ import { WidokProduktu } from "@/components/WidokProduktu";
 import { KATEGORIE_LABEL, opisProduktu, type Produkt } from "@/data/produkty";
 import { katalogWidoczny, znajdzProduktDb } from "@/lib/produktyDb";
 import { pobierzOpinie, agregat, type Opinia } from "@/lib/opinieDb";
-import { opinieAllegro } from "@/lib/opinieAllegro";
 import { najtanszaDostawa } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 import { BAZA_URL, NAZWA_SKLEPU, jsonLd, opisMetaProduktu } from "@/lib/seo";
@@ -130,12 +129,12 @@ export default async function StronaProduktu({ params }: { params: { id: string 
 
   if (!p) notFound(); // prawidłowy status 404 (bez soft-404) + nasza strona 404
 
-  const [opinie, dostawa, zAllegro] = await Promise.all([pobierzOpinie(p.id), pobierzDostawe(), opinieAllegro().catch(() => null)]);
+  const [opinie, dostawa] = await Promise.all([pobierzOpinie(p.id), pobierzDostawe()]);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(daneProduktu(p, opinie, najtanszaDostawa(dostawa)))} />
-      <WidokProduktu produkt={p} wszystkie={wszystkie} opinieAllegro={zAllegro} />
+      <WidokProduktu produkt={p} wszystkie={wszystkie} />
     </>
   );
 }

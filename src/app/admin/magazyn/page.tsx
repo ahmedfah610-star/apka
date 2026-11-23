@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SynchronizacjaStanow } from "@/components/SynchronizacjaStanow";
-import { OpinieAllegroPanel } from "@/components/OpinieAllegroPanel";
 import { zdjecie } from "@/lib/zdjecia";
 import type { Produkt } from "@/data/produkty";
 import type { RaportStanow } from "@/lib/allegroStany";
@@ -91,9 +90,8 @@ export default function KontrolaStanow() {
         </p>
       </div>
 
-      <div className="mb-6 grid gap-3">
+      <div className="mb-6">
         <SynchronizacjaStanow />
-        <OpinieAllegroPanel />
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
