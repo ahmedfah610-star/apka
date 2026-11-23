@@ -69,7 +69,7 @@ function JednaOpinia({ o, oTymProdukcie }: { o: OpiniaAllegro; oTymProdukcie?: b
           ) : (
             <span className="font-semibold text-red-700">· nie poleca</span>
           )}
-          {oTymProdukcie ? <span className="rounded-md bg-akcent/10 px-1.5 py-0.5 text-[11px] font-bold text-akcent">ten produkt</span> : null}
+          {oTymProdukcie ? <span className="rounded-md bg-akcent/10 px-1.5 py-0.5 text-[11px] font-bold text-akcent">zamówienie z tym produktem</span> : null}
         </span>
         <span className="shrink-0">{dzien(o.data)}</span>
       </div>
