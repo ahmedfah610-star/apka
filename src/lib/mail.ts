@@ -721,7 +721,6 @@ export function mailBrakTowaruHtml(d: DaneBrakuTowaru): string {
           </td></tr>
         </table>`
       : "";
-  const reszta = d.calosc ? "" : `<p style="margin:0 0 14px;font-size:14.5px;line-height:1.65;color:${M.ink2}">Pozostałe produkty z zamówienia wyślemy normalnie — dostaniesz od nas maila z numerem przesyłki.</p>`;
   const kupon = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 20px;border:2px dashed ${M.akcent};border-radius:14px;background:${M.tlo}">
     <tr><td align="center" style="padding:18px 18px 16px">
       <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${M.ink3}">Żeby choć trochę to wynagrodzić</div>
@@ -738,7 +737,6 @@ export function mailBrakTowaruHtml(d: DaneBrakuTowaru): string {
     tresc: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 18px">${lista}</table>
       <p style="margin:0 0 14px;font-size:14.5px;line-height:1.65;color:${M.ink2}">${pieniadze}</p>
       ${potwierdzenie}
-      ${reszta}
       ${kupon}
       <p style="margin:0;font-size:14.5px;line-height:1.65;color:${M.ink2}">Szukasz czegoś podobnego? Odpisz na tę wiadomość — podeślemy propozycje w tym samym rozmiarze. Jeszcze raz przepraszamy za kłopot.</p>`,
     cta: { tekst: "ZOBACZ NOWOŚCI", url: `${BAZA}/produkty?sort=nowosci` },

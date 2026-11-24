@@ -28,13 +28,13 @@ describe("brak towaru — kwota zwrotu", () => {
 
 describe("mail o braku towaru", () => {
   const baza = { id: "a1b2c3d4-0000-4000-8000-000000000000", email: "anna@example.com", imie: "Anna Kowalska", kod: "NADROBIMY10", procentKodu: 10 };
-  it("zwrot już zrobiony: przeprosiny, numer zamówienia, kwota, kod, pozostałe wyślemy", () => {
+  it("zwrot już zrobiony: przeprosiny, numer zamówienia, kwota, kod — bez zdania o wysyłce reszty", () => {
     const html = mailBrakTowaruHtml({ ...baza, brakujace: [z.pozycje[1]], calosc: false, kwota: 27, zwrot: "zwrocone" });
     expect(html).toContain("Anna, bardzo przepraszamy");
     expect(html).toContain("#a1b2c3d4");
     expect(html).toContain("27,00 zł już zwróciliśmy");
     expect(html).toContain("NADROBIMY10");
-    expect(html).toContain("Pozostałe produkty z zamówienia wyślemy normalnie");
+    expect(html).not.toContain("Pozostałe produkty");
   });
   it("prośba o numer konta, całe zamówienie — bez zdania o wysyłce reszty", () => {
     const html = mailBrakTowaruHtml({ ...baza, brakujace: z.pozycje, calosc: true, kwota: 52.26, zwrot: "konto" });
