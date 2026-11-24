@@ -31,6 +31,9 @@ const WSPOLNE = {
 export const PROMOCJE: Promocja[] = [
   { kod: "ZIMA5", ...WSPOLNE },
   { kod: "BOBAS5", ...WSPOLNE },
+  // Kod przeprosinowy do maili (brak towaru, zwrot): −10%, bez minimum i bez daty końca, nigdzie nie
+  // pokazywany, bez limitu osób — ale raz na numer telefonu, więc nawet gdy wycieknie, każdy użyje go raz.
+  { kod: "NADROBIMY10", procent: 10, minKoszyk: 0, od: "2026-11-24T00:00:00+01:00", do: null, widoczna: false, limitUzyc: null, razNaTelefon: true },
 ];
 
 /** Test: kod dodawany automatycznie po włożeniu czegoś do koszyka (null = wyłączone). */

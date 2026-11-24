@@ -37,6 +37,18 @@ describe("kody ZIMA5 i BOBAS5", () => {
     expect((await sprawdz("CIEPLO5", 50)).ok).toBe(false);
   });
 
+  it("NADROBIMY10 (przeprosiny w mailach): −10%, bez minimum i daty końca, raz na numer telefonu", async () => {
+    vi.setSystemTime(new Date("2026-11-25T12:00:00+01:00"));
+    expect((await sprawdz("nadrobimy10", 59.9)).rabat).toBe(5.99);
+    vi.setSystemTime(new Date("2028-06-01T12:00:00+02:00"));
+    expect((await sprawdz("NADROBIMY10", 30)).ok).toBe(true);
+    uzycia = [{ tel: "500600700" }];
+    const drugi = await sprawdz("NADROBIMY10", 30, "+48 500 600 700");
+    expect(drugi.ok).toBe(false);
+    expect(drugi.blad).toBe("Kod NADROBIMY10 został już wykorzystany.");
+    expect((await sprawdz("NADROBIMY10", 30, "511222333")).rabat).toBe(3);
+  });
+
   it("ważne do 20.02.2027 23:59:59 włącznie, nie przed 12.11.2026", async () => {
     vi.setSystemTime(new Date("2026-11-11T23:59:00+01:00"));
     expect((await sprawdz("ZIMA5", 100)).ok).toBe(false);
@@ -92,7 +104,7 @@ describe("kody ZIMA5 i BOBAS5", () => {
     const { PROMOCJA, PROMOCJE, promocjaWidoczna, warunkiPromocji, zakresPromocji } = await import("@/lib/promocja");
     expect(PROMOCJA).toBeNull();
     expect(promocjaWidoczna()).toBeNull();
-    expect(PROMOCJE.map((p) => p.kod)).toEqual(["ZIMA5", "BOBAS5"]);
+    expect(PROMOCJE.map((p) => p.kod)).toEqual(["ZIMA5", "BOBAS5", "NADROBIMY10"]);
     expect(zakresPromocji(PROMOCJE[0])).toBe("na wszystko");
     expect(warunkiPromocji(PROMOCJE[0])).toMatch(/bez minimalnej kwoty/);
   });
