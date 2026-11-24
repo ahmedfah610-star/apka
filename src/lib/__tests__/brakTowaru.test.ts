@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { indeksyBraku, kwotaZwrotu } from "@/lib/brakTowaru";
-import { mailBrakTowaruHtml } from "@/lib/mail";
+import { mailBrakTowaruHtml, mailKodPowitalnyHtml } from "@/lib/mail";
 
 const z = {
   pozycje: [
@@ -41,5 +41,26 @@ describe("mail o braku towaru", () => {
     expect(html).toContain("Zwrócimy Ci 52,26 zł");
     expect(html).toContain("numerem konta");
     expect(html).not.toContain("Pozostałe produkty");
+  });
+
+  it("imię i nazwa produktu bezpieczne i bez podwójnego kodowania; kod mieści się na małym telefonie", () => {
+    const html = mailBrakTowaruHtml({ ...baza, imie: "Ola&Jan <b>", brakujace: [{ ...z.pozycje[0], nazwa: "Body <script>alert(1)</script>" }], calosc: false, kwota: 9, zwrot: "konto" });
+    expect(html).toContain("Ola&amp;Jan, bardzo przepraszamy");
+    expect(html).not.toContain("&amp;amp;");
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("Body &lt;script&gt;");
+    expect(html).toMatch(/font-size:26px;font-weight:800;letter-spacing:\.03em[^>]*>NADROBIMY10</);
+  });
+  it("jeden produkt — liczba pojedyncza, kilka — mnoga", () => {
+    expect(mailBrakTowaruHtml({ ...baza, brakujace: [z.pozycje[0]], calosc: false, kwota: 9, zwrot: "zwrocone" })).toContain("Za brakujący produkt 9,00 zł");
+    const wiele = mailBrakTowaruHtml({ ...baza, brakujace: z.pozycje, calosc: false, kwota: 9, zwrot: "zwrocone" });
+    expect(wiele).toContain("Za brakujące produkty 9,00 zł");
+    expect(wiele).toContain("ostatnie sztuki sprzedały się");
+  });
+
+  it("ta sama poprawka w mailu z kodem powitalnym (bez „&amp;amp;”)", () => {
+    const html = mailKodPowitalnyHtml({ imie: "Ola&Jan", kod: "NOWY5", procent: 5, produkty: [] });
+    expect(html).toContain("Cześć Ola&amp;Jan!");
+    expect(html).not.toContain("&amp;amp;");
   });
 });

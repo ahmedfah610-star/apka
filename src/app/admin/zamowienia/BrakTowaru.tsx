@@ -28,9 +28,24 @@ export function BrakTowaru({
     setWybrane((w) => (w.includes(i) ? w.filter((x) => x !== i) : [...w, i].sort((a, b) => a - b)));
   }
 
-  async function wyslij() {
+  async function wyslij(proba = false) {
     if (!wybrane.length) return setStan("Zaznacz, których produktów brakuje.");
     if (!Number.isFinite(kwota) || kwota <= 0) return setStan("Podaj poprawną kwotę zwrotu.");
+    if (proba) {
+      setStan("…");
+      try {
+        const r = await fetch("/api/zamowienia", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: z.id, akcja: "brak-towaru", pozycje: wybrane, kwota, zwrot, proba: true }),
+        });
+        const d = (await r.json().catch(() => ({}))) as { ok?: boolean; blad?: string; do?: string };
+        setStan(r.ok && d.ok ? `Próba wysłana na ${d.do} ✓ — klient nic nie dostał.` : d.blad || "Nie udało się wysłać próby.");
+      } catch {
+        setStan("Błąd połączenia.");
+      }
+      return;
+    }
     const coZPieniedzmi = zwrot === "zwrocone" ? `że ${formatCena(kwota)} zł JUŻ zwróciłeś w Przelewy24` : `prośbę o numer konta do zwrotu ${formatCena(kwota)} zł`;
     if (!confirm(`Wysłać na ${z.klient.email} maila o braku towaru (${wybrane.length} poz.) z informacją, ${coZPieniedzmi}, i kodem NADROBIMY10?`)) return;
     setStan("…");
@@ -114,6 +129,13 @@ export function BrakTowaru({
               className="w-full rounded-lg bg-ink px-3.5 py-2.5 text-[13px] font-bold text-tlo hover:bg-akcent disabled:opacity-50 md:py-2 md:text-[12.5px]"
             >
               {stan === "…" ? "Wysyłanie…" : "Wyślij maila o braku towaru"}
+            </button>
+            <button
+              onClick={() => void wyslij(true)}
+              disabled={stan === "…" || !wybrane.length}
+              className="w-full rounded-lg border border-linia-2 px-3.5 py-2 text-[12.5px] font-semibold text-ink hover:border-ink disabled:opacity-50"
+            >
+              Najpierw próba na mój e-mail (klient nic nie dostanie)
             </button>
             {stan && stan !== "…" ? <p className="text-[12px] font-semibold">{stan}</p> : null}
           </div>

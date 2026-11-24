@@ -399,7 +399,7 @@ export async function wyslijMailProsbaOOpinie(order: {
       </tr>`,
     )
     .join("");
-  const imie = esc((order.imie ?? "").trim().split(" ")[0]);
+  const imie = (order.imie ?? "").trim().split(" ")[0]; // tylko do nagłówka — zabezpiecza go powłoka (bez podwójnego esc)
   const html = powloka({
     emoji: "⭐",
     naglowek: imie ? `${imie}, jak oceniasz zakupy?` : "Jak oceniasz swoje zakupy?",
@@ -606,7 +606,7 @@ export async function wyslijPrzypomnieniePlatnosci(d: DanePrzypomnienia): Promis
 
 /** „Cześć Tomasz! Odbierz swój kod rabatowy" — kod, warunki, polecane produkty ze zdjęciami i linkami. */
 export function mailKodPowitalnyHtml(o: { imie?: string; kod: string; procent: number; produkty: ProduktMail[]; linkZgody?: string }): string {
-  const imie = esc((o.imie ?? "").trim().split(/\s+/)[0] ?? "");
+  const imie = (o.imie ?? "").trim().split(/\s+/)[0] ?? ""; // tylko do nagłówka — zabezpiecza go powłoka (bez podwójnego esc)
   const kod = esc(o.kod);
   const warunki = [
     `−${o.procent}% na wszystkie produkty w koszyku`,
@@ -677,7 +677,7 @@ export interface DaneBrakuTowaru {
 
 /** „Brakuje produktu z Twojego zamówienia” — przeprosiny, co z pieniędzmi, kod −10% na kolejne zakupy. */
 export function mailBrakTowaruHtml(d: DaneBrakuTowaru): string {
-  const imie = esc((d.imie ?? "").trim().split(/\s+/)[0] ?? "");
+  const imie = (d.imie ?? "").trim().split(/\s+/)[0] ?? ""; // nagłówek zabezpiecza sama powłoka (esc) — tu bez podwójnego
   const nr = esc(d.id.slice(0, 8));
   const wiele = d.brakujace.length > 1;
   const lista = d.brakujace
@@ -699,7 +699,7 @@ export function mailBrakTowaruHtml(d: DaneBrakuTowaru): string {
   const kupon = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 20px;border:2px dashed ${M.akcent};border-radius:14px;background:${M.tlo}">
     <tr><td align="center" style="padding:18px 18px 16px">
       <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${M.ink3}">Żeby choć trochę to wynagrodzić</div>
-      <div style="margin:6px 0 4px;font-size:30px;font-weight:800;letter-spacing:.06em;color:${M.akcent}">${esc(d.kod)}</div>
+      <div style="margin:6px 0 4px;font-size:26px;font-weight:800;letter-spacing:.03em;color:${M.akcent}">${esc(d.kod)}</div>
       <div style="font-size:14.5px;font-weight:700;color:${M.ink}">−${d.procentKodu}% na kolejne zamówienie, bez minimalnej kwoty</div>
       <div style="margin-top:4px;font-size:12.5px;color:${M.ink2}">Wpisz kod w koszyku albo przy składaniu zamówienia.</div>
     </td></tr>
@@ -718,7 +718,11 @@ export function mailBrakTowaruHtml(d: DaneBrakuTowaru): string {
   });
 }
 
-export async function wyslijMailBrakTowaru(d: DaneBrakuTowaru): Promise<{ ok: boolean; blad?: string }> {
+/** `proba` — ten sam mail na skrzynkę firmy (podgląd w prawdziwym programie pocztowym), nie do klienta. */
+export async function wyslijMailBrakTowaru(d: DaneBrakuTowaru, opcje: { proba?: boolean } = {}): Promise<{ ok: boolean; blad?: string; do?: string }> {
   if (!mailWlaczony()) return { ok: false, blad: "Wysyłka maili nie jest skonfigurowana." };
-  return wyslij(d.email, `Twoje zamówienie #${d.id.slice(0, 8)} — brak produktu i zwrot pieniędzy`, mailBrakTowaruHtml(d), "brak-towaru", adresOdpowiedzi());
+  const temat = `Twoje zamówienie #${d.id.slice(0, 8)} — brak produktu i zwrot pieniędzy`;
+  const doKogo = opcje.proba ? MAIL_FIRMY : d.email;
+  const w = await wyslij(doKogo, opcje.proba ? `[PRÓBA] ${temat}` : temat, mailBrakTowaruHtml(d), opcje.proba ? "test" : "brak-towaru", adresOdpowiedzi());
+  return { ...w, do: doKogo };
 }

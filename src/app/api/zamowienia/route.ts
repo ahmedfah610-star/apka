@@ -100,7 +100,7 @@ export async function POST(req: Request) {
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
   const sb = sbService();
   if (!sb) return Response.json({ ok: false, blad: "Brak bazy." }, { status: 501 });
-  const b = (await req.json().catch(() => ({}))) as { id?: unknown; akcja?: unknown; email?: unknown; pozycje?: unknown; kwota?: unknown; zwrot?: unknown };
+  const b = (await req.json().catch(() => ({}))) as { id?: unknown; akcja?: unknown; email?: unknown; pozycje?: unknown; kwota?: unknown; zwrot?: unknown; proba?: unknown };
   if (b.akcja === "test-faktura") {
     // Zamówienie testowe do sprawdzenia faktur: bez płatności, bez maili, bez stanów, 0 zł.
     const t = zamowienieTestoweFaktury(b.email);
@@ -132,7 +132,7 @@ export async function POST(req: Request) {
 // Brak towaru po opłaceniu: mail do klienta (przeprosiny, zwrot pieniędzy, kod −10%) + wpis w zamówieniu.
 // Samego zwrotu w Przelewy24 nie robi — to zostaje w panelu Przelewy24 (albo przelew na konto klienta).
 /* eslint-disable @typescript-eslint/no-explicit-any */
-async function brakTowaru(sb: any, id: string, b: { pozycje?: unknown; kwota?: unknown; zwrot?: unknown }) {
+async function brakTowaru(sb: any, id: string, b: { pozycje?: unknown; kwota?: unknown; zwrot?: unknown; proba?: unknown }) {
   const { data: z } = await sb.from("zamowienia").select("id, pozycje, suma, rabat, razem, klient, status").eq("id", id).maybeSingle();
   if (!z) return Response.json({ ok: false, blad: "Nie znaleziono zamówienia." }, { status: 404 });
   const klient = (z.klient ?? {}) as Record<string, unknown> & { email?: string; imie?: string; braki?: WpisBraku[] };
@@ -146,6 +146,7 @@ async function brakTowaru(sb: any, id: string, b: { pozycje?: unknown; kwota?: u
   const kwota = Number.isFinite(podana) && podana > 0 ? Math.min(Math.round(podana * 100) / 100, Number(z.razem)) : wyliczone.kwota;
   const zwrot = b.zwrot === "konto" ? "konto" : "zwrocone";
   const promo = PROMOCJE.find((p) => p.kod === KOD_PRZEPROSIN);
+  const proba = b.proba === true; // próba: na skrzynkę firmy, bez wpisu w zamówieniu
   const mail = await wyslijMailBrakTowaru({
     id: String(z.id),
     email: klient.email,
@@ -156,8 +157,9 @@ async function brakTowaru(sb: any, id: string, b: { pozycje?: unknown; kwota?: u
     zwrot,
     kod: KOD_PRZEPROSIN,
     procentKodu: promo?.procent ?? 10,
-  });
+  }, { proba });
   if (!mail.ok) return Response.json({ ok: false, blad: mail.blad || "Nie udało się wysłać maila." }, { status: 502 });
+  if (proba) return Response.json({ ok: true, proba: true, do: mail.do, kwota });
   const wpis: WpisBraku = { czas: new Date().toISOString(), pozycje: indeksy.map((i) => opisPozycji(pozycje[i])), kwota, zwrot };
   const braki = [...(Array.isArray(klient.braki) ? klient.braki : []), wpis];
   await sb.from("zamowienia").update({ klient: { ...klient, braki } }).eq("id", id);
