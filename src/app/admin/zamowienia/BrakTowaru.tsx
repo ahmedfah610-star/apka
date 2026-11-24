@@ -18,6 +18,8 @@ export function BrakTowaru({
   const [kwotaRecznie, setKwotaRecznie] = useState<string>("");
   const [zwrot, setZwrot] = useState<"zwrocone" | "konto">("zwrocone");
   const [stan, setStan] = useState<string>("");
+  const [plik, setPlik] = useState<File | null>(null); // potwierdzenie zwrotu (załącznik maila)
+  const [klucz, setKlucz] = useState(0); // reset pola pliku po wysyłce
 
   const wyliczone = useMemo(() => kwotaZwrotu(z, wybrane), [z, wybrane]);
   const kwota = kwotaRecznie.trim() ? Number(kwotaRecznie.replace(",", ".")) : wyliczone.kwota;
@@ -28,17 +30,27 @@ export function BrakTowaru({
     setWybrane((w) => (w.includes(i) ? w.filter((x) => x !== i) : [...w, i].sort((a, b) => a - b)));
   }
 
+  // Formularz (a nie JSON), bo może iść plik z potwierdzeniem zwrotu.
+  function zadanie(proba: boolean): RequestInit {
+    const f = new FormData();
+    f.set("akcja", "brak-towaru");
+    f.set("id", z.id);
+    f.set("pozycje", JSON.stringify(wybrane));
+    f.set("kwota", String(kwota));
+    f.set("zwrot", zwrot);
+    f.set("proba", proba ? "true" : "false");
+    if (plik && zwrot === "zwrocone") f.set("plik", plik);
+    return { method: "POST", body: f };
+  }
+
   async function wyslij(proba = false) {
     if (!wybrane.length) return setStan("Zaznacz, których produktów brakuje.");
     if (!Number.isFinite(kwota) || kwota <= 0) return setStan("Podaj poprawną kwotę zwrotu.");
+    if (plik && plik.size > 4 * 1024 * 1024) return setStan("Plik z potwierdzeniem jest za duży (max 4 MB).");
     if (proba) {
       setStan("…");
       try {
-        const r = await fetch("/api/zamowienia", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: z.id, akcja: "brak-towaru", pozycje: wybrane, kwota, zwrot, proba: true }),
-        });
+        const r = await fetch("/api/zamowienia", zadanie(true));
         const d = (await r.json().catch(() => ({}))) as { ok?: boolean; blad?: string; do?: string };
         setStan(r.ok && d.ok ? `Próba wysłana na ${d.do} ✓ — klient nic nie dostał.` : d.blad || "Nie udało się wysłać próby.");
       } catch {
@@ -46,21 +58,22 @@ export function BrakTowaru({
       }
       return;
     }
-    const coZPieniedzmi = zwrot === "zwrocone" ? `że ${formatCena(kwota)} zł JUŻ zwróciłeś w Przelewy24` : `prośbę o numer konta do zwrotu ${formatCena(kwota)} zł`;
+    const coZPieniedzmi =
+      zwrot === "zwrocone"
+        ? `że ${formatCena(kwota)} zł JUŻ zwróciłeś${plik ? ` (z potwierdzeniem: ${plik.name})` : ""}`
+        : `prośbę o numer konta do zwrotu ${formatCena(kwota)} zł`;
     if (!confirm(`Wysłać na ${z.klient.email} maila o braku towaru (${wybrane.length} poz.) z informacją, ${coZPieniedzmi}, i kodem NADROBIMY10?`)) return;
     setStan("…");
     try {
-      const r = await fetch("/api/zamowienia", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: z.id, akcja: "brak-towaru", pozycje: wybrane, kwota, zwrot }),
-      });
+      const r = await fetch("/api/zamowienia", zadanie(false));
       const d = (await r.json().catch(() => ({}))) as { ok?: boolean; blad?: string; braki?: WpisBraku[] };
       if (!r.ok || !d.ok) return setStan(d.blad || "Nie udało się wysłać.");
       onWyslano(d.braki ?? []);
       setStan("Wysłano ✓");
       setWybrane([]);
       setKwotaRecznie("");
+      setPlik(null);
+      setKlucz((k) => k + 1);
     } catch {
       setStan("Błąd połączenia.");
     }
@@ -77,7 +90,7 @@ export function BrakTowaru({
           {braki.map((b, i) => (
             <li key={i}>
               ✓ Wysłano {new Date(b.czas).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}: {b.pozycje.join("; ")} —{" "}
-              {formatCena(b.kwota)} zł ({b.zwrot === "zwrocone" ? "zwrócone" : "prośba o numer konta"})
+              {formatCena(b.kwota)} zł ({b.zwrot === "zwrocone" ? "zwrócone" : "prośba o numer konta"}){b.potwierdzenie ? " · z potwierdzeniem w załączniku" : ""}
             </li>
           ))}
         </ul>
@@ -123,6 +136,18 @@ export function BrakTowaru({
                 Poproś klienta o numer konta (zwrot przelewem)
               </label>
             </div>
+            {zwrot === "zwrocone" ? (
+              <label className="block">
+                <span className="text-[12px] text-ink-2">Potwierdzenie zwrotu (opcjonalnie) — PDF, JPG albo PNG, max 4 MB, pójdzie w załączniku maila</span>
+                <input
+                  key={klucz}
+                  type="file"
+                  accept="application/pdf,image/jpeg,image/png"
+                  onChange={(e) => setPlik(e.target.files?.[0] ?? null)}
+                  className="mt-1 block w-full text-[12.5px] file:mr-2 file:rounded-md file:border file:border-linia-2 file:bg-white file:px-2.5 file:py-1.5 file:text-[12.5px] file:font-semibold"
+                />
+              </label>
+            ) : null}
             <button
               onClick={() => void wyslij()}
               disabled={stan === "…" || !wybrane.length}

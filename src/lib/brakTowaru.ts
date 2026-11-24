@@ -16,6 +16,7 @@ export interface WpisBraku {
   pozycje: string[]; // nazwy brakujących pozycji (z rozmiarem)
   kwota: number;
   zwrot: "zwrocone" | "konto";
+  potwierdzenie?: string; // nazwa pliku z potwierdzeniem zwrotu (wysłany w załączniku)
 }
 
 const grosze = (n: number) => Math.round(n * 100) / 100;

@@ -63,4 +63,11 @@ describe("mail o braku towaru", () => {
     expect(html).toContain("Cześć Ola&amp;Jan!");
     expect(html).not.toContain("&amp;amp;");
   });
+
+  it("z potwierdzeniem zwrotu — zdanie o załączniku; bez pliku albo przy prośbie o konto — bez niego", () => {
+    const zal = { nazwa: "potwierdzenie-zwrotu.pdf", tresc: new Uint8Array([37, 80, 68, 70]) };
+    expect(mailBrakTowaruHtml({ ...baza, brakujace: [z.pozycje[0]], calosc: false, kwota: 9, zwrot: "zwrocone", zalacznik: zal })).toContain("Potwierdzenie zwrotu przesyłamy w załączniku.");
+    expect(mailBrakTowaruHtml({ ...baza, brakujace: [z.pozycje[0]], calosc: false, kwota: 9, zwrot: "zwrocone" })).not.toContain("w załączniku");
+    expect(mailBrakTowaruHtml({ ...baza, brakujace: [z.pozycje[0]], calosc: false, kwota: 9, zwrot: "konto", zalacznik: zal })).not.toContain("w załączniku");
+  });
 });

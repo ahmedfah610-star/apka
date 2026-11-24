@@ -104,4 +104,36 @@ describe("brak towaru — akcja w panelu", () => {
     expect(zapisy).toHaveLength(0);
     expect(maile.filter((m) => !m.proba)).toHaveLength(1); // tylko ta nieudana próba wysyłki
   });
+
+  it("potwierdzenie zwrotu (PDF) idzie w załączniku maila, w zamówieniu zostaje tylko nazwa pliku", async () => {
+    const f = new FormData();
+    f.set("akcja", "brak-towaru");
+    f.set("id", ZAM().id);
+    f.set("pozycje", JSON.stringify([1]));
+    f.set("kwota", "27");
+    f.set("zwrot", "zwrocone");
+    f.set("proba", "false");
+    f.set("plik", new File([new TextEncoder().encode("%PDF-1.7 potwierdzenie")], "zwrot P24.pdf", { type: "application/pdf" }));
+    const { POST } = await import("@/app/api/zamowienia/route");
+    const r = await POST(new Request("http://localhost/api/zamowienia", { method: "POST", body: f }));
+    expect(r.status).toBe(200);
+    const zal = maile[0].d.zalacznik as { nazwa: string; tresc: Uint8Array };
+    expect(zal.nazwa).toBe("potwierdzenie-zwrotu-a1b2c3d4.pdf");
+    expect(new TextDecoder().decode(zal.tresc)).toContain("%PDF");
+    const wpis = (zapisy[0].klient as { braki: Record<string, unknown>[] }).braki[1];
+    expect(wpis).toMatchObject({ kwota: 27, potwierdzenie: "potwierdzenie-zwrotu-a1b2c3d4.pdf" });
+  });
+
+  it("plik, który nie jest PDF/JPG/PNG — odmowa, nic nie wysłane", async () => {
+    const f = new FormData();
+    f.set("akcja", "brak-towaru");
+    f.set("id", ZAM().id);
+    f.set("pozycje", "[1]");
+    f.set("zwrot", "zwrocone");
+    f.set("plik", new File([new TextEncoder().encode("MZ nie-plik")], "wirus.pdf", { type: "application/pdf" }));
+    const { POST } = await import("@/app/api/zamowienia/route");
+    const r = await POST(new Request("http://localhost/api/zamowienia", { method: "POST", body: f }));
+    expect(r.status).toBe(400);
+    expect(maile).toHaveLength(0);
+  });
 });

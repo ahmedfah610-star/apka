@@ -673,6 +673,7 @@ export interface DaneBrakuTowaru {
   zwrot: "zwrocone" | "konto"; // już zwrócone w Przelewy24 / prosimy o numer konta
   kod: string; // kod przeprosinowy
   procentKodu: number;
+  zalacznik?: Zalacznik; // potwierdzenie zwrotu (PDF/JPG/PNG)
 }
 
 /** „Brakuje produktu z Twojego zamówienia” — przeprosiny, co z pieniędzmi, kod −10% na kolejne zakupy. */
@@ -693,7 +694,7 @@ export function mailBrakTowaruHtml(d: DaneBrakuTowaru): string {
     .join("");
   const pieniadze =
     d.zwrot === "zwrocone"
-      ? `<strong style="color:${M.ink}">${d.calosc ? "Pełną kwotę" : wiele ? "Za brakujące produkty" : "Za brakujący produkt"} ${zl(d.kwota)} już zwróciliśmy</strong> tą samą metodą, którą płaciłaś/płaciłeś (BLIK, karta lub przelew). Pieniądze powinny być na koncie w ciągu kilku dni roboczych — nie musisz nic robić.`
+      ? `<strong style="color:${M.ink}">${d.calosc ? "Pełną kwotę" : wiele ? "Za brakujące produkty" : "Za brakujący produkt"} ${zl(d.kwota)} już zwróciliśmy</strong> tą samą metodą, którą płaciłaś/płaciłeś (BLIK, karta lub przelew). Pieniądze powinny być na koncie w ciągu kilku dni roboczych — nie musisz nic robić.${d.zalacznik ? ` <strong style="color:${M.ink}">Potwierdzenie zwrotu przesyłamy w załączniku.</strong>` : ""}`
       : `<strong style="color:${M.ink}">Zwrócimy Ci ${zl(d.kwota)}.</strong> Odpisz, proszę, na tę wiadomość z numerem konta, na który mamy przelać pieniądze — przelew wyślemy w ciągu 1 dnia roboczego od otrzymania numeru.`;
   const reszta = d.calosc ? "" : `<p style="margin:0 0 14px;font-size:14.5px;line-height:1.65;color:${M.ink2}">Pozostałe produkty z zamówienia wyślemy normalnie — dostaniesz od nas maila z numerem przesyłki.</p>`;
   const kupon = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 20px;border:2px dashed ${M.akcent};border-radius:14px;background:${M.tlo}">
@@ -723,6 +724,13 @@ export async function wyslijMailBrakTowaru(d: DaneBrakuTowaru, opcje: { proba?: 
   if (!mailWlaczony()) return { ok: false, blad: "Wysyłka maili nie jest skonfigurowana." };
   const temat = `Twoje zamówienie #${d.id.slice(0, 8)} — brak produktu i zwrot pieniędzy`;
   const doKogo = opcje.proba ? MAIL_FIRMY : d.email;
-  const w = await wyslij(doKogo, opcje.proba ? `[PRÓBA] ${temat}` : temat, mailBrakTowaruHtml(d), opcje.proba ? "test" : "brak-towaru", adresOdpowiedzi());
+  const w = await wyslij(
+    doKogo,
+    opcje.proba ? `[PRÓBA] ${temat}` : temat,
+    mailBrakTowaruHtml(d),
+    opcje.proba ? "test" : "brak-towaru",
+    adresOdpowiedzi(),
+    d.zalacznik ? [d.zalacznik] : undefined,
+  );
   return { ...w, do: doKogo };
 }

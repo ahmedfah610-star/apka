@@ -5,7 +5,7 @@ import { indeksyBraku, kwotaZwrotu, opisPozycji, type PozycjaZamowienia, type Wp
 import { KOD_PRZEPROSIN, PROMOCJE } from "@/lib/promocja";
 import { danePrzypomnienia } from "@/lib/przypomnieniaPlatnosci";
 import { zamowienieTestoweFaktury } from "@/lib/testFaktury";
-import { usunPlikDokumentu } from "@/lib/dokumentyMagazyn";
+import { MAX_ROZMIAR_DOKUMENTU, typPliku, usunPlikDokumentu } from "@/lib/dokumentyMagazyn";
 
 export const dynamic = "force-dynamic";
 
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
   const sb = sbService();
   if (!sb) return Response.json({ ok: false, blad: "Brak bazy." }, { status: 501 });
-  const b = (await req.json().catch(() => ({}))) as { id?: unknown; akcja?: unknown; email?: unknown; pozycje?: unknown; kwota?: unknown; zwrot?: unknown; proba?: unknown };
+  const b = await czytajZadanie(req);
   if (b.akcja === "test-faktura") {
     // Zamówienie testowe do sprawdzenia faktur: bez płatności, bez maili, bez stanów, 0 zł.
     const t = zamowienieTestoweFaktury(b.email);
@@ -129,10 +129,38 @@ export async function POST(req: Request) {
   return Response.json({ ok: true, przypomnienie });
 }
 
+type Zadanie = { id?: unknown; akcja?: unknown; email?: unknown; pozycje?: unknown; kwota?: unknown; zwrot?: unknown; proba?: unknown; plik?: File | null };
+
+// JSON albo formularz z plikiem (brak towaru + potwierdzenie zwrotu w załączniku).
+async function czytajZadanie(req: Request): Promise<Zadanie> {
+  if (!(req.headers.get("content-type") ?? "").includes("multipart/form-data")) return ((await req.json().catch(() => ({}))) ?? {}) as Zadanie;
+  const f = await req.formData().catch(() => null);
+  if (!f) return {};
+  const pozycje = (() => {
+    try {
+      return JSON.parse(String(f.get("pozycje") ?? "[]"));
+    } catch {
+      return [];
+    }
+  })();
+  const plik = f.get("plik");
+  return {
+    id: f.get("id"),
+    akcja: f.get("akcja"),
+    pozycje,
+    kwota: f.get("kwota"),
+    zwrot: f.get("zwrot"),
+    proba: f.get("proba") === "true",
+    plik: plik && typeof plik === "object" && "arrayBuffer" in plik && (plik as File).size > 0 ? (plik as File) : null,
+  };
+}
+
+const ROZSZERZENIA: Record<string, string> = { "application/pdf": "pdf", "image/jpeg": "jpg", "image/png": "png" };
+
 // Brak towaru po opłaceniu: mail do klienta (przeprosiny, zwrot pieniędzy, kod −10%) + wpis w zamówieniu.
 // Samego zwrotu w Przelewy24 nie robi — to zostaje w panelu Przelewy24 (albo przelew na konto klienta).
 /* eslint-disable @typescript-eslint/no-explicit-any */
-async function brakTowaru(sb: any, id: string, b: { pozycje?: unknown; kwota?: unknown; zwrot?: unknown; proba?: unknown }) {
+async function brakTowaru(sb: any, id: string, b: Zadanie) {
   const { data: z } = await sb.from("zamowienia").select("id, pozycje, suma, rabat, razem, klient, status").eq("id", id).maybeSingle();
   if (!z) return Response.json({ ok: false, blad: "Nie znaleziono zamówienia." }, { status: 404 });
   const klient = (z.klient ?? {}) as Record<string, unknown> & { email?: string; imie?: string; braki?: WpisBraku[] };
@@ -145,6 +173,15 @@ async function brakTowaru(sb: any, id: string, b: { pozycje?: unknown; kwota?: u
   // Kwotę można poprawić w panelu, ale nie więcej niż klient zapłacił.
   const kwota = Number.isFinite(podana) && podana > 0 ? Math.min(Math.round(podana * 100) / 100, Number(z.razem)) : wyliczone.kwota;
   const zwrot = b.zwrot === "konto" ? "konto" : "zwrocone";
+  // Potwierdzenie zwrotu (np. z Przelewy24 albo banku) — tylko jako załącznik maila, nie zapisujemy pliku w bazie.
+  let zalacznik: { nazwa: string; tresc: Uint8Array } | undefined;
+  if (b.plik) {
+    if (b.plik.size > MAX_ROZMIAR_DOKUMENTU) return Response.json({ ok: false, blad: "Plik jest za duży (max 4 MB)." }, { status: 400 });
+    const tresc = new Uint8Array(await b.plik.arrayBuffer());
+    const mime = typPliku(tresc);
+    if (!mime) return Response.json({ ok: false, blad: "Potwierdzenie musi być plikiem PDF, JPG albo PNG." }, { status: 400 });
+    zalacznik = { nazwa: `potwierdzenie-zwrotu-${String(z.id).slice(0, 8)}.${ROZSZERZENIA[mime]}`, tresc };
+  }
   const promo = PROMOCJE.find((p) => p.kod === KOD_PRZEPROSIN);
   const proba = b.proba === true; // próba: na skrzynkę firmy, bez wpisu w zamówieniu
   const mail = await wyslijMailBrakTowaru({
@@ -157,10 +194,17 @@ async function brakTowaru(sb: any, id: string, b: { pozycje?: unknown; kwota?: u
     zwrot,
     kod: KOD_PRZEPROSIN,
     procentKodu: promo?.procent ?? 10,
+    zalacznik,
   }, { proba });
   if (!mail.ok) return Response.json({ ok: false, blad: mail.blad || "Nie udało się wysłać maila." }, { status: 502 });
   if (proba) return Response.json({ ok: true, proba: true, do: mail.do, kwota });
-  const wpis: WpisBraku = { czas: new Date().toISOString(), pozycje: indeksy.map((i) => opisPozycji(pozycje[i])), kwota, zwrot };
+  const wpis: WpisBraku = {
+    czas: new Date().toISOString(),
+    pozycje: indeksy.map((i) => opisPozycji(pozycje[i])),
+    kwota,
+    zwrot,
+    ...(zalacznik ? { potwierdzenie: zalacznik.nazwa } : {}),
+  };
   const braki = [...(Array.isArray(klient.braki) ? klient.braki : []), wpis];
   await sb.from("zamowienia").update({ klient: { ...klient, braki } }).eq("id", id);
   return Response.json({ ok: true, wpis, braki });
