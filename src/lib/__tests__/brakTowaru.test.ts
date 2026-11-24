@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { indeksyBraku, kwotaZwrotu } from "@/lib/brakTowaru";
-import { mailBrakTowaruHtml, mailKodPowitalnyHtml } from "@/lib/mail";
+import { mailBrakTowaruHtml, mailKodPowitalnyHtml, tematBrakuTowaru } from "@/lib/mail";
 
 const z = {
   pozycje: [
@@ -66,8 +66,17 @@ describe("mail o braku towaru", () => {
 
   it("z potwierdzeniem zwrotu — zdanie o załączniku; bez pliku albo przy prośbie o konto — bez niego", () => {
     const zal = { nazwa: "potwierdzenie-zwrotu.pdf", tresc: new Uint8Array([37, 80, 68, 70]) };
-    expect(mailBrakTowaruHtml({ ...baza, brakujace: [z.pozycje[0]], calosc: false, kwota: 9, zwrot: "zwrocone", zalacznik: zal })).toContain("Potwierdzenie zwrotu przesyłamy w załączniku.");
-    expect(mailBrakTowaruHtml({ ...baza, brakujace: [z.pozycje[0]], calosc: false, kwota: 9, zwrot: "zwrocone" })).not.toContain("w załączniku");
-    expect(mailBrakTowaruHtml({ ...baza, brakujace: [z.pozycje[0]], calosc: false, kwota: 9, zwrot: "konto", zalacznik: zal })).not.toContain("w załączniku");
+    const z1 = mailBrakTowaruHtml({ ...baza, brakujace: [z.pozycje[0]], calosc: false, kwota: 9, zwrot: "zwrocone", zalacznik: zal, dataZwrotu: "2026-11-24T10:00:00Z" });
+    expect(z1).toContain("Potwierdzenie zwrotu");
+    expect(z1).toContain("Data zlecenia zwrotu");
+    expect(z1).toContain("24.11.2026");
+    expect(z1).toContain("w załączniku");
+    const bezPliku = mailBrakTowaruHtml({ ...baza, brakujace: [z.pozycje[0]], calosc: false, kwota: 9, zwrot: "zwrocone" });
+    expect(bezPliku).toContain("Potwierdzenie zwrotu"); // sam mail też potwierdza zwrot
+    expect(bezPliku).not.toContain("w załączniku");
+    const konto = mailBrakTowaruHtml({ ...baza, brakujace: [z.pozycje[0]], calosc: false, kwota: 9, zwrot: "konto", zalacznik: zal });
+    expect(konto).not.toContain("Potwierdzenie zwrotu");
+    expect(tematBrakuTowaru({ id: baza.id, zwrot: "zwrocone" })).toBe("Twoje zamówienie #a1b2c3d4 — brak produktu i potwierdzenie zwrotu pieniędzy");
+    expect(tematBrakuTowaru({ id: baza.id, zwrot: "konto" })).toBe("Twoje zamówienie #a1b2c3d4 — brak produktu i zwrot pieniędzy");
   });
 });

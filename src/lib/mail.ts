@@ -674,6 +674,12 @@ export interface DaneBrakuTowaru {
   kod: string; // kod przeprosinowy
   procentKodu: number;
   zalacznik?: Zalacznik; // potwierdzenie zwrotu (PDF/JPG/PNG)
+  dataZwrotu?: string; // ISO — kiedy zlecono zwrot (domyślnie teraz)
+}
+
+/** Temat: przy zrobionym zwrocie mail jest też potwierdzeniem zwrotu. */
+export function tematBrakuTowaru(d: Pick<DaneBrakuTowaru, "id" | "zwrot">): string {
+  return `Twoje zamówienie #${d.id.slice(0, 8)} — brak produktu i ${d.zwrot === "zwrocone" ? "potwierdzenie zwrotu pieniędzy" : "zwrot pieniędzy"}`;
 }
 
 /** „Brakuje produktu z Twojego zamówienia” — przeprosiny, co z pieniędzmi, kod −10% na kolejne zakupy. */
@@ -694,8 +700,27 @@ export function mailBrakTowaruHtml(d: DaneBrakuTowaru): string {
     .join("");
   const pieniadze =
     d.zwrot === "zwrocone"
-      ? `<strong style="color:${M.ink}">${d.calosc ? "Pełną kwotę" : wiele ? "Za brakujące produkty" : "Za brakujący produkt"} ${zl(d.kwota)} już zwróciliśmy</strong> tą samą metodą, którą płaciłaś/płaciłeś (BLIK, karta lub przelew). Pieniądze powinny być na koncie w ciągu kilku dni roboczych — nie musisz nic robić.${d.zalacznik ? ` <strong style="color:${M.ink}">Potwierdzenie zwrotu przesyłamy w załączniku.</strong>` : ""}`
+      ? `<strong style="color:${M.ink}">${d.calosc ? "Pełną kwotę" : wiele ? "Za brakujące produkty" : "Za brakujący produkt"} ${zl(d.kwota)} już zwróciliśmy</strong> tą samą metodą, którą płaciłaś/płaciłeś (BLIK, karta lub przelew). Pieniądze powinny być na koncie w ciągu kilku dni roboczych — nie musisz nic robić.`
       : `<strong style="color:${M.ink}">Zwrócimy Ci ${zl(d.kwota)}.</strong> Odpisz, proszę, na tę wiadomość z numerem konta, na który mamy przelać pieniądze — przelew wyślemy w ciągu 1 dnia roboczego od otrzymania numeru.`;
+  // Przy zrobionym zwrocie mail jest też potwierdzeniem zwrotu: zestawienie + (opcjonalnie) dokument w załączniku.
+  const dataZwrotu = new Date(d.dataZwrotu ?? Date.now()).toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Europe/Warsaw" });
+  const wiersz = (k: string, v: string) =>
+    `<tr><td style="padding:5px 0;font-size:13.5px;color:${M.ink2}">${k}</td><td style="padding:5px 0;font-size:13.5px;font-weight:700;text-align:right;color:${M.ink}">${v}</td></tr>`;
+  const potwierdzenie =
+    d.zwrot === "zwrocone"
+      ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px;border:1px solid ${M.linia};border-radius:12px">
+          <tr><td style="padding:14px 16px 10px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${M.ink3};margin-bottom:6px">Potwierdzenie zwrotu</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              ${wiersz("Zamówienie", `#${nr}`)}
+              ${wiersz("Kwota zwrotu", zl(d.kwota))}
+              ${wiersz("Data zlecenia zwrotu", esc(dataZwrotu))}
+              ${wiersz("Sposób", "ta sama metoda płatności")}
+              ${d.zalacznik ? wiersz("Dokument", "w załączniku") : ""}
+            </table>
+          </td></tr>
+        </table>`
+      : "";
   const reszta = d.calosc ? "" : `<p style="margin:0 0 14px;font-size:14.5px;line-height:1.65;color:${M.ink2}">Pozostałe produkty z zamówienia wyślemy normalnie — dostaniesz od nas maila z numerem przesyłki.</p>`;
   const kupon = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 20px;border:2px dashed ${M.akcent};border-radius:14px;background:${M.tlo}">
     <tr><td align="center" style="padding:18px 18px 16px">
@@ -712,6 +737,7 @@ export function mailBrakTowaruHtml(d: DaneBrakuTowaru): string {
     intro: `${wiele ? "Produktów" : "Produktu"} z Twojego zamówienia <strong style="color:${M.ink}">#${nr}</strong> zabrakło na magazynie — ${wiele ? "ostatnie sztuki sprzedały się" : "ostatnia sztuka sprzedała się"} chwilę przed Twoim zamówieniem. Wiemy, że to rozczarowujące, szczególnie gdy czeka się na paczkę.`,
     tresc: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 18px">${lista}</table>
       <p style="margin:0 0 14px;font-size:14.5px;line-height:1.65;color:${M.ink2}">${pieniadze}</p>
+      ${potwierdzenie}
       ${reszta}
       ${kupon}
       <p style="margin:0;font-size:14.5px;line-height:1.65;color:${M.ink2}">Szukasz czegoś podobnego? Odpisz na tę wiadomość — podeślemy propozycje w tym samym rozmiarze. Jeszcze raz przepraszamy za kłopot.</p>`,
@@ -722,7 +748,7 @@ export function mailBrakTowaruHtml(d: DaneBrakuTowaru): string {
 /** `proba` — ten sam mail na skrzynkę firmy (podgląd w prawdziwym programie pocztowym), nie do klienta. */
 export async function wyslijMailBrakTowaru(d: DaneBrakuTowaru, opcje: { proba?: boolean } = {}): Promise<{ ok: boolean; blad?: string; do?: string }> {
   if (!mailWlaczony()) return { ok: false, blad: "Wysyłka maili nie jest skonfigurowana." };
-  const temat = `Twoje zamówienie #${d.id.slice(0, 8)} — brak produktu i zwrot pieniędzy`;
+  const temat = tematBrakuTowaru(d);
   const doKogo = opcje.proba ? MAIL_FIRMY : d.email;
   const w = await wyslij(
     doKogo,
