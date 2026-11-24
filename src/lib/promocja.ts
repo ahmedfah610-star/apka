@@ -36,6 +36,9 @@ export const PROMOCJE: Promocja[] = [
   { kod: "NADROBIMY10", procent: 10, minKoszyk: 0, od: "2026-11-24T00:00:00+01:00", do: null, widoczna: false, limitUzyc: null, razNaTelefon: true },
 ];
 
+/** Kod przeprosinowy w mailach o braku towaru (panel → zamówienie → „Brak towaru”). */
+export const KOD_PRZEPROSIN = "NADROBIMY10";
+
 /** Test: kod dodawany automatycznie po włożeniu czegoś do koszyka (null = wyłączone). */
 export const KOD_AUTOMATYCZNY: string | null = "ZIMA5";
 

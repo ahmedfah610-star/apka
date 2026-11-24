@@ -6,6 +6,8 @@ import { formatCena } from "@/lib/filtrowanie";
 import { PRZEWOZNICY, linkSledzenia } from "@/lib/przewoznicy";
 import { stanFaktury, fakturDoWystawienia, type DaneFaktury, type DokumentZamowienia } from "@/lib/faktura";
 import { SekcjaFaktury, type ZamowienieFaktury } from "./SekcjaFaktury";
+import { BrakTowaru } from "./BrakTowaru";
+import type { WpisBraku } from "@/lib/brakTowaru";
 
 interface Pozycja {
   id: string;
@@ -33,6 +35,7 @@ interface Klient {
   przypomnienieAuto?: boolean; // wysłane automatycznie
   faktura?: DaneFaktury | null; // klient chce fakturę
   dokumenty?: DokumentZamowienia[]; // wgrane faktury / dowody zakupu
+  braki?: WpisBraku[]; // wysłane maile o braku towaru
 }
 interface Zamowienie {
   id: string;
@@ -332,6 +335,14 @@ export default function AdminZamowienia() {
               </>
             )}
           </div>
+        ) : null}
+
+        {/* Brak towaru po opłaceniu — mail z przeprosinami, zwrotem i kodem */}
+        {z.status !== "oczekuje_na_platnosc" ? (
+          <BrakTowaru
+            z={{ id: z.id, pozycje: z.pozycje, suma: z.suma, rabat: z.rabat, razem: z.razem, klient: z.klient ?? {} }}
+            onWyslano={(braki) => setLista((prev) => prev.map((x) => (x.id === z.id ? { ...x, klient: { ...x.klient, braki } } : x)))}
+          />
         ) : null}
 
         {/* Nadanie paczki */}

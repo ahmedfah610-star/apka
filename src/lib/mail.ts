@@ -9,6 +9,7 @@ import { znajdzPrzewoznika, linkSledzenia } from "@/lib/przewoznicy";
 import { zapiszMail, type TypMaila } from "@/lib/mailLog";
 import { nipCzytelny, type DaneFaktury } from "@/lib/faktura";
 import { mailDokumentuHtml, tematDokumentu, type DaneMailaDokumentu } from "@/lib/mailDokumentu";
+import type { PozycjaZamowienia } from "@/lib/brakTowaru";
 
 const API = "https://api.resend.com/emails";
 const API_BATCH = "https://api.resend.com/emails/batch";
@@ -658,4 +659,66 @@ export async function wyslijDokument(
   if (!mailWlaczony()) return { ok: false, blad: "Wysyłka maili nie jest skonfigurowana." };
   if (!do_.length) return { ok: false, blad: "Brak adresu e-mail." };
   return wyslij(do_, tematDokumentu(d), mailDokumentuHtml(d), "dokument", adresOdpowiedzi(), [plik]);
+}
+
+// ── Brak towaru po opłaceniu (panel → zamówienie → „Brak towaru”) ───────
+
+export interface DaneBrakuTowaru {
+  id: string;
+  email: string;
+  imie?: string;
+  brakujace: PozycjaZamowienia[];
+  calosc: boolean; // brakuje całego zamówienia
+  kwota: number; // ile zwracamy
+  zwrot: "zwrocone" | "konto"; // już zwrócone w Przelewy24 / prosimy o numer konta
+  kod: string; // kod przeprosinowy
+  procentKodu: number;
+}
+
+/** „Brakuje produktu z Twojego zamówienia” — przeprosiny, co z pieniędzmi, kod −10% na kolejne zakupy. */
+export function mailBrakTowaruHtml(d: DaneBrakuTowaru): string {
+  const imie = esc((d.imie ?? "").trim().split(/\s+/)[0] ?? "");
+  const nr = esc(d.id.slice(0, 8));
+  const wiele = d.brakujace.length > 1;
+  const lista = d.brakujace
+    .map(
+      (x) => `<tr><td style="padding:10px 0;border-bottom:1px solid ${M.linia};font-size:14px;color:${M.ink}">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          ${/^https:\/\//.test(x.zdjecie ?? "") ? `<td style="padding-right:12px;vertical-align:top"><img src="${esc(zdjecie(x.zdjecie, "s128"))}" width="52" height="52" alt="" style="display:block;width:52px;height:52px;object-fit:contain;border:1px solid ${M.linia};border-radius:8px;background:#fff"></td>` : ""}
+          <td style="vertical-align:top;font-size:14px;color:${M.ink}">${esc(x.nazwa)}<br>
+            <span style="font-size:13px;color:${M.ink2}">${[x.kolor ? `kolor: ${esc(x.kolor)}` : "", x.rozmiar ? `rozmiar: ${esc(x.rozmiar)}` : "", `ilość: ${x.ilosc}`].filter(Boolean).join(" · ")}</span>
+          </td></tr></table>
+      </td></tr>`,
+    )
+    .join("");
+  const pieniadze =
+    d.zwrot === "zwrocone"
+      ? `<strong style="color:${M.ink}">${d.calosc ? "Pełną kwotę" : wiele ? "Za brakujące produkty" : "Za brakujący produkt"} ${zl(d.kwota)} już zwróciliśmy</strong> tą samą metodą, którą płaciłaś/płaciłeś (BLIK, karta lub przelew). Pieniądze powinny być na koncie w ciągu kilku dni roboczych — nie musisz nic robić.`
+      : `<strong style="color:${M.ink}">Zwrócimy Ci ${zl(d.kwota)}.</strong> Odpisz, proszę, na tę wiadomość z numerem konta, na który mamy przelać pieniądze — przelew wyślemy w ciągu 1 dnia roboczego od otrzymania numeru.`;
+  const reszta = d.calosc ? "" : `<p style="margin:0 0 14px;font-size:14.5px;line-height:1.65;color:${M.ink2}">Pozostałe produkty z zamówienia wyślemy normalnie — dostaniesz od nas maila z numerem przesyłki.</p>`;
+  const kupon = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 20px;border:2px dashed ${M.akcent};border-radius:14px;background:${M.tlo}">
+    <tr><td align="center" style="padding:18px 18px 16px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${M.ink3}">Żeby choć trochę to wynagrodzić</div>
+      <div style="margin:6px 0 4px;font-size:30px;font-weight:800;letter-spacing:.06em;color:${M.akcent}">${esc(d.kod)}</div>
+      <div style="font-size:14.5px;font-weight:700;color:${M.ink}">−${d.procentKodu}% na kolejne zamówienie, bez minimalnej kwoty</div>
+      <div style="margin-top:4px;font-size:12.5px;color:${M.ink2}">Wpisz kod w koszyku albo przy składaniu zamówienia.</div>
+    </td></tr>
+  </table>`;
+  return powloka({
+    emoji: "🙏",
+    naglowek: imie ? `${imie}, bardzo przepraszamy` : "Bardzo przepraszamy",
+    preheader: `Brak produktu w zamówieniu #${d.id.slice(0, 8)} — ${d.zwrot === "zwrocone" ? "pieniądze już wracają" : "zwrócimy pieniądze"}.`,
+    intro: `${wiele ? "Produktów" : "Produktu"} z Twojego zamówienia <strong style="color:${M.ink}">#${nr}</strong> zabrakło na magazynie — ${wiele ? "ostatnie sztuki sprzedały się" : "ostatnia sztuka sprzedała się"} chwilę przed Twoim zamówieniem. Wiemy, że to rozczarowujące, szczególnie gdy czeka się na paczkę.`,
+    tresc: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 18px">${lista}</table>
+      <p style="margin:0 0 14px;font-size:14.5px;line-height:1.65;color:${M.ink2}">${pieniadze}</p>
+      ${reszta}
+      ${kupon}
+      <p style="margin:0;font-size:14.5px;line-height:1.65;color:${M.ink2}">Szukasz czegoś podobnego? Odpisz na tę wiadomość — podeślemy propozycje w tym samym rozmiarze. Jeszcze raz przepraszamy za kłopot.</p>`,
+    cta: { tekst: "ZOBACZ NOWOŚCI", url: `${BAZA}/produkty?sort=nowosci` },
+  });
+}
+
+export async function wyslijMailBrakTowaru(d: DaneBrakuTowaru): Promise<{ ok: boolean; blad?: string }> {
+  if (!mailWlaczony()) return { ok: false, blad: "Wysyłka maili nie jest skonfigurowana." };
+  return wyslij(d.email, `Twoje zamówienie #${d.id.slice(0, 8)} — brak produktu i zwrot pieniędzy`, mailBrakTowaruHtml(d), "brak-towaru", adresOdpowiedzi());
 }

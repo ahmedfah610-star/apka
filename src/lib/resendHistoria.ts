@@ -34,6 +34,7 @@ export function typZTematu(temat: string): TypMaila {
   if (t.includes("wiadomość ze sklepu")) return "kontakt";
   if (t.includes("odpowiedź na twoje pytanie")) return "odpowiedz";
   if (t.includes("czeka na dokończenie")) return "przypomnienie";
+  if (t.includes("brak produktu")) return "brak-towaru";
   if (t.includes("kod rabatowy")) return "kod-powitalny";
   if (t.includes("twoje pytanie")) return "pytanie-kopia";
   if (t.includes("pytanie o produkt")) return "pytanie";

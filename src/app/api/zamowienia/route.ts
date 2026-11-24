@@ -1,6 +1,8 @@
 import { czyAdmin } from "@/lib/adminAuth";
 import { sbService, supabaseWlaczony } from "@/lib/supabase";
-import { wyslijMailWyslano, wyslijPrzypomnieniePlatnosci } from "@/lib/mail";
+import { wyslijMailWyslano, wyslijPrzypomnieniePlatnosci, wyslijMailBrakTowaru } from "@/lib/mail";
+import { indeksyBraku, kwotaZwrotu, opisPozycji, type PozycjaZamowienia, type WpisBraku } from "@/lib/brakTowaru";
+import { KOD_PRZEPROSIN, PROMOCJE } from "@/lib/promocja";
 import { danePrzypomnienia } from "@/lib/przypomnieniaPlatnosci";
 import { zamowienieTestoweFaktury } from "@/lib/testFaktury";
 import { usunPlikDokumentu } from "@/lib/dokumentyMagazyn";
@@ -98,7 +100,7 @@ export async function POST(req: Request) {
   if (!czyAdmin()) return Response.json({ ok: false }, { status: 401 });
   const sb = sbService();
   if (!sb) return Response.json({ ok: false, blad: "Brak bazy." }, { status: 501 });
-  const b = (await req.json().catch(() => ({}))) as { id?: unknown; akcja?: unknown; email?: unknown };
+  const b = (await req.json().catch(() => ({}))) as { id?: unknown; akcja?: unknown; email?: unknown; pozycje?: unknown; kwota?: unknown; zwrot?: unknown };
   if (b.akcja === "test-faktura") {
     // Zamówienie testowe do sprawdzenia faktur: bez płatności, bez maili, bez stanów, 0 zł.
     const t = zamowienieTestoweFaktury(b.email);
@@ -108,6 +110,7 @@ export async function POST(req: Request) {
     return Response.json({ ok: true, id: data.id });
   }
   const id = String(b.id ?? "");
+  if (b.akcja === "brak-towaru" && id) return brakTowaru(sb, id, b);
   if (b.akcja !== "przypomnienie" || !id) return Response.json({ ok: false, blad: "Zła akcja." }, { status: 400 });
 
   const { data: z } = await sb.from("zamowienia").select("*").eq("id", id).maybeSingle();
@@ -124,6 +127,41 @@ export async function POST(req: Request) {
   const przypomnienie = new Date().toISOString();
   await sb.from("zamowienia").update({ klient: { ...klient, przypomnienie } }).eq("id", id);
   return Response.json({ ok: true, przypomnienie });
+}
+
+// Brak towaru po opłaceniu: mail do klienta (przeprosiny, zwrot pieniędzy, kod −10%) + wpis w zamówieniu.
+// Samego zwrotu w Przelewy24 nie robi — to zostaje w panelu Przelewy24 (albo przelew na konto klienta).
+/* eslint-disable @typescript-eslint/no-explicit-any */
+async function brakTowaru(sb: any, id: string, b: { pozycje?: unknown; kwota?: unknown; zwrot?: unknown }) {
+  const { data: z } = await sb.from("zamowienia").select("id, pozycje, suma, rabat, razem, klient, status").eq("id", id).maybeSingle();
+  if (!z) return Response.json({ ok: false, blad: "Nie znaleziono zamówienia." }, { status: 404 });
+  const klient = (z.klient ?? {}) as Record<string, unknown> & { email?: string; imie?: string; braki?: WpisBraku[] };
+  if (!klient.email) return Response.json({ ok: false, blad: "Zamówienie nie ma adresu e-mail." }, { status: 400 });
+  const pozycje = (Array.isArray(z.pozycje) ? z.pozycje : []) as PozycjaZamowienia[];
+  const indeksy = indeksyBraku(pozycje, b.pozycje);
+  if (!indeksy.length) return Response.json({ ok: false, blad: "Zaznacz, których produktów brakuje." }, { status: 400 });
+  const wyliczone = kwotaZwrotu({ pozycje, suma: Number(z.suma), rabat: Number(z.rabat ?? 0), razem: Number(z.razem) }, indeksy);
+  const podana = Number(b.kwota);
+  // Kwotę można poprawić w panelu, ale nie więcej niż klient zapłacił.
+  const kwota = Number.isFinite(podana) && podana > 0 ? Math.min(Math.round(podana * 100) / 100, Number(z.razem)) : wyliczone.kwota;
+  const zwrot = b.zwrot === "konto" ? "konto" : "zwrocone";
+  const promo = PROMOCJE.find((p) => p.kod === KOD_PRZEPROSIN);
+  const mail = await wyslijMailBrakTowaru({
+    id: String(z.id),
+    email: klient.email,
+    imie: klient.imie,
+    brakujace: indeksy.map((i) => pozycje[i]),
+    calosc: wyliczone.calosc,
+    kwota,
+    zwrot,
+    kod: KOD_PRZEPROSIN,
+    procentKodu: promo?.procent ?? 10,
+  });
+  if (!mail.ok) return Response.json({ ok: false, blad: mail.blad || "Nie udało się wysłać maila." }, { status: 502 });
+  const wpis: WpisBraku = { czas: new Date().toISOString(), pozycje: indeksy.map((i) => opisPozycji(pozycje[i])), kwota, zwrot };
+  const braki = [...(Array.isArray(klient.braki) ? klient.braki : []), wpis];
+  await sb.from("zamowienia").update({ klient: { ...klient, braki } }).eq("id", id);
+  return Response.json({ ok: true, wpis, braki });
 }
 
 // Usunięcie zamówień TESTOWYCH (oznaczonych w panelu znaczkiem TEST i anulowanych).

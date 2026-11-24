@@ -46,6 +46,7 @@ const TYPY: Record<string, string> = {
   przypomnienie: "Przypomnienie o płatności",
   dokument: "Faktura / dokument do zamówienia",
   "kod-powitalny": "Kod powitalny (nowe konto)",
+  "brak-towaru": "Brak towaru i zwrot pieniędzy",
   test: "Test",
 };
 // Maile do sklepu (powiadomienia dla Ciebie) — domyślnie ukryte.
