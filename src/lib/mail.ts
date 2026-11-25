@@ -48,7 +48,7 @@ interface DaneMaila {
   rabat?: number;
   kod?: string | null;
   metoda: string;
-  klient: { imie?: string; email?: string; telefon?: string; adres?: string; miasto?: string; kod?: string; paczkomat?: string; paczkomatOpis?: string; punkt?: string; punktOpis?: string; uwagi?: string; test?: boolean; faktura?: DaneFaktury | null };
+  klient: { imie?: string; email?: string; telefon?: string; adres?: string; miasto?: string; kod?: string; paczkomat?: string; paczkomatOpis?: string; punkt?: string; punktOpis?: string; uwagi?: string; test?: boolean; faktura?: DaneFaktury | null; zrodlo?: string };
 }
 
 const zl = (n: number) => `${Number(n).toFixed(2).replace(".", ",")} zł`;
@@ -309,7 +309,7 @@ export async function wyslijMaileZamowienia(d: DaneMaila) {
   const htmlSklep = powloka({
     naglowek: `Nowe zamówienie #${nr}`,
     preheader: `${zl(d.razem)} — ${d.klient.imie || "klient"}`,
-    intro: `Wpłynęło nowe zamówienie o wartości <strong style="color:${M.ink}">${zl(d.razem)}</strong>.${d.klient.faktura ? ` <strong style="color:${M.ink}">Klient chce fakturę.</strong>` : ""}`,
+    intro: `Wpłynęło nowe zamówienie o wartości <strong style="color:${M.ink}">${zl(d.razem)}</strong>.${d.klient.faktura ? ` <strong style="color:${M.ink}">Klient chce fakturę.</strong>` : ""}${d.klient.zrodlo === "kup-teraz" ? " Kupione przyciskiem „Kup teraz” przy produkcie." : ""}`,
     tresc: tabelaPozycji(d) + blokDostawy(d.klient) + blokFaktury(d.klient, true),
     cta: { tekst: "PANEL ZAMÓWIEŃ", url: `${BAZA}/admin/zamowienia` },
   });

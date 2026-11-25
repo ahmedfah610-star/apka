@@ -17,6 +17,7 @@ import { PROMOCJE } from "@/lib/promocja";
 import { useDostawa } from "@/lib/dostawaKlient";
 import { kosztDostawy } from "@/lib/dostawa";
 import { ZAMOWIENIA_WYLACZONE } from "@/lib/sklep";
+import { useCenaZKodem } from "@/components/InfoPromocji";
 
 // Okno „Kup teraz” ładowane dopiero po kliknięciu — strona produktu się nie wydłuża.
 const KupTeraz = dynamic(() => import("@/components/KupTeraz").then((m) => m.KupTeraz), { ssr: false });
@@ -55,12 +56,14 @@ export function DodajDoKoszyka({ produkt, onZmianaRozmiaru }: { produkt: Produkt
   const [kupTeraz, setKupTeraz] = useState(false);
   const zamknijKupTeraz = useCallback(() => setKupTeraz(false), []);
 
-  // „z dostawą od …” — produkt + najtańsza widoczna dostawa (bez kodu rabatowego: to górna, pewna kwota).
+  // „z kodem i dostawą od …” — cena z kodem naliczanym automatycznie (jak w „Kup teraz”) + najtańsza
+  // widoczna dostawa. Próg darmowej dostawy liczony od ceny przed rabatem — tak jak na serwerze.
   const ustawieniaDostawy = useDostawa();
+  const zKodem = useCenaZKodem(produkt.cena);
   const zDostawaOd = useMemo(() => {
     const koszty = ustawieniaDostawy.metody.filter((m) => m.aktywna !== false).map((m) => kosztDostawy(m, produkt.cena, ustawieniaDostawy.darmowaOd));
-    return koszty.length ? produkt.cena + Math.min(...koszty) : null;
-  }, [ustawieniaDostawy, produkt.cena]);
+    return koszty.length ? Math.round(((zKodem?.cena ?? produkt.cena) + Math.min(...koszty)) * 100) / 100 : null;
+  }, [ustawieniaDostawy, produkt.cena, zKodem?.cena]);
 
   // Telefon: gdy główny przycisk jest poza ekranem, na dole wisi pasek z ceną i „Dodaj do koszyka".
   const przyciski = useRef<HTMLDivElement>(null);
@@ -189,7 +192,9 @@ export function DodajDoKoszyka({ produkt, onZmianaRozmiaru }: { produkt: Produkt
             >
               <span className="block text-[16px] font-extrabold">Kup teraz</span>
               {zDostawaOd !== null ? (
-                <span className="block text-[12.5px] font-semibold opacity-80">z dostawą od {formatCena(zDostawaOd)} zł · płacisz BLIK-iem</span>
+                <span className="block text-[12.5px] font-semibold opacity-80">
+                  {zKodem ? `z kodem ${zKodem.kod} i dostawą od` : "z dostawą od"} {formatCena(zDostawaOd)} zł · BLIK
+                </span>
               ) : null}
             </button>
           )}
@@ -232,7 +237,11 @@ export function DodajDoKoszyka({ produkt, onZmianaRozmiaru }: { produkt: Produkt
           <div className="min-w-0 flex-1">
             <p className="text-[18px] font-extrabold leading-tight text-ink">{formatCena(produkt.cena)} zł</p>
             <p className="truncate text-[12px] text-ink-2">
-              {dodano ? "✓ Dodano do koszyka" : maRozmiary ? (rozmiar ? `Rozmiar ${rozmiar}` : "Wybierz rozmiar") : produkt.wiekLabel}
+              {dodano
+                ? "✓ Dodano do koszyka"
+                : [zKodem ? `${formatCena(zKodem.cena)} zł z kodem` : null, maRozmiary ? (rozmiar ? `rozm. ${rozmiar}` : "wybierz rozmiar") : produkt.wiekLabel]
+                    .filter(Boolean)
+                    .join(" · ")}
             </p>
           </div>
           {dodano ? (

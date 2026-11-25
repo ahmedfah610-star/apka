@@ -24,6 +24,15 @@ function useTrwajacaPromocja(): PromocjaInfo | null {
   }, []);
   return promo;
 }
+/**
+ * Cena produktu z kodem dodawanym automatycznie (bez minimum) — tyle klient zapłaci za produkt,
+ * bo kod nalicza się sam w koszyku i w „Kup teraz”. null = brak takiej promocji (albo klient usunął kod).
+ */
+export function useCenaZKodem(cena: number): { cena: number; kod: string; procent: number } | null {
+  const promo = useTrwajacaPromocja();
+  if (!promo || !promo.automatyczny || promo.minKoszyk !== 0 || !(cena > 0)) return null;
+  return { cena: cenaPoRabacie(cena, promo.procent), kod: promo.kod, procent: promo.procent };
+}
 const dataPl = (iso: string) => new Intl.DateTimeFormat("pl-PL", { timeZone: "Europe/Warsaw", day: "numeric", month: "numeric", year: "numeric" }).format(new Date(iso));
 
 /**
