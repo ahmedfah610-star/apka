@@ -11,6 +11,7 @@ import { kosztDostawy, type MetodaDostawy } from "@/lib/dostawa";
 import { pobierzDostawe } from "@/lib/dostawaDb";
 import { kluczTestowyOk } from "@/lib/zamowienieTestowe";
 import { sprawdzFakture } from "@/lib/faktura";
+import { oczyscPomiar } from "@/lib/ga4Serwer";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ interface Body {
   kod?: string;
   test?: string; // klucz zamówienia testowego (bez płatności) — patrz zamowienieTestowe.ts
   faktura?: unknown; // dane do faktury (null/brak = bez faktury) — lib/faktura.ts
+  pomiar?: unknown; // identyfikatory GA / kliknięcia reklamy do zgłoszenia zakupu z serwera — lib/ga4Serwer.ts
 }
 
 const POLA_KLIENTA: Record<string, number> = {
@@ -159,7 +161,8 @@ export async function POST(req: Request) {
   const fv = sprawdzFakture(b.faktura);
   if (!fv.ok) return Response.json({ ok: false, blad: fv.blad }, { status: 400 });
   const test = b.test ? await kluczTestowyOk(b.test) : false;
-  const klient = { ...dk.klient, ...(fv.faktura ? { faktura: fv.faktura } : {}), test: test || undefined };
+  const pomiar = oczyscPomiar(b.pomiar);
+  const klient = { ...dk.klient, ...(fv.faktura ? { faktura: fv.faktura } : {}), ...(pomiar ? { pomiar } : {}), test: test || undefined };
 
   // ── Płatność online (Przelewy24) — priorytet, wymaga bazy do zapisu ──
   if (!test && p24Wlaczony() && supabaseWlaczony()) {

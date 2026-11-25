@@ -21,7 +21,7 @@ import { kosztDostawy } from "@/lib/dostawa";
 import { useDostawa } from "@/lib/dostawaKlient";
 import { EdycjaDostaw } from "@/components/EdycjaDostaw";
 import { pobierzKatalog } from "@/lib/katalogKlient";
-import { pomiarKoszyka, zapamietajZakup } from "@/lib/analityka";
+import { daneDoPomiaru, pomiarKoszyka, zapamietajZakup } from "@/lib/analityka";
 import { pozycjaPomiaru } from "@/components/DodajDoKoszyka";
 import { FormularzFaktury, PUSTA_FAKTURA, fakturaDoWyslania, type StanFaktury } from "@/components/FormularzFaktury";
 import { sprawdzFakture, type DaneFaktury } from "@/lib/faktura";
@@ -282,6 +282,7 @@ export default function StronaZamowienia() {
           metoda: `${metoda.nazwa} · ${platnosc.nazwa}`,
           kod: kodPrzyjety?.kod,
           faktura: fakturaDoWyslania(faktura),
+          pomiar: daneDoPomiaru(),
           klient: {
             imie: dane.imie,
             email: dane.email,

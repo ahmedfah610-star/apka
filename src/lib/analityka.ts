@@ -43,7 +43,42 @@ export function zgodaNaPomiar(): boolean {
   }
 }
 
-type OknoGtag = { gtag?: Gtag; bobasGa?: boolean; bobasKolejka?: unknown[][] };
+function ciasteczko(nazwa: string): string {
+  try {
+    const m = document.cookie.match(new RegExp(`(?:^|; )${nazwa.replace(/[.$?*|{}()[\]\\/+^]/g, "\\$&")}=([^;]*)`));
+    return m ? decodeURIComponent(m[1]) : "";
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Identyfikatory do zgłoszenia zakupu z serwera (lib/ga4Serwer.ts) — wysyłane razem z zamówieniem.
+ * Identyfikator GA i sesji istnieją tylko po zgodzie (bez niej Google nie zapisuje cookies).
+ * gclid — identyfikator kliknięcia reklamy (z cookie Google Ads albo adresu strony).
+ */
+export function daneDoPomiaru(): { clientId?: string; sessionId?: string; gclid?: string; zgoda: boolean } {
+  if (typeof document === "undefined") return { zgoda: false };
+  const zgoda = zgodaNaPomiar();
+  // _ga = "GA1.1.<client_id>"
+  const ga = ciasteczko("_ga").split(".");
+  const clientId = ga.length >= 4 ? `${ga[2]}.${ga[3]}` : undefined;
+  // _ga_<ID> = "GS1.1.<session_id>.…" albo nowszy format "GS2.1.s<session_id>$o…"
+  const idPomiaru = (process.env.NEXT_PUBLIC_GA_ID || "G-RG4NHT446C").replace(/^G-/, "");
+  const sesja = ciasteczko(`_ga_${idPomiaru}`);
+  const sessionId = sesja.match(/^GS2\.\d\.s(\d+)/)?.[1] ?? sesja.match(/^GS1\.\d\.(\d+)/)?.[1];
+  // _gcl_aw = "GCL.<czas>.<gclid>"
+  const gclAw = ciasteczko("_gcl_aw").split(".").slice(2).join(".");
+  let gclid = gclAw || undefined;
+  try {
+    gclid = gclid || new URLSearchParams(window.location.search).get("gclid") || undefined;
+  } catch {
+    /* ignoruj */
+  }
+  return { zgoda, ...(zgoda ? { clientId, sessionId } : {}), gclid };
+}
+
+type OknoGtag ={ gtag?: Gtag; bobasGa?: boolean; bobasKolejka?: unknown[][] };
 
 // Zdarzenia sprzed konfiguracji GA (skrypt wczytuje się „afterInteractive") czekają w kolejce —
 // inicjalizacja w GoogleAnalytics.tsx wysyła je zaraz po `gtag('config', …)`.

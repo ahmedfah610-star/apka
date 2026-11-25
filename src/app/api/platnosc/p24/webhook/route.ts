@@ -1,6 +1,7 @@
 import { sbService } from "@/lib/supabase";
 import { p24PodpisNotyfikacjiOk, p24Weryfikuj, type P24Notyfikacja } from "@/lib/przelewy24";
 import { wyslijMaileZamowienia } from "@/lib/mail";
+import { zglosZakupGA4Serwer } from "@/lib/ga4Serwer";
 import { idZPozycji, odswiezPoZmianieStanu } from "@/lib/rewalidacja";
 import { czekaNaWplate } from "@/lib/statusyZamowien";
 import { zuzyjKod } from "@/lib/kodyDb";
@@ -65,6 +66,10 @@ export async function POST(req: Request) {
 
   // Maile tylko przy pierwszym potwierdzeniu — P24 potrafi powtórzyć powiadomienie.
   const { data } = pierwszePotwierdzenie ? await sb.from("zamowienia").select("*").eq("id", zamowienieId).single() : { data: null };
+  // Zakup do GA4 z serwera — także gdy klient nie wróci na stronę „Dziękujemy” (lib/ga4Serwer.ts).
+  if (data) {
+    await zglosZakupGA4Serwer({ id: data.id, razem: Number(data.razem), dostawa: Number(data.dostawa), rabat: Number(data.rabat ?? 0), kod: data.kod_rabatowy ?? null, pozycje: data.pozycje ?? [], klient: data.klient ?? null }).catch(() => false);
+  }
   if (data) {
     await wyslijMaileZamowienia({
       id: data.id,
