@@ -62,7 +62,7 @@ export function KartaProduktu({ produkt, liczbaKolorow, cenaOd }: { produkt: Pro
           </span>
           {stara ? <s className="text-[12.5px] font-semibold text-ink-2">{formatCena(stara)} zł</s> : null}
         </p>
-        {niedostepny ? null : <PromocjaNaKarcie />}
+        {niedostepny ? null : <PromocjaNaKarcie cena={cenaOd ?? produkt.cena} od={!!cenaOd} />}
         <h3 className="mb-2 mt-0.5 line-clamp-2 min-h-[2.7em] text-[13.5px] font-medium leading-snug text-ink group-hover:text-akcent md:text-[14px]">
           {produkt.nazwa}
         </h3>

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { promocjaPrzyProduktach, warunkiPromocji, zakresPromocji, type Promocja } from "@/lib/promocja";
 import { kodAutomatyczny } from "@/lib/kodAutomatyczny";
 import { doKiedy } from "@/components/PasekPromocji";
+import { cenaPoRabacie } from "@/lib/zamowienieWspolne";
+import { formatCena } from "@/lib/filtrowanie";
 
 // Informacja o trwającym kodzie rabatowym przy produktach (karta na liście i strona produktu).
 // Liczona w przeglądarce — strony z cache nie pokażą kodu po końcu promocji.
@@ -24,19 +26,27 @@ function useTrwajacaPromocja(): PromocjaInfo | null {
 }
 const dataPl = (iso: string) => new Intl.DateTimeFormat("pl-PL", { timeZone: "Europe/Warsaw", day: "numeric", month: "numeric", year: "numeric" }).format(new Date(iso));
 
-/** Krótka linijka pod ceną na karcie produktu. */
-export function PromocjaNaKarcie() {
+/**
+ * Krótka linijka pod ceną na karcie produktu. Kod dodawany automatycznie bez minimum → od razu cena z kodem
+ * („33,25 zł z kodem ZIMA5”), bo tyle klient realnie zapłaci za produkt.
+ */
+export function PromocjaNaKarcie({ cena, od }: { cena?: number; od?: boolean }) {
   const promo = useTrwajacaPromocja();
   if (!promo) return null;
+  const zKodem = promo.automatyczny && promo.minKoszyk === 0 && cena && cena > 0 ? cenaPoRabacie(cena, promo.procent) : null;
   return (
     <p className="-mt-0.5 mb-1 truncate text-[11.5px] font-bold text-cena md:text-[12px]" title={`${warunkiPromocji(promo)}. Kod: ${promo.kod}`}>
-      {promo.automatyczny ? `−${promo.procent}% z kodem ${promo.kod} w koszyku` : `${promo.kod}: −${promo.procent}% ${zakresPromocji(promo)}`}
+      {zKodem !== null
+        ? `${od ? "od " : ""}${formatCena(zKodem)} zł z kodem ${promo.kod}`
+        : promo.automatyczny
+          ? `−${promo.procent}% z kodem ${promo.kod} w koszyku`
+          : `${promo.kod}: −${promo.procent}% ${zakresPromocji(promo)}`}
     </p>
   );
 }
 
 /** Ramka z kodem i warunkami na stronie produktu. */
-export function PromocjaProduktu() {
+export function PromocjaProduktu({ cena }: { cena?: number }) {
   const promo = useTrwajacaPromocja();
   const [skopiowano, setSkopiowano] = useState(false);
   if (!promo) return null;
@@ -54,10 +64,18 @@ export function PromocjaProduktu() {
   return (
     <div className="mb-3 rounded-xl border-[1.5px] border-dashed border-cena/60 bg-[oklch(97%_0.025_55)] px-3.5 py-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[15px] font-extrabold text-cena">
-          🎁 −{promo.procent}% z kodem{" "}
-          <span className="rounded-md border-[1.5px] border-dashed border-cena px-1.5 py-0.5 tracking-wide">{promo.kod}</span>
-        </p>
+        {promo.automatyczny && promo.minKoszyk === 0 && cena && cena > 0 ? (
+          <p className="text-[15px] font-extrabold text-cena">
+            🎁 <span className="text-[19px]">{formatCena(cenaPoRabacie(cena, promo.procent))} zł</span> z kodem{" "}
+            <span className="rounded-md border-[1.5px] border-dashed border-cena px-1.5 py-0.5 tracking-wide">{promo.kod}</span>{" "}
+            <span className="font-bold">(−{promo.procent}%)</span>
+          </p>
+        ) : (
+          <p className="text-[15px] font-extrabold text-cena">
+            🎁 −{promo.procent}% z kodem{" "}
+            <span className="rounded-md border-[1.5px] border-dashed border-cena px-1.5 py-0.5 tracking-wide">{promo.kod}</span>
+          </p>
+        )}
         {promo.automatyczny ? null : (
         <button
           type="button"
@@ -71,8 +89,8 @@ export function PromocjaProduktu() {
       <p className="mt-1.5 text-[13px] leading-snug text-ink-2">
         {promo.automatyczny ? (
           <>
-            Kod dodamy sam, gdy włożysz produkt do koszyka — rabat zobaczysz od razu w koszyku. Na wszystkie produkty, bez minimalnej
-            kwoty (rabat nie obejmuje dostawy).{promo.do ? ` Ważny do ${dataPl(promo.do)}.` : ""}
+            Kod naliczymy sam przy zamówieniu — nic nie trzeba wpisywać. Na wszystkie produkty, bez minimalnej kwoty (rabat nie
+            obejmuje dostawy).{promo.do ? ` Ważny do ${dataPl(promo.do)}.` : ""}
           </>
         ) : (
           <>

@@ -82,7 +82,7 @@ export function PanelZakupu({ warianty, startId }: { warianty: Produkt[]; startI
         ) : (
           <p className="mb-2 text-[26px] font-extrabold text-ink">{formatCena(p.cena)} zł</p>
         )}
-        {p.stan === 0 ? null : <PromocjaProduktu />}
+        {p.stan === 0 ? null : <PromocjaProduktu cena={p.cena} />}
         {et ? (
           <p className={`mb-3 flex items-center gap-1.5 text-[13.5px] font-semibold ${kolorStanu}`}>
             {et.ton === "malo" ? (

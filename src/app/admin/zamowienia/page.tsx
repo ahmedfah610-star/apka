@@ -36,6 +36,7 @@ interface Klient {
   faktura?: DaneFaktury | null; // klient chce fakturę
   dokumenty?: DokumentZamowienia[]; // wgrane faktury / dowody zakupu
   braki?: WpisBraku[]; // wysłane maile o braku towaru
+  zrodlo?: string; // „kup-teraz” = kupione przyciskiem przy produkcie, z pominięciem koszyka
 }
 interface Zamowienie {
   id: string;
@@ -112,6 +113,21 @@ export default function AdminZamowienia() {
   };
   // Znaczek przy kliencie: FV (czeka na fakturę) / FV ✓ (faktura wgrana).
   const znaczekFaktury = (z: Zamowienie) => {
+    const kt =
+      z.klient?.zrodlo === "kup-teraz" ? (
+        <span title="Zamówione przyciskiem „Kup teraz” przy produkcie" className="ml-1.5 rounded bg-szary px-1.5 py-0.5 text-[10.5px] font-extrabold text-ink-2">
+          ⚡ Kup teraz
+        </span>
+      ) : null;
+    const fv = znaczekFV(z);
+    return kt || fv ? (
+      <>
+        {fv}
+        {kt}
+      </>
+    ) : null;
+  };
+  const znaczekFV = (z: Zamowienie) => {
     const s = stanFaktury(z);
     if (s === "brak") return null;
     if (s === "gotowa") return <span title="Faktura wystawiona" className="ml-1.5 rounded bg-[oklch(90%_0.07_150)] px-1.5 py-0.5 text-[10.5px] font-extrabold text-[oklch(42%_0.13_150)]">FV ✓</span>;

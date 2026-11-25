@@ -13,6 +13,12 @@ const COOKIES: Wiersz[] = [
   { nazwa: "fasolka-ulubione", cel: "Lista produktów ulubionych", typ: "Niezbędny (funkcjonalny)", czas: "Do wyczyszczenia" },
   { nazwa: "fasolka-zgoda-cookies", cel: "Zapamiętanie Twojej decyzji o cookies", typ: "Niezbędny", czas: "12 miesięcy" },
   { nazwa: "fasolka-ostatnio", cel: "Ostatnio oglądane produkty", typ: "Funkcjonalny", czas: "Do wyczyszczenia" },
+  {
+    nazwa: "bobas-dane-klienta",
+    cel: "Dane do wysyłki z ostatniego zamówienia (gdy zaznaczysz „Zapamiętaj moje dane”) — tylko w Twojej przeglądarce",
+    typ: "Funkcjonalny",
+    czas: "12 miesięcy lub do odznaczenia opcji",
+  },
   { nazwa: "cookies operatora płatności", cel: "Bezpieczna obsługa płatności online", typ: "Niezbędny", czas: "Wg dostawcy płatności" },
 ];
 

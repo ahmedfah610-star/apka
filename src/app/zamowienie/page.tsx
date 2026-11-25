@@ -23,9 +23,10 @@ import { EdycjaDostaw } from "@/components/EdycjaDostaw";
 import { pobierzKatalog } from "@/lib/katalogKlient";
 import { daneDoPomiaru, pomiarKoszyka, zapamietajZakup } from "@/lib/analityka";
 import { pozycjaPomiaru } from "@/components/DodajDoKoszyka";
-import { FormularzFaktury, PUSTA_FAKTURA, fakturaDoWyslania, type StanFaktury } from "@/components/FormularzFaktury";
-import { sprawdzFakture, type DaneFaktury } from "@/lib/faktura";
-import { PROMOCJE, numerTelefonu } from "@/lib/promocja";
+import { FormularzFaktury, PUSTA_FAKTURA, type StanFaktury } from "@/components/FormularzFaktury";
+import type { DaneFaktury } from "@/lib/faktura";
+import { bladZamowienia, trescZamowienia, PUSTE_DANE } from "@/lib/zamowienieWspolne";
+import { fakturaZZapisu, uzupelnijPuste, wczytajDane, zapamietajPoZamowieniu } from "@/lib/zapamietaneDane";
 import { kodAutomatyczny, odrzucKodAutomatyczny } from "@/lib/kodAutomatyczny";
 
 // Płatności obsługuje w całości Przelewy24 — to na jego bezpiecznej stronie
@@ -45,8 +46,10 @@ export default function StronaZamowienia() {
   const [paczkomat, setPaczkomat] = useState<Paczkomat | null>(null);
   // Punkt odbioru osobno dla każdej metody (punkt ORLEN nie może trafić do zamówienia DPD).
   const [punkty, setPunkty] = useState<Record<string, PunktOdbioru>>({});
-  const [dane, setDane] = useState({ imie: "", email: "", telefon: "", adres: "", miasto: "", kod: "" });
+  const [dane, setDane] = useState(PUSTE_DANE);
   const [akceptacja, setAkceptacja] = useState(false);
+  // Dane zapamiętane w tej przeglądarce po poprzednim zamówieniu (lib/zapamietaneDane) — bez bazy.
+  const [zapamietaj, setZapamietaj] = useState(true);
   const [uwagi, setUwagi] = useState("");
   // Faktura (opcjonalnie) — dane sprawdzane też na serwerze przed zapisem zamówienia.
   const [faktura, setFaktura] = useState<StanFaktury>(PUSTA_FAKTURA);
@@ -72,6 +75,17 @@ export default function StronaZamowienia() {
       .then((r) => r.json())
       .then((d) => setPlatnosciOnline(!!d.platnosci))
       .catch(() => {});
+  }, []);
+
+  // Poprzednie zamówienie z tej przeglądarki: dane, sposób dostawy i punkt odbioru (tylko puste pola).
+  useEffect(() => {
+    const z = wczytajDane();
+    if (!z) return;
+    setDane((d) => uzupelnijPuste(d, z.dane));
+    setFaktura((f) => fakturaZZapisu(f, z.faktura));
+    if (z.metodaId) setMetodaId(z.metodaId);
+    if (z.paczkomat) setPaczkomat((p) => p ?? { ...z.paczkomat!, miasto: z.paczkomat!.miasto ?? "" });
+    if (z.punkty) setPunkty((w) => ({ ...(z.punkty as Record<string, PunktOdbioru>), ...w }));
   }, []);
 
   // Zalogowany klient — wstępnie wypełnij dane z profilu (tylko puste pola).
@@ -246,19 +260,27 @@ export default function StronaZamowienia() {
   async function zloz(e: React.FormEvent) {
     e.preventDefault();
     if (ZAMOWIENIA_WYLACZONE) return setBlad(KOMUNIKAT_PRZERWY);
-    if (!dane.imie || !dane.email) return setBlad("Uzupełnij imię i e-mail.");
-    if (metoda.paczkomat && !paczkomat) return setBlad("Wybierz paczkomat InPost.");
-    if (metoda.punkt && !punkt) return setBlad(`Wybierz punkt ${metoda.operatorNazwa ?? metoda.nazwa} na mapie.`);
-    if (!metoda.paczkomat && !metoda.punkt && (!dane.adres || !dane.miasto || !dane.kod)) return setBlad("Uzupełnij adres dostawy.");
-    if (faktura.chce) {
-      const fv = sprawdzFakture(fakturaDoWyslania(faktura));
-      if (!fv.ok) return setBlad(fv.blad);
-    }
-    if (!akceptacja) return setBlad("Zaakceptuj Regulamin i Politykę prywatności.");
-    // Kody „raz na numer” (ZIMA5, BOBAS5) wymagają telefonu — prosimy o numer przed wysłaniem, bez zdejmowania
-    // kodu i bez tłumaczenia, że chodzi o rabat (klient nie musi znać zasad puli; przewoźnik i tak go potrzebuje).
-    if (kodPrzyjety && PROMOCJE.some((p) => p.razNaTelefon && p.kod === kodPrzyjety.kod) && !numerTelefonu(dane.telefon))
-      return setBlad("Podaj numer telefonu (9 cyfr) — przewoźnik wyśle Ci SMS o paczce.");
+    const zamowienie = {
+      pozycje: pozycjeZDanymi.map(({ poz, produkt }) => ({
+        id: produkt!.id,
+        nazwa: produkt!.nazwa,
+        cena: produkt!.cena,
+        ilosc: poz.ilosc,
+        rozmiar: poz.rozmiar,
+        kolor: produkt!.kolor ?? null,
+      })),
+      dostawa,
+      metoda,
+      dane,
+      paczkomat,
+      punkt,
+      faktura,
+      akceptacja,
+      kod: kodPrzyjety?.kod ?? null,
+      uwagi,
+    };
+    const bladDanych = bladZamowienia(zamowienie);
+    if (bladDanych) return setBlad(bladDanych);
     setBlad("");
     setWysylka(true);
     // Zakup zgłosimy do GA4/Google Ads na stronie podziękowania, gdy serwer potwierdzi opłacenie.
@@ -268,33 +290,7 @@ export default function StronaZamowienia() {
       const res = await fetch("/api/platnosc/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pozycje: pozycjeZDanymi.map(({ poz, produkt }) => ({
-            id: produkt!.id,
-            nazwa: produkt!.nazwa,
-            cena: produkt!.cena,
-            ilosc: poz.ilosc,
-            rozmiar: poz.rozmiar,
-            kolor: produkt!.kolor ?? null,
-          })),
-          dostawa,
-          metodaId: metoda.id,
-          metoda: `${metoda.nazwa} · ${platnosc.nazwa}`,
-          kod: kodPrzyjety?.kod,
-          faktura: fakturaDoWyslania(faktura),
-          pomiar: daneDoPomiaru(),
-          klient: {
-            imie: dane.imie,
-            email: dane.email,
-            telefon: dane.telefon,
-            uwagi: uwagi.trim() || undefined,
-            ...(metoda.paczkomat
-              ? { paczkomat: paczkomat?.kod, paczkomatOpis: paczkomat?.opis }
-              : metoda.punkt
-              ? { punkt: punkt?.kod, punktOpis: punkt?.opis, miasto: punkt?.miasto }
-              : { adres: dane.adres, miasto: dane.miasto, kod: dane.kod }),
-          },
-        }),
+        body: JSON.stringify({ ...trescZamowienia(zamowienie, platnosc.nazwa), pomiar: daneDoPomiaru() }),
       });
       const dane2 = (await res.json().catch(() => ({}))) as { ok?: boolean; blad?: string; url?: string; id?: string };
       if (!res.ok || dane2.ok === false) {
@@ -309,6 +305,7 @@ export default function StronaZamowienia() {
         }
         return setBlad(dane2.blad || "Nie udało się złożyć zamówienia. Spróbuj ponownie.");
       }
+      zapamietajPoZamowieniu(zapamietaj, { dane, metodaId: metoda.id, paczkomat, punkt, faktura });
       // Płatność online → przekierowanie do Stripe (BLIK / Przelewy24 / karta).
       if (dane2.url) {
         window.location.href = dane2.url;
@@ -550,6 +547,15 @@ export default function StronaZamowienia() {
 
           <TerminDostawy klasa="mb-4 flex items-center gap-2 rounded-lg bg-szary/40 px-3 py-2.5 text-[13px] text-ink-2" />
 
+          <label className="mb-2 flex cursor-pointer items-start gap-2.5 text-[12.5px] leading-relaxed text-ink-2">
+            <input
+              type="checkbox"
+              checked={zapamietaj}
+              onChange={(e) => setZapamietaj(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--ink)]"
+            />
+            <span>Zapamiętaj moje dane na tym urządzeniu — następnym razem nie trzeba ich wpisywać.</span>
+          </label>
           <label className="mb-3 flex cursor-pointer items-start gap-2.5 text-[12.5px] leading-relaxed text-ink-2">
             <input
               type="checkbox"

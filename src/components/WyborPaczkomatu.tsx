@@ -66,12 +66,12 @@ export function WyborPaczkomatu({
             <p className="text-[14px] font-semibold">Paczkomat {wybrany.kod}</p>
             <p className="truncate text-[13px] text-ink-2">{[wybrany.miasto, wybrany.opis].filter(Boolean).join(", ")}</p>
           </div>
-          <button onClick={() => setOtwarte(true)} className="shrink-0 text-[13px] underline underline-offset-2 hover:text-akcent">
+          <button type="button" onClick={() => setOtwarte(true)} className="shrink-0 text-[13px] underline underline-offset-2 hover:text-akcent">
             Zmień
           </button>
         </div>
       ) : (
-        <button
+        <button type="button"
           onClick={() => setOtwarte(true)}
           className="w-full border border-dashed border-ink-2 px-4 py-3 text-[14px] font-medium text-ink transition-colors hover:border-ink"
         >
@@ -84,7 +84,7 @@ export function WyborPaczkomatu({
           <div className="flex h-[85vh] w-full max-w-2xl flex-col bg-tlo">
             <div className="flex items-center justify-between border-b border-linia px-5 py-4">
               <h3 className="text-[16px] font-bold">Wybierz paczkomat InPost</h3>
-              <button onClick={() => setOtwarte(false)} aria-label="Zamknij" className="text-ink-2 hover:text-ink">
+              <button type="button" onClick={() => setOtwarte(false)} aria-label="Zamknij" className="text-ink-2 hover:text-ink">
                 ✕
               </button>
             </div>
@@ -94,7 +94,7 @@ export function WyborPaczkomatu({
                 <div className="min-h-0 flex-1">
                   <GeowidgetInpost onWybierz={wybierz} />
                 </div>
-                <button
+                <button type="button"
                   onClick={() => setTrybListy(true)}
                   className="border-t border-linia px-5 py-2.5 text-left text-[12px] text-ink-2 hover:text-akcent"
                 >
@@ -126,7 +126,7 @@ export function WyborPaczkomatu({
                     <p className="p-5 text-center text-[13px] text-ink-2">Brak paczkomatów dla „{q.trim()}".</p>
                   ) : (
                     wyniki.map((p) => (
-                      <button
+                      <button type="button"
                         key={p.kod}
                         onClick={() => wybierz(p)}
                         className="flex w-full items-start gap-3 border-b border-linia px-5 py-3 text-left transition-colors hover:bg-szary"
