@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
-import { sezonZimowy, SLUG_ZIMA } from "@/lib/sezon";
+import { sezonPrezentowy, sezonZimowy, SLUG_PREZENTY, SLUG_ZIMA } from "@/lib/sezon";
 import { promocjaWidoczna, zakresPromocji, type Promocja } from "@/lib/promocja";
 import type { Kategoria } from "@/data/produkty";
 import { MESKIE_PODKATEGORIE } from "@/data/meskiePodkategorie";
@@ -125,6 +125,7 @@ export function MenuMobilne({ aktywna: _aktywna }: { aktywna?: "home" | "produkt
 
               <ul className="px-4 pt-1">
                 {[
+                  ...(sezonPrezentowy() ? [{ href: `/kolekcje/${SLUG_PREZENTY}`, label: "🎁 Prezenty na Mikołajki i Święta", kolor: "text-cena" }] : []),
                   ...(zima ? [{ href: `/kolekcje/${SLUG_ZIMA}`, label: "❄ Na zimę", kolor: "text-akcent" }] : []),
                   { href: "/produkty", label: "Wszystkie produkty" },
                   ...DZIALY.flatMap((d) => [

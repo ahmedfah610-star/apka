@@ -1,5 +1,5 @@
 import type { Kategoria, Produkt } from "@/data/produkty";
-import { czyCieply, SLUG_ZIMA } from "@/lib/sezon";
+import { czyCieply, SLUG_PREZENTY, SLUG_ZIMA } from "@/lib/sezon";
 
 // Strony docelowe (landing pages) pod frazy sprzedażowe. Każda ma własny URL,
 // tytuł, nagłówek H1, opis SEO, treść i FAQ (rich results) oraz listę produktów
@@ -16,6 +16,8 @@ export interface Kolekcja {
   klucze: string[]; // dopasowanie po nazwie produktu (znormalizowane, małe litery)
   wyklucz?: string[]; // słowa w nazwie, które wykluczają produkt (np. „komplet" w bluzach)
   dopasuj?: (p: Produkt) => boolean; // własna reguła zamiast kluczy (np. ciepłe ubranka na zimę)
+  priorytet?: (p: Produkt) => number; // kolejność na stronie: wyższy wynik wyżej (przy równym — kolejność katalogu)
+  grupa?: "prezenty"; // kolekcje z tej samej grupy linkują się nawzajem w „Zobacz też” w pierwszej kolejności
   faq: { q: string; a: string }[];
 }
 
@@ -29,7 +31,7 @@ function norm(s: string): string {
 
 /** Produkty pasujące do kolekcji (kategoria + słowo w nazwie). */
 export function produktyKolekcji(produkty: Produkt[], kol: Kolekcja): Produkt[] {
-  return produkty.filter((p) => {
+  const lista = produkty.filter((p) => {
     if (kol.kategoria && p.kategoria !== kol.kategoria) return false;
     if (kol.dopasuj) return kol.dopasuj(p);
     // Kolekcje „dziecięce" bez działu (dresy, komplety, body, czapki) — bez odzieży męskiej.
@@ -38,7 +40,32 @@ export function produktyKolekcji(produkty: Produkt[], kol: Kolekcja): Produkt[] 
     if (kol.wyklucz?.some((w) => n.includes(w))) return false;
     return kol.klucze.some((k) => n.includes(k));
   });
+  if (!kol.priorytet) return lista;
+  // Ten sam model w kilku kolorach nie zajmuje całej góry strony: każde kolejne powtórzenie
+  // (ten sam rodzaj i napis) traci 3,5 pkt, więc na górze miesza się kilka różnych rzeczy.
+  const powtorzenia = new Map<string, number>();
+  const wynik = new Map(
+    lista.map((p) => {
+      // Model = rodzaj ubranka (pierwsze słowo) + napis, a bez napisu — początek nazwy.
+      const n = norm(p.nazwa).replace(/[^a-z ]/g, "");
+      const klucz = `${n.split(" ")[0]}|${NAPISY.find((k) => n.includes(k)) ?? n.slice(0, 28)}`;
+      const ile = powtorzenia.get(klucz) ?? 0;
+      powtorzenia.set(klucz, ile + 1);
+      return [p.id, kol.priorytet!(p) - 3.5 * ile];
+    }),
+  );
+  return [...lista].sort((a, b) => wynik.get(b.id)! - wynik.get(a.id)!); // sort stabilny — remisy w kolejności katalogu
 }
+
+// ── Prezenty ─────────────────────────────────────────────────────────────
+// Słowa (po normalizacji) w nazwach ubranek z napisem dla babci, dziadka, taty.
+const NAPISY = ["babci", "dziadk", "dziadek", "tatus", "prezes", "kocham"];
+const maNapis = (p: Produkt) => NAPISY.some((k) => norm(p.nazwa).includes(k));
+const ma = (p: Produkt, ...slowa: string[]) => slowa.some((k) => norm(p.nazwa).includes(k));
+const dostepny = (p: Produkt) => p.stan !== 0;
+const dzieciecy = (p: Produkt) => p.kategoria !== "dorosli";
+/** Zestawy w pudełku / wieloczęściowe — najbardziej „prezentowe”. */
+const zestawPrezentowy = (p: Produkt) => ma(p, "wyprawka komplet", "komplet wyprawka", "czesci", "chrzt");
 
 export function znajdzKolekcje(slug: string): Kolekcja | undefined {
   return KOLEKCJE.find((k) => k.slug === slug);
@@ -55,6 +82,14 @@ const FAQ_ROZMIAR_MESKI = {
 const FAQ_DUZE_ROZMIARY = {
   q: "Czy są duże rozmiary?",
   a: "Tak. Wiele modeli mamy w rozmiarach od M do 3XL, a wybrane także w 4XL, 5XL, 6XL i 7XL. Dostępne rozmiary widać na karcie każdego produktu.",
+};
+const FAQ_DOSTAWA_PREZENT = {
+  q: "Do kiedy zamówić, żeby prezent dotarł na czas?",
+  a: "Wysyłamy w 1–2 dni robocze, a przewoźnik doręcza zwykle w 1–2 dni. Na Mikołajki czy Święta zamów z kilkudniowym zapasem — w grudniu kurierzy mają więcej pracy. Na zwrot masz 14 dni.",
+};
+const FAQ_ROZMIAR_PREZENT = {
+  q: "Jaki rozmiar wybrać na prezent?",
+  a: "Rozmiar to wzrost dziecka w centymetrach (np. 68 = ok. 68 cm, czyli zwykle 3–6 miesięcy). Na prezent wybierz rozmiar o jeden większy niż obecny — dziecko szybko rośnie i ubranko posłuży dłużej. Wymiary każdego rozmiaru podajemy na karcie produktu.",
 };
 const FAQ_DOSTAWA = {
   q: "Jak szybko dotrze zamówienie?",
@@ -84,6 +119,95 @@ export const KOLEKCJE: Kolekcja[] = [
       },
       FAQ_ROZMIAR,
       FAQ_DOSTAWA,
+    ],
+  },
+  // ── Prezenty (sezonowo w menu: od 15 listopada do Wigilii — lib/sezon) ─────
+  {
+    slug: SLUG_PREZENTY,
+    h1: "Prezent dla dziecka na Mikołajki i Święta — do 30 zł",
+    tytul: "Prezent dla dziecka na Mikołajki i Święta do 30 zł",
+    opis: "Prezenty dla dzieci do 30 zł: body z napisem dla babci i dziadka, ciepłe czapki, sweterki i komplety. Wysyłka w 1–2 dni robocze. Wybierz prezent na Mikołajki i pod choinkę!",
+    krotko: "Ubranka do 30 zł, które ucieszą i rodziców, i malucha: zabawne body z napisem, ciepłe czapki, sweterki i komplety.",
+    wstep:
+      "Szukasz prezentu dla dziecka na Mikołajki albo pod choinkę, który nie wyląduje na dnie szafy? Ubranko to prezent praktyczny — rodzice zawsze go docenią, bo maluchy rosną błyskawicznie. Zebraliśmy tu rzeczy do 30 zł: body z napisami dla babci, dziadka i taty, ciepłe czapki, sweterki i kamizelki na zimę oraz wygodne komplety. Na górze listy są nasze typy na prezent. Przy każdym rozmiarze podajemy wymiary w centymetrach, a paczki wysyłamy w 1–2 dni robocze.",
+    kategoria: null,
+    grupa: "prezenty",
+    klucze: ["prezent", "mikolaj", "swieta"], // tylko do wyszukiwarki — produkty wybiera `dopasuj`
+    dopasuj: (p) =>
+      dzieciecy(p) && dostepny(p) && p.cena <= 30 && (maNapis(p) || czyCieply(p) || ma(p, "komplet", "pajac", "body", "sukienk", "wyprawk")),
+    priorytet: (p) => (maNapis(p) ? 3 : 0) + (ma(p, "czapk", "sweter", "kamizelk") ? 2 : 0) + (zestawPrezentowy(p) ? 1 : 0),
+    faq: [
+      {
+        q: "Jakie ubranko kupić dziecku na Mikołajki?",
+        a: "Sprawdzają się rzeczy, które od razu się przydadzą: ciepła czapka, sweterek albo kamizelka na zimę, wygodny komplet do domu. Jeśli prezent jest od babci lub dziadka, hitem są body z napisem, np. „Babcia tu była” albo „Mój dziadek jest najlepszy”.",
+      },
+      FAQ_ROZMIAR_PREZENT,
+      FAQ_DOSTAWA_PREZENT,
+    ],
+  },
+  {
+    slug: "ubranka-z-napisem-dla-wnuka",
+    h1: "Ubranka z napisem — prezent dla wnuka i wnuczki",
+    tytul: "Body z napisem babcia i dziadek — prezent dla wnuka",
+    opis: "Body i pajacyki z napisem „Babcia tu była”, „Mój dziadek jest najlepszy”, „Kocham babcię i dziadka”. Bawełna, rozmiary dla niemowląt, wysyłka w 1–2 dni robocze. Prezent od babci i dziadka!",
+    krotko: "„Babcia tu była”, „Mój dziadek jest najlepszy”, „Kocham babcię i dziadka” — body i pajacyki, które robią furorę na rodzinnych zdjęciach.",
+    wstep:
+      "Ubranka z napisem to ulubiony prezent babć i dziadków dla wnuków. Body „Babcia tu była” z odciskami buziaków, „Mój dziadek jest najlepszy”, „Tata wie dużo, ale dziadek wie więcej” czy „Kocham babcię i dziadka” wywołują uśmiech przy każdym przewijaniu i świetnie wyglądają na zdjęciach. To praktyczny prezent na narodziny, chrzest, Mikołajki, Święta i Dzień Babci i Dziadka. Wybierz rozmiar o jeden większy niż obecny — posłuży dłużej.",
+    kategoria: null,
+    grupa: "prezenty",
+    klucze: NAPISY,
+    dopasuj: (p) => dzieciecy(p) && dostepny(p) && maNapis(p),
+    priorytet: (p) => (ma(p, "babci") ? 2 : 0) + (ma(p, "dziadk", "dziadek") ? 1 : 0),
+    faq: [
+      {
+        q: "Jaki napis wybrać na prezent od babci lub dziadka?",
+        a: "Od babci najczęściej wybierane jest body „Babcia tu była”, od dziadka — „Mój dziadek jest najlepszy” albo „Tata wie dużo, ale dziadek wie więcej”. Na prezent od obojga sprawdzi się „Kocham babcię i dziadka”.",
+      },
+      FAQ_ROZMIAR_PREZENT,
+      FAQ_DOSTAWA_PREZENT,
+    ],
+  },
+  {
+    slug: "prezent-dla-niemowlaka",
+    h1: "Prezent dla niemowlaka",
+    tytul: "Prezent dla niemowlaka — wyprawki, komplety, body z napisem",
+    opis: "Prezent dla niemowlaka: wyprawki dla noworodka, eleganckie komplety, ubranka do chrztu i body z napisem. Miękka bawełna, wysyłka w 1–2 dni robocze. Wybierz prezent na narodziny i chrzest!",
+    krotko: "Wyprawki dla noworodka, eleganckie komplety i body z napisem — prezent na narodziny, chrzest i pierwsze Święta.",
+    wstep:
+      "Prezent dla niemowlaka powinien być przede wszystkim praktyczny i miły w dotyku. Na górze tej strony znajdziesz kilkuczęściowe wyprawki dla noworodka i ubranka do chrztu, dalej eleganckie pajacyki, komplety i body z napisami dla rodziny. Ubranka uszyte są z miękkich materiałów przyjaznych delikatnej skórze, z zapięciami ułatwiającymi przewijanie. Jeśli nie znasz rozmiaru, wybierz 62 lub 68 — maluch szybko do nich dorośnie.",
+    kategoria: "niemowleta",
+    grupa: "prezenty",
+    klucze: ["wyprawk", "chrzt", "elegancki"],
+    dopasuj: (p) => dostepny(p) && (ma(p, "wyprawk", "chrzt", "elegancki", "komplet") || maNapis(p)),
+    priorytet: (p) => (zestawPrezentowy(p) ? 3 : 0) + (ma(p, "elegancki") ? 2 : 0) + (maNapis(p) ? 2 : 0),
+    faq: [
+      {
+        q: "Co kupić na prezent dla noworodka?",
+        a: "Najbezpieczniej kilkuczęściowy zestaw (wyprawkę) albo komplet w rozmiarze 62–68. Rodzice zawsze potrzebują ubranek na zmianę, a większy rozmiar posłuży, gdy maluch podrośnie. Na chrzest sprawdzą się eleganckie komplety i ubranka wizytowe.",
+      },
+      FAQ_ROZMIAR_PREZENT,
+      FAQ_DOSTAWA_PREZENT,
+    ],
+  },
+  {
+    slug: "ubranka-do-chrztu",
+    h1: "Ubranka do chrztu",
+    tytul: "Ubranka do chrztu dla chłopca i dziewczynki",
+    opis: "Ubranka do chrztu dla chłopca i dziewczynki: wizytowe komplety w bieli i ecru, także na prezent. Wymiary w cm, wysyłka w 1–2 dni robocze. Sprawdź!",
+    krotko: "Wizytowe komplety do chrztu dla chłopca i dziewczynki — w bieli i ecru, gotowe na ten wyjątkowy dzień.",
+    wstep:
+      "Ubranko do chrztu to strój na jeden z najważniejszych dni w życiu malucha i pamiątka na lata. Wybraliśmy wizytowe komplety dla chłopców i dziewczynek w jasnych kolorach, które pięknie wyglądają na zdjęciach. Dobrze sprawdzają się także jako prezent od chrzestnych. Przy wyborze rozmiaru kieruj się wzrostem dziecka w dniu uroczystości, a w razie wątpliwości weź rozmiar większy.",
+    kategoria: null,
+    grupa: "prezenty",
+    klucze: ["chrzt", "chrzest"],
+    dopasuj: (p) => dzieciecy(p) && ma(p, "chrzt", "chrzest"),
+    priorytet: (p) => (dostepny(p) ? 1 : 0),
+    faq: [
+      {
+        q: "Jaki rozmiar ubranka do chrztu wybrać?",
+        a: "Zmierz wzrost dziecka i dodaj kilka centymetrów zapasu na dzień uroczystości — rozmiar to wzrost w centymetrach. Jeśli chrzest jest za kilka tygodni, wybierz rozmiar większy.",
+      },
+      FAQ_DOSTAWA_PREZENT,
     ],
   },
   // ── Chłopcy ──────────────────────────────────────────────────────────────

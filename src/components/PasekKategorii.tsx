@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { sezonZimowy, SLUG_ZIMA } from "@/lib/sezon";
+import { sezonPrezentowy, sezonZimowy, SLUG_PREZENTY, SLUG_ZIMA } from "@/lib/sezon";
 import { MESKIE_PODKATEGORIE } from "@/data/meskiePodkategorie";
 
 // Pasek kategorii pod nagłówkiem (każda strona). Aktywna zakładka z adresu.
@@ -12,6 +12,8 @@ import { MESKIE_PODKATEGORIE } from "@/data/meskiePodkategorie";
 type Zakladka = { label: string; href: string; cena?: boolean; tylkoTelefon?: boolean };
 // Zimą (paź–lut) zaraz po „Wszystko" — wyróżniona jak „Do 20 zł".
 const ZIMA: Zakladka = { label: "❄ Na zimę", href: `/kolekcje/${SLUG_ZIMA}`, cena: true };
+// Od 15 listopada do Wigilii — strona z prezentami (lib/sezon).
+const PREZENTY: Zakladka = { label: "🎁 Prezenty", href: `/kolekcje/${SLUG_PREZENTY}`, cena: true };
 const MESKIE_HREF = "/produkty?kategoria=dorosli";
 const ZAKLADKI: Zakladka[] = [
   { label: "Wszystko", href: "/produkty" },
@@ -140,7 +142,7 @@ export function PasekKategorii() {
       {/* overflow-y-hidden: podkreślenie zakładek (-mb-px) wystaje o 1 px — bez tego na telefonie
           pasek dawał się przesuwać palcem w pionie. */}
       <div ref={pasek} className="mx-auto flex max-w-content gap-5 overflow-x-auto overflow-y-hidden overscroll-x-contain px-4 sm:px-6 md:gap-7 md:px-10 [&::-webkit-scrollbar]:hidden">
-        {(sezonZimowy() ? [ZAKLADKI[0], ZIMA, ...ZAKLADKI.slice(1)] : ZAKLADKI).map((z) => {
+        {[ZAKLADKI[0], ...(sezonPrezentowy() ? [PREZENTY] : []), ...(sezonZimowy() ? [ZIMA] : []), ...ZAKLADKI.slice(1)].map((z) => {
           const on = z.href === "/produkty" ? aktualny === "/produkty" : aktualny.startsWith(z.href);
           const link = (
             <Link

@@ -5,6 +5,8 @@ import type { Produkt } from "@/data/produkty";
 // Włącza i wyłącza się sam: od 1 października do końca lutego (czas polski).
 
 export const SLUG_ZIMA = "ubranka-na-zime";
+/** Strona prezentowa pokazywana w menu w sezonie prezentów (od 15 listopada do Wigilii). */
+export const SLUG_PREZENTY = "prezent-na-mikolajki-i-swieta";
 
 const norm = (s: string) =>
   s
@@ -36,4 +38,13 @@ export function sezonZimowy(teraz: Date = new Date()): boolean {
 /** Ciepłe na początek (kolejność w obu grupach bez zmian). */
 export function cieplePierwsze<T extends Pick<Produkt, "nazwa">>(lista: T[]): T[] {
   return [...lista.filter((p) => czyCieply(p)), ...lista.filter((p) => !czyCieply(p))];
+}
+
+/** Sezon prezentowy (Mikołajki i Święta): od 15 listopada do 24 grudnia włącznie, czas polski. */
+export function sezonPrezentowy(teraz: Date = new Date()): boolean {
+  const [m, d] = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Warsaw", month: "numeric", day: "numeric" })
+    .format(teraz)
+    .split("/")
+    .map(Number);
+  return (m === 11 && d >= 15) || (m === 12 && d <= 24);
 }

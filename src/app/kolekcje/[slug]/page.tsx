@@ -39,7 +39,9 @@ export default async function StronaKolekcji({ params }: { params: { slug: strin
   // Pozostałe kolekcje do linkowania wewnętrznego.
   // Najpierw kolekcje z tego samego działu (np. męskie przy męskich).
   const pozostale = KOLEKCJE.filter((k) => k.slug !== kol.slug);
-  const inne = [...pozostale.filter((k) => k.kategoria === kol.kategoria), ...pozostale.filter((k) => k.kategoria !== kol.kategoria)].slice(0, 8);
+  // Kolekcje prezentowe najpierw linkują do siebie nawzajem.
+  const ranga = (k: (typeof KOLEKCJE)[number]) => (kol.grupa && k.grupa === kol.grupa ? 2 : k.kategoria === kol.kategoria ? 1 : 0);
+  const inne = [...pozostale].sort((a, b) => ranga(b) - ranga(a)).slice(0, 8);
 
   const ld = [
     {
