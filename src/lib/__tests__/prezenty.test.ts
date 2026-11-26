@@ -30,14 +30,14 @@ describe("strony prezentowe", () => {
     expect(slugi).toEqual([SLUG_PREZENTY, "ubranka-z-napisem-dla-wnuka", "prezent-dla-niemowlaka", "ubranka-do-chrztu"]);
   });
 
-  it("Mikołajki i Święta: tylko dziecięce, dostępne i do 30 zł — a na górze różne rzeczy, nie 3× ten sam pajacyk", () => {
+  it("Mikołajki i Święta: droższe zestawy na górze, bez drobiazgów, męskich i wyprzedanych — i nie 3× ten sam pajacyk", () => {
     const l = ids(SLUG_PREZENTY);
-    expect(l).not.toContain("x1");
-    expect(l).not.toContain("x2");
-    expect(l).not.toContain("x3");
-    expect(l).not.toContain("e1"); // 49,99 zł
-    expect(l.slice(0, 3)).toEqual(["a1", "b1", "c1"]); // pajacyk z napisem, body z napisem, ciepła czapka
-    expect(l.filter((id) => id.startsWith("a"))).toHaveLength(3); // pozostałe kolory są dalej na liście
+    expect(l).not.toContain("x1"); // wyprzedane
+    expect(l).not.toContain("x2"); // męskie
+    expect(l).not.toContain("c1"); // czapka za 9,99 zł — drobiazg
+    expect(l).toContain("x3"); // komplet za 39,99 zł — na prezent ludzie wydają więcej
+    expect(l.slice(0, 3)).toEqual(["e1", "d1", "a1"]); // chrzest 49,99, wyprawka 35,99, pajacyk z napisem
+    expect(l.indexOf("a2")).toBeGreaterThan(l.indexOf("b1")); // drugi kolor pajacyka niżej niż inne body z napisem
   });
 
   it("ubranka z napisem: tylko napisy dla babci/dziadka/taty, bez wyprzedanych i męskich", () => {

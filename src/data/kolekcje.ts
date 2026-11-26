@@ -66,6 +66,8 @@ const dostepny = (p: Produkt) => p.stan !== 0;
 const dzieciecy = (p: Produkt) => p.kategoria !== "dorosli";
 /** Zestawy w pudełku / wieloczęściowe — najbardziej „prezentowe”. */
 const zestawPrezentowy = (p: Produkt) => ma(p, "wyprawka komplet", "komplet wyprawka", "czesci", "chrzt");
+/** Na prezent ludzie wydają więcej — droższe rzeczy wyżej (1 pkt za każde 10 zł, do 80 zł). */
+const wartosc = (p: Produkt) => Math.min(p.cena, 80) / 10;
 
 export function znajdzKolekcje(slug: string): Kolekcja | undefined {
   return KOLEKCJE.find((k) => k.slug === slug);
@@ -124,18 +126,22 @@ export const KOLEKCJE: Kolekcja[] = [
   // ── Prezenty (sezonowo w menu: od 15 listopada do Wigilii — lib/sezon) ─────
   {
     slug: SLUG_PREZENTY,
-    h1: "Prezent dla dziecka na Mikołajki i Święta — do 30 zł",
-    tytul: "Prezent dla dziecka na Mikołajki i Święta do 30 zł",
-    opis: "Prezenty dla dzieci do 30 zł: body z napisem dla babci i dziadka, ciepłe czapki, sweterki i komplety. Wysyłka w 1–2 dni robocze. Wybierz prezent na Mikołajki i pod choinkę!",
-    krotko: "Ubranka do 30 zł, które ucieszą i rodziców, i malucha: zabawne body z napisem, ciepłe czapki, sweterki i komplety.",
+    h1: "Prezent dla dziecka na Mikołajki i Święta",
+    tytul: "Prezent dla dziecka na Mikołajki i Święta — wyprawki, komplety, ubranka",
+    opis: "Prezenty dla dzieci na Mikołajki i pod choinkę: wyprawki w pudełku, eleganckie komplety, ubranka do chrztu, body z napisem dla babci i dziadka, ciepłe sweterki. Wysyłka w 1–2 dni robocze.",
+    krotko: "Wyprawki w pudełku, eleganckie komplety, zabawne body z napisem i ciepłe sweterki — prezenty, które ucieszą i rodziców, i malucha.",
     wstep:
-      "Szukasz prezentu dla dziecka na Mikołajki albo pod choinkę, który nie wyląduje na dnie szafy? Ubranko to prezent praktyczny — rodzice zawsze go docenią, bo maluchy rosną błyskawicznie. Zebraliśmy tu rzeczy do 30 zł: body z napisami dla babci, dziadka i taty, ciepłe czapki, sweterki i kamizelki na zimę oraz wygodne komplety. Na górze listy są nasze typy na prezent. Przy każdym rozmiarze podajemy wymiary w centymetrach, a paczki wysyłamy w 1–2 dni robocze.",
+      "Szukasz prezentu dla dziecka na Mikołajki albo pod choinkę, który nie wyląduje na dnie szafy? Ubranko to prezent praktyczny — rodzice zawsze go docenią, bo maluchy rosną błyskawicznie. Zebraliśmy tu nasze typy na prezent: wyprawki dla noworodka w pudełku, eleganckie i wizytowe komplety, ubranka do chrztu, body z napisami dla babci, dziadka i taty oraz ciepłe sweterki, kamizelki i czapki na zimę. Na górze listy są zestawy, które najlepiej wyglądają pod choinką. Przy każdym rozmiarze podajemy wymiary w centymetrach, a paczki wysyłamy w 1–2 dni robocze.",
     kategoria: null,
     grupa: "prezenty",
     klucze: ["prezent", "mikolaj", "swieta"], // tylko do wyszukiwarki — produkty wybiera `dopasuj`
     dopasuj: (p) =>
-      dzieciecy(p) && dostepny(p) && p.cena <= 30 && (maNapis(p) || czyCieply(p) || ma(p, "komplet", "pajac", "body", "sukienk", "wyprawk")),
-    priorytet: (p) => (maNapis(p) ? 3 : 0) + (ma(p, "czapk", "sweter", "kamizelk") ? 2 : 0) + (zestawPrezentowy(p) ? 1 : 0),
+      dzieciecy(p) &&
+      dostepny(p) &&
+      p.cena >= 15 && // drobiazgi za kilka złotych nie robią wrażenia pod choinką (są w „Do 20 zł”)
+      (maNapis(p) || czyCieply(p) || ma(p, "komplet", "pajac", "body", "sukienk", "wyprawk", "chrzt", "elegancki", "dres")),
+    priorytet: (p) =>
+      wartosc(p) + (zestawPrezentowy(p) ? 3 : 0) + (maNapis(p) ? 2 : 0) + (ma(p, "komplet", "elegancki") ? 1 : 0) + (czyCieply(p) ? 1 : 0),
     faq: [
       {
         q: "Jakie ubranko kupić dziecku na Mikołajki?",
@@ -157,7 +163,7 @@ export const KOLEKCJE: Kolekcja[] = [
     grupa: "prezenty",
     klucze: NAPISY,
     dopasuj: (p) => dzieciecy(p) && dostepny(p) && maNapis(p),
-    priorytet: (p) => (ma(p, "babci") ? 2 : 0) + (ma(p, "dziadk", "dziadek") ? 1 : 0),
+    priorytet: (p) => wartosc(p) + (ma(p, "babci") ? 2 : 0) + (ma(p, "dziadk", "dziadek") ? 1 : 0),
     faq: [
       {
         q: "Jaki napis wybrać na prezent od babci lub dziadka?",
@@ -179,7 +185,7 @@ export const KOLEKCJE: Kolekcja[] = [
     grupa: "prezenty",
     klucze: ["wyprawk", "chrzt", "elegancki"],
     dopasuj: (p) => dostepny(p) && (ma(p, "wyprawk", "chrzt", "elegancki", "komplet") || maNapis(p)),
-    priorytet: (p) => (zestawPrezentowy(p) ? 3 : 0) + (ma(p, "elegancki") ? 2 : 0) + (maNapis(p) ? 2 : 0),
+    priorytet: (p) => wartosc(p) + (zestawPrezentowy(p) ? 3 : 0) + (ma(p, "elegancki") ? 2 : 0) + (maNapis(p) ? 2 : 0),
     faq: [
       {
         q: "Co kupić na prezent dla noworodka?",
