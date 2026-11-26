@@ -17,15 +17,15 @@ const API_BATCH = "https://api.resend.com/emails/batch";
 function konfiguracja() {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.MAIL_FROM || "bobas-shopping <onboarding@resend.dev>";
-  const sklep = process.env.MAIL_SKLEP; // adres właściciela (powiadomienie o zamówieniu)
-  return { key, from, sklep };
+  return { key, from };
 }
 
-// Powiadomienie o nowym zamówieniu: adres(y) z MAIL_SKLEP (można po przecinku) + zawsze skrzynka firmy.
-const MAIL_FIRMY = "amin.kids1@hotmail.com";
-export function odbiorcyZamowien(mailSklep = process.env.MAIL_SKLEP): string[] {
-  const adresy = [...(mailSklep ?? "").split(","), MAIL_FIRMY].map((a) => a.trim()).filter((a) => a.includes("@"));
-  return adresy.filter((a, i) => adresy.findIndex((b) => b.toLowerCase() === a.toLowerCase()) === i);
+// Wszystkie powiadomienia sklepu (nowe zamówienia, pytania o produkt, formularz kontaktowy) idą
+// WYŁĄCZNIE na skrzynkę firmy. Zmienna MAIL_SKLEP celowo nie jest już czytana (26.11.2026 — właściciel
+// nie chce tych maili na prywatnym adresie); kolejny adres dopisuje się tutaj, w kodzie.
+export const MAIL_FIRMY = "amin.kids1@hotmail.com";
+export function odbiorcyZamowien(): string[] {
+  return [MAIL_FIRMY];
 }
 
 export function mailWlaczony(): boolean {
@@ -208,8 +208,7 @@ function blokFaktury(k: DaneMaila["klient"], dlaSklepu: boolean): string {
 
 /** Formularz kontaktowy → skrzynka sklepu (odpowiedź trafia do klienta). */
 export async function wyslijMailKontakt(od: { imie: string; email: string; wiadomosc: string }): Promise<{ ok: boolean; blad?: string }> {
-  const { sklep } = konfiguracja();
-  const to = sklep || "amin.kids1@hotmail.com";
+  const to = MAIL_FIRMY;
   const html = powloka({
     naglowek: "Nowa wiadomość ze sklepu",
     preheader: `Od ${od.imie}`,
