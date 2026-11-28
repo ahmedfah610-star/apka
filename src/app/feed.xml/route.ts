@@ -1,4 +1,5 @@
-import { etykietyReklamowe, tytulDoFeedu, zdjeciaDoReklamy } from "@/lib/feedEtykiety";
+import { etykietyReklamowe, tytulGoogle, zdjeciaDoReklamy } from "@/lib/feedEtykiety";
+import { KOLORY_ZWERYFIKOWANE, TYTUL_BEZ_ZMIAN } from "@/data/koloryZweryfikowane";
 import { urlProduktu } from "@/lib/adresProduktu";
 import { katalogWidoczny, opisyRozmiarowTekst } from "@/lib/produktyDb";
 import { czyCieply } from "@/lib/sezon";
@@ -69,7 +70,7 @@ function pozycja(
   const dodatkowe = zdj.slice(1, 11).map((u) => `    <g:additional_image_link>${txt(u)}</g:additional_image_link>`).join("\n");
   return `  <item>
     <g:id>${txt(wariant.id)}</g:id>
-    <g:title>${cdata(tytulDoFeedu(p))}</g:title>
+    <g:title>${cdata(tytulGoogle(p, wariant.rozmiar, KOLORY_ZWERYFIKOWANE, TYTUL_BEZ_ZMIAN))}</g:title>
     <g:description>${cdata(wariant.opis ? wariant.opis.slice(0, 4900) : opisFeed(p))}</g:description>
     <g:link>${txt(link)}</g:link>
     <g:image_link>${txt(zdj[0]!)}</g:image_link>
